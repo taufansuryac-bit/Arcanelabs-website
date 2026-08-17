@@ -22,3 +22,13 @@ test("AsciiWordmark is gated by viewport and document visibility", async () => {
   assert.match(source, /const start = \(\) =>/);
   assert.match(source, /const stop = \(\) =>/);
 });
+
+test("NoiseBackground pauses hidden work without changing visual constants", async () => {
+  const source = await readSource("../components/NoiseBackground.tsx");
+  assert.match(source, /const CELL = 14/);
+  assert.match(source, /const SEGMENTS = 16/);
+  assert.match(source, /heat\[i\] = v \* 0\.87/);
+  assert.match(source, /t - last < 50/);
+  assert.match(source, /observeDocumentVisibility/);
+  assert.match(source, /grainImage/);
+});
