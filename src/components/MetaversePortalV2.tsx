@@ -176,7 +176,14 @@ function VoxelStormField({ progress }: { progress: MotionValue<number> }) {
 
       if (shockwave > 0.1) {
         const flash = Math.min(0.12, shockwave * 0.06);
-        const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height) * 0.44);
+        const gradient = ctx.createRadialGradient(
+          cx,
+          cy,
+          0,
+          cx,
+          cy,
+          Math.max(width, height) * 0.44,
+        );
         gradient.addColorStop(0, `rgba(${green},${flash.toFixed(3)})`);
         gradient.addColorStop(0.22, `rgba(${ink},${(flash * 0.36).toFixed(3)})`);
         gradient.addColorStop(1, "rgba(0,0,0,0)");
@@ -300,7 +307,9 @@ export function MetaversePortalV2() {
           <p className="font-mono text-[9px] uppercase tracking-[0.28em] text-muted-foreground">
             Arcane Labs / Field stabilized
           </p>
-          <p className="font-display text-2xl uppercase tracking-[-0.05em] md:text-5xl">Arcane Labs</p>
+          <p className="font-display text-2xl uppercase tracking-[-0.05em] md:text-5xl">
+            Arcane Labs
+          </p>
         </motion.div>
       </div>
     </section>

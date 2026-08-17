@@ -116,30 +116,20 @@ void main() {
 `;
 
 const CUBE_POSITIONS = new Float32Array([
-  -1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1,
-  1, -1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1,
-  -1, 1, 1, 1, 1, 1, 1, 1, -1, -1, 1, -1,
-  -1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1,
-  1, -1, 1, 1, -1, -1, 1, 1, -1, 1, 1, 1,
-  -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1,
+  -1, -1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, 1, 1, 1,
+  1, 1, 1, 1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, -1, 1, 1,
+  -1, 1, 1, 1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, 1, -1,
 ]);
 
 const CUBE_NORMALS = new Float32Array([
-  0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1,
-  0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1,
-  0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-  0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
-  1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
-  -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0,
+  0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 1, 0, 0, 1, 0, 0,
+  1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0,
+  0, -1, 0, 0, -1, 0, 0, -1, 0, 0,
 ]);
 
 const CUBE_INDICES = new Uint16Array([
-  0, 1, 2, 0, 2, 3,
-  4, 5, 6, 4, 6, 7,
-  8, 9, 10, 8, 10, 11,
-  12, 13, 14, 12, 14, 15,
-  16, 17, 18, 16, 18, 19,
-  20, 21, 22, 20, 22, 23,
+  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16,
+  18, 19, 20, 21, 22, 20, 22, 23,
 ]);
 
 function compileShader(gl: WebGL2RenderingContext, type: number, source: string) {
@@ -189,7 +179,11 @@ export function VoxelArcaneLogo({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext("webgl2", { alpha: true, antialias: true, powerPreference: "high-performance" });
+    const gl = canvas.getContext("webgl2", {
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
+    });
     if (!gl) return;
     const program = createProgram(gl);
     if (!program) return;
@@ -200,7 +194,8 @@ export function VoxelArcaneLogo({
     const indexBuffer = gl.createBuffer();
     const offsetBuffer = gl.createBuffer();
     const seedBuffer = gl.createBuffer();
-    if (!vao || !positionBuffer || !normalBuffer || !indexBuffer || !offsetBuffer || !seedBuffer) return;
+    if (!vao || !positionBuffer || !normalBuffer || !indexBuffer || !offsetBuffer || !seedBuffer)
+      return;
 
     gl.bindVertexArray(vao);
 
@@ -282,7 +277,7 @@ export function VoxelArcaneLogo({
           if (alpha < 112) continue;
           const nx = (x / sampleWidth - 0.5) * 2.95;
           const ny = (0.5 - y / sampleHeight) * 2.12;
-          const seed = ((Math.sin(id * 91.17 + x * 0.37 + y * 0.13) * 43758.5453) % 1 + 1) % 1;
+          const seed = (((Math.sin(id * 91.17 + x * 0.37 + y * 0.13) * 43758.5453) % 1) + 1) % 1;
           offsets.push(nx, ny, 0);
           seeds.push(seed);
           id += 1;
@@ -339,7 +334,13 @@ export function VoxelArcaneLogo({
         gl.uniform3f(uBase, 0.12, 0.13, 0.11);
         gl.uniform3f(uAccent, 0.28, 0.54, 0.08);
       }
-      gl.drawElementsInstanced(gl.TRIANGLES, CUBE_INDICES.length, gl.UNSIGNED_SHORT, 0, instanceCount);
+      gl.drawElementsInstanced(
+        gl.TRIANGLES,
+        CUBE_INDICES.length,
+        gl.UNSIGNED_SHORT,
+        0,
+        instanceCount,
+      );
       gl.bindVertexArray(null);
     };
 
@@ -375,7 +376,10 @@ export function VoxelArcaneLogo({
       sync();
     });
     const themeObserver = new MutationObserver(loadLogo);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -398,5 +402,12 @@ export function VoxelArcaneLogo({
     };
   }, [interactive, mode]);
 
-  return <canvas ref={canvasRef} className={className} role="img" aria-label="Arcane Labs 3D voxel logo" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className={className}
+      role="img"
+      aria-label="Arcane Labs 3D voxel logo"
+    />
+  );
 }
