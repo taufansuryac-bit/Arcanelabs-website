@@ -123,7 +123,8 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      const radius = Math.min(cw, ch) * 0.6;
+      // tight, focused chaos pocket around the cursor
+      const radius = Math.max(90, Math.min(cw, ch) * 0.22);
 
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
@@ -133,21 +134,20 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
           const dx = px - m.x;
           const dy = py - m.y;
           const d = Math.sqrt(dx * dx + dy * dy) / radius;
-          // smoothstep falloff — soft, not spiky
-          const f = d >= 1 ? 0 : (1 - d) * (1 - d) * (3 - 2 * (1 - d) * 0);
+          // smoothstep falloff, squared for a tighter core
+          const k = d >= 1 ? 0 : 1 - d;
+          const f = k * k * k * (3 - 2 * k);
           const chaos = m.active * Math.max(0, Math.min(1, f)) * chaosStrength;
 
           const n = hash(x, y);
           // smooth, continuous displacement (no random per frame)
-          const wob = chaos * 5.5;
+          const wob = chaos * 3.2;
           const sx =
-            x +
-            Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob +
-            (dx / radius) * chaos * 4;
+            x + Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob + (dx / radius) * chaos * 2.2;
           const sy =
             y +
             Math.cos(time * 1.7 + x * 0.33 + n * 6.28) * wob * 0.45 +
-            (dy / radius) * chaos * 2;
+            (dy / radius) * chaos * 1.2;
 
           const lum = sample(sx, sy);
           // slow shimmer keyed to the cell so it reads as texture, not noise
