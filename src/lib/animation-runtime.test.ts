@@ -66,14 +66,13 @@ test("PixelLogo uses first-party Arcane assets instead of the Lovable asset gate
   assert.match(source, /\/arcane-logo-white\.svg/);
 });
 
-test("ArcaneLoader reuses the clean voxel logo and exits through a smooth opacity handoff", async () => {
+test("ArcaneLoader uses the voxel-chaos logo scene and exits through a smooth opacity handoff", async () => {
   const source = await readSource("../components/ArcaneLoader.tsx");
-  assert.match(source, /VoxelArcaneLogo/);
-  assert.match(source, /useMotionValue/);
+  assert.match(source, /VoxelChaosLogoScene/);
   assert.match(source, /sessionStorage/);
-  assert.match(source, /requestAnimationFrame/);
-  assert.match(source, /opacity/);
+  assert.match(source, /transition-opacity/);
   assert.match(source, /onComplete/);
+  assert.doesNotMatch(source, /VoxelArcaneLogo/);
 });
 
 test("SectionPixelReveal is one-shot and disposes its pixel veil", async () => {
@@ -106,26 +105,25 @@ test("IdentityConstellation supports four interactive capabilities", async () =>
   assert.match(source, /onClick/);
 });
 
-test("VoxelArcaneLogo is real WebGL2 instanced 3D rather than pseudo-3D Canvas faces", async () => {
+test("VoxelArcaneLogo remains real WebGL2 instanced 3D", async () => {
   const source = await readSource("../components/VoxelArcaneLogo.tsx");
   assert.match(source, /webgl2/);
   assert.match(source, /drawElementsInstanced/);
-  assert.match(source, /gl_InstanceID/);
   assert.match(source, /perspective/);
-  assert.match(source, /arcane-logo-white\.svg/);
-  assert.match(source, /arcane-logo-black\.svg/);
   assert.doesNotMatch(source, /ctx\.fillRect/);
 });
 
-test("MetaversePortalV2 removes green frame rails and intensifies the voxel storm", async () => {
+test("MetaversePortalV2 uses a restrained square-depth particle field", async () => {
   const source = await readSource("../components/MetaversePortalV2.tsx");
-  assert.match(source, /VoxelArcaneLogo/);
+  assert.match(source, /VoxelChaosLogoScene/);
+  assert.match(source, /SquareDepthField/);
   assert.match(source, /observeElementVisibility/);
   assert.match(source, /observeDocumentVisibility/);
-  assert.match(source, /const DEBRIS =/);
-  assert.match(source, /shockwave/);
-  assert.match(source, /turbulence/);
-  assert.match(source, /h-\[680vh\]/);
+  assert.match(source, /const PARTICLE_COUNT =/);
+  assert.match(source, /particleSize/);
+  assert.match(source, /h-\[620vh\]/);
+  assert.doesNotMatch(source, /shockwave/);
+  assert.doesNotMatch(source, /turbulence/);
   assert.doesNotMatch(source, /nestedFrames/);
   assert.doesNotMatch(source, /drawFrameCorners/);
 });
@@ -138,9 +136,10 @@ test("ProjectScrapbookOrbit provides a large rotating project screenshot ride", 
   assert.match(source, /translateZ/);
   assert.match(source, /requestAnimationFrame/);
   assert.match(source, /onPointerDown/);
+  assert.match(source, /aspect-ratio:16\/9/);
 });
 
-test("index mounts the redesign v2.1 experience components", async () => {
+test("index mounts the redesign v2.2 experience components", async () => {
   const source = await readSource("../routes/index.tsx");
   assert.match(source, /ArcaneLoader/);
   assert.match(source, /SectionPixelReveal/);
