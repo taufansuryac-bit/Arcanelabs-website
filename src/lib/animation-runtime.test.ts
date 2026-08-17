@@ -31,7 +31,7 @@ test("GridHoverBackground uses one lifecycle-gated canvas grid instead of a snak
   assert.match(source, /requestAnimationFrame/);
   assert.match(source, /observeDocumentVisibility/);
   assert.match(source, /pointermove/);
-  assert.match(source, /heat\[i\] \*= DECAY/);
+  assert.match(source, /const next = current \* DECAY/);
   assert.match(source, /passive: true/);
   assert.match(adapter, /GridHoverBackground as NoiseBackground/);
   assert.doesNotMatch(source, /SEGMENTS/);
