@@ -1,22 +1,21 @@
-import logoLight from "@/assets/logo-light.png.asset.json";
-import logoDark from "@/assets/logo-dark.png.asset.json";
-
 /**
- * Arcane Labs mark. Two versions ship: the black mark for light mode and the
- * white mark for dark mode, swapped with the `dark` class variant.
+ * Arcane Labs mark. First-party SVGs derived from the supplied black/white
+ * master artwork. Light mode uses the black mark; dark mode uses the white mark.
  */
 export function PixelLogo({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-block ${className}`}>
       <img
-        src={logoDark.url}
+        src="/arcane-logo-black.svg"
         alt="Arcane Labs"
         className="h-full w-full object-contain dark:hidden"
+        draggable={false}
       />
       <img
-        src={logoLight.url}
+        src="/arcane-logo-white.svg"
         alt="Arcane Labs"
         className="hidden h-full w-full object-contain dark:block"
+        draggable={false}
       />
     </span>
   );
