@@ -32,3 +32,16 @@ test("NoiseBackground pauses hidden work without changing visual constants", asy
   assert.match(source, /observeDocumentVisibility/);
   assert.match(source, /grainImage/);
 });
+
+test("MetaversePortal keeps full visual density while pausing offscreen", async () => {
+  const source = await readSource("../components/MetaversePortal.tsx");
+  assert.match(source, /const N = 460/);
+  assert.match(source, /k < 14/);
+  assert.match(source, /FROM FIRST FRAME/);
+  assert.match(source, /THROUGH THE MACHINE/);
+  assert.match(source, /INTO SOMETHING ARCANE/);
+  assert.match(source, /h-\[640vh\]/);
+  assert.match(source, /observeElementVisibility/);
+  assert.match(source, /observeDocumentVisibility/);
+  assert.match(source, /shouldAnimate/);
+});
