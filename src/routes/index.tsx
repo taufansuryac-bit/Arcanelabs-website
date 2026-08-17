@@ -279,6 +279,9 @@ function Index() {
         </PixelReveal>
       </section>
 
+      {/* Pixel journey into the footer */}
+      <MetaversePortal />
+
       {/* Footer */}
       <footer id="contact" className="relative z-10 line-top overflow-hidden pt-16">
         <div className="flex w-max marquee-track">
