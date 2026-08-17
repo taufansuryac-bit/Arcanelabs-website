@@ -110,13 +110,13 @@ export function NoiseBackground() {
             const f = 1 - d / radius;
             const jitter = 0.55 + Math.random() * 0.45;
             const i = y * cols + x;
-            heat[i] = Math.max(heat[i], f * f * jitter);
+            heat[i] = Math.max(heat[i] ?? 0, f * f * jitter);
           }
         }
       }
 
       for (let i = 0; i < heat.length; i++) {
-        const v = heat[i];
+        const v = heat[i] ?? 0;
         if (v < 0.02) continue;
         heat[i] = v * 0.9;
         const x = (i % cols) * CELL;
