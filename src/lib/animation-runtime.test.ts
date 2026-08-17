@@ -54,3 +54,15 @@ test("PixelReveal disposes its invisible overlay after the original transition f
   assert.match(source, /!completed &&/);
   assert.match(source, /setCompleted\(true\)/);
 });
+
+test("UI correctness fixes keep lifecycle and zero values intact", async () => {
+  const menubar = await readSource("../components/ui/menubar.tsx");
+  const carousel = await readSource("../components/ui/carousel.tsx");
+  const chart = await readSource("../components/ui/chart.tsx");
+
+  assert.match(menubar, /MenubarShortcut\.displayName = "MenubarShortcut"/);
+  assert.doesNotMatch(menubar, /MenubarShortcut\.displayname/);
+  assert.match(carousel, /api\?\.off\("reInit", onSelect\)/);
+  assert.match(carousel, /api\?\.off\("select", onSelect\)/);
+  assert.match(chart, /item\.value !== undefined && item\.value !== null/);
+});
