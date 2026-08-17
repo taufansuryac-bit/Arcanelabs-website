@@ -9,6 +9,7 @@ import { NoiseBackground } from "@/components/NoiseBackground";
 import { PixelFaq } from "@/components/PixelFaq";
 import { PixelReveal } from "@/components/PixelReveal";
 import { ProjectConverge } from "@/components/ProjectConverge";
+import { ProjectScrapbookOrbit } from "@/components/ProjectScrapbookOrbit";
 import { ScrambleText } from "@/components/ScrambleText";
 import { SectionPixelReveal } from "@/components/SectionPixelReveal";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -85,7 +86,6 @@ function Index() {
       <div
         className={`relative z-10 transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
       >
-        {/* Header */}
         <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-5 mix-blend-difference md:px-8">
           <a href="#top" className="group">
             <ScrambleText
@@ -107,7 +107,6 @@ function Index() {
           </nav>
         </header>
 
-        {/* Hero */}
         <section
           id="top"
           className="relative z-10 flex min-h-screen flex-col justify-between px-5 pb-8 pt-24 md:px-8"
@@ -137,7 +136,6 @@ function Index() {
         </section>
 
         <SectionPixelReveal>
-          {/* Selected works */}
           <section id="works" className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
             <div className="mb-12 flex items-baseline justify-between">
               <PixelReveal>
@@ -206,12 +204,13 @@ function Index() {
           <InteractiveTicker />
         </SectionPixelReveal>
 
+        <ProjectScrapbookOrbit />
+
         <SectionPixelReveal threshold={0.06}>
           <IdentityConstellation />
         </SectionPixelReveal>
 
         <SectionPixelReveal>
-          {/* Expertise */}
           <section className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
             <div className="mb-12 flex items-baseline justify-between">
               <PixelReveal>
@@ -255,7 +254,6 @@ function Index() {
         </SectionPixelReveal>
 
         <SectionPixelReveal>
-          {/* FAQ */}
           <section id="faq" className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
             <div className="mb-12 flex items-baseline justify-between">
               <PixelReveal>
@@ -273,7 +271,6 @@ function Index() {
 
         <MetaversePortalV2 />
 
-        {/* Footer */}
         <footer id="contact" className="relative z-10 line-top overflow-hidden pt-16">
           <div className="flex w-max marquee-track">
             {[0, 1].map((key) => (
