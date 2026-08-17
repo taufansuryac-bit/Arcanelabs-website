@@ -70,6 +70,9 @@ function PixelWarp({ p }: { p: MotionValue<number> }) {
       if (intensity < 0.02) return;
 
       const time = t * 0.001;
+      const dark = document.documentElement.classList.contains("dark");
+      const ink = dark ? "255,255,255" : "20,20,20";
+      const flashInk = dark ? "255,255,255" : "0,0,0";
       const shake = intensity * 14;
       const cx = w / 2 + Math.sin(time * 23) * shake * 0.35;
       const cy = h / 2 + Math.cos(time * 19) * shake * 0.35;
@@ -110,7 +113,7 @@ function PixelWarp({ p }: { p: MotionValue<number> }) {
         ctx.rotate(s.angle);
         ctx.fillStyle = s.neon
           ? `rgba(178,255,89,${(alpha * 0.9).toFixed(3)})`
-          : `rgba(255,255,255,${(alpha * 0.85).toFixed(3)})`;
+          : `rgba(${ink},${(alpha * 0.85).toFixed(3)})`;
         ctx.fillRect(0, 0, Math.round(len), cell);
         ctx.restore();
       }
@@ -122,7 +125,7 @@ function PixelWarp({ p }: { p: MotionValue<number> }) {
 
       const flash = Math.max(0, Math.sin(time * 6.3) - 0.965) * 12 * intensity;
       if (flash > 0) {
-        ctx.fillStyle = `rgba(255,255,255,${Math.min(0.22, flash).toFixed(3)})`;
+        ctx.fillStyle = `rgba(${flashInk},${Math.min(0.22, flash).toFixed(3)})`;
         ctx.fillRect(0, 0, w, h);
       }
     };
@@ -211,7 +214,7 @@ export function MetaversePortal() {
           style={{ scale: outScale, opacity: outOpacity, filter: outBlur, rotate: outRotate }}
           className="absolute"
         >
-          <PixelLogo className="h-24 w-24 md:h-32 md:w-32" />
+          <PixelLogo className="h-44 w-44 md:h-72 md:w-72" />
         </motion.div>
 
         {PHRASES.map((phrase) => (
@@ -222,7 +225,7 @@ export function MetaversePortal() {
           style={{ scale: inScale, opacity: inOpacity, filter: inBlur, rotate: inRotate }}
           className="absolute flex flex-col items-center gap-6"
         >
-          <PixelLogo className="h-24 w-24 md:h-32 md:w-32" />
+          <PixelLogo className="h-44 w-44 md:h-72 md:w-72" />
           <ScrambleText text="ARCANE LABS" className="label-mono text-foreground" />
         </motion.div>
       </div>
