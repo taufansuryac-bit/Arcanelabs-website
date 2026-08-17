@@ -7,6 +7,7 @@ import { PixelReveal } from "@/components/PixelReveal";
 import { PixelFaq } from "@/components/PixelFaq";
 import { ProjectConverge } from "@/components/ProjectConverge";
 import { MetaversePortal } from "@/components/MetaversePortal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -84,6 +85,7 @@ function Index() {
           />
         </a>
         <nav className="flex items-center gap-5 md:gap-9">
+          <ThemeToggle />
           {["Works", "Studio", "Contact"].map((item) => (
             <a key={item} href={`#${item.toLowerCase()}`}>
               <ScrambleText
