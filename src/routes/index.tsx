@@ -5,6 +5,8 @@ import { ScrambleText } from "@/components/ScrambleText";
 import { NoiseBackground } from "@/components/NoiseBackground";
 import { PixelReveal } from "@/components/PixelReveal";
 import { PixelFaq } from "@/components/PixelFaq";
+import { ProjectConverge } from "@/components/ProjectConverge";
+import { MetaversePortal } from "@/components/MetaversePortal";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -258,6 +260,9 @@ function Index() {
           ))}
         </div>
       </section>
+
+      {/* Projects converging */}
+      <ProjectConverge />
 
       {/* FAQ */}
       <section id="faq" className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
