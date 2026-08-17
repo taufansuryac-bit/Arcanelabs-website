@@ -1,0 +1,32 @@
+@keyframes ticker-v2-x {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+.ticker-v2-track {
+  animation: ticker-v2-x 24s linear infinite;
+  will-change: transform;
+}
+
+.ticker-v2:hover .ticker-v2-track,
+.ticker-v2:focus-visible .ticker-v2-track,
+.ticker-v2:focus-within .ticker-v2-track {
+  animation-play-state: paused;
+}
+
+.ticker-v2:focus-visible {
+  outline: 1px solid var(--neon);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-v2-track,
+  .marquee-track,
+  .flicker-in {
+    animation: none !important;
+  }
+}
