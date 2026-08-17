@@ -66,3 +66,11 @@ test("UI correctness fixes keep lifecycle and zero values intact", async () => {
   assert.match(carousel, /api\?\.off\("select", onSelect\)/);
   assert.match(chart, /item\.value !== undefined && item\.value !== null/);
 });
+
+test("PixelLogo uses first-party Arcane assets instead of the Lovable asset gateway", async () => {
+  const source = await readSource("../components/PixelLogo.tsx");
+  assert.doesNotMatch(source, /__l5e\/assets-v1/);
+  assert.doesNotMatch(source, /\.asset\.json/);
+  assert.match(source, /\/arcane-logo-black\.png/);
+  assert.match(source, /\/arcane-logo-white\.png/);
+});
