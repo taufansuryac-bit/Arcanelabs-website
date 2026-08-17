@@ -34,9 +34,13 @@ export function NoiseBackground() {
     let last = 0;
     const draw = (t: number) => {
       if (!running) return;
+      if (t - last < 50) {
+        if (running) raf = requestAnimationFrame(draw);
+        return;
+      }
+      last = t;
 
-      if (t - last >= 50 && grainImage) {
-        last = t;
+      if (grainImage) {
         const d = grainImage.data;
         for (let i = 0; i < d.length; i += 4) {
           const v = Math.random() * 255;
