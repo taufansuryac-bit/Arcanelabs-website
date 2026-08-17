@@ -23,18 +23,18 @@ test("AsciiWordmark is gated by viewport and document visibility", async () => {
   assert.match(source, /const stop = \(\) =>/);
 });
 
-test("GridHoverBackground uses one lifecycle-gated canvas grid instead of a snake trail", async () => {
+test("GridHoverBackground uses a single-cell snake head with a short fading trail", async () => {
   const source = await readSource("../components/GridHoverBackground.tsx");
   const adapter = await readSource("../components/NoiseBackground.tsx");
   assert.match(source, /const CELL =/);
-  assert.match(source, /const DECAY =/);
-  assert.match(source, /requestAnimationFrame/);
-  assert.match(source, /observeDocumentVisibility/);
+  assert.match(source, /const TRAIL_LENGTH =/);
+  assert.match(source, /const trail/);
   assert.match(source, /pointermove/);
-  assert.match(source, /const next = current \* DECAY/);
+  assert.match(source, /Math\.floor\(event\.clientX \/ CELL\)/);
+  assert.match(source, /Math\.floor\(event\.clientY \/ CELL\)/);
   assert.match(source, /passive: true/);
   assert.match(adapter, /GridHoverBackground as NoiseBackground/);
-  assert.doesNotMatch(source, /SEGMENTS/);
+  assert.doesNotMatch(source, /WAKE_RADIUS/);
 });
 
 test("PixelReveal disposes its invisible overlay after the original transition finishes", async () => {
@@ -66,14 +66,14 @@ test("PixelLogo uses first-party Arcane assets instead of the Lovable asset gate
   assert.match(source, /\/arcane-logo-white\.svg/);
 });
 
-test("ArcaneLoader assembles the local mark on Canvas and has a safe exit", async () => {
+test("ArcaneLoader reuses the clean voxel logo and exits through a smooth opacity handoff", async () => {
   const source = await readSource("../components/ArcaneLoader.tsx");
-  assert.match(source, /canvas/);
+  assert.match(source, /VoxelArcaneLogo/);
+  assert.match(source, /useMotionValue/);
   assert.match(source, /sessionStorage/);
-  assert.match(source, /arcane-logo-white\.svg/);
-  assert.match(source, /arcane-logo-black\.svg/);
-  assert.match(source, /onComplete/);
   assert.match(source, /requestAnimationFrame/);
+  assert.match(source, /opacity/);
+  assert.match(source, /onComplete/);
 });
 
 test("SectionPixelReveal is one-shot and disposes its pixel veil", async () => {
@@ -106,32 +106,47 @@ test("IdentityConstellation supports four interactive capabilities", async () =>
   assert.match(source, /onClick/);
 });
 
-test("VoxelArcaneLogo uses local artwork and deterministic voxel sampling", async () => {
+test("VoxelArcaneLogo is real WebGL2 instanced 3D rather than pseudo-3D Canvas faces", async () => {
   const source = await readSource("../components/VoxelArcaneLogo.tsx");
-  assert.match(source, /canvas/);
-  assert.match(source, /progress/);
+  assert.match(source, /webgl2/);
+  assert.match(source, /drawElementsInstanced/);
+  assert.match(source, /gl_InstanceID/);
+  assert.match(source, /perspective/);
   assert.match(source, /arcane-logo-white\.svg/);
   assert.match(source, /arcane-logo-black\.svg/);
-  assert.match(source, /seed/);
+  assert.doesNotMatch(source, /ctx\.fillRect/);
 });
 
-test("MetaversePortalV2 is a rectilinear voxel breach with lifecycle gating", async () => {
+test("MetaversePortalV2 removes green frame rails and intensifies the voxel storm", async () => {
   const source = await readSource("../components/MetaversePortalV2.tsx");
   assert.match(source, /VoxelArcaneLogo/);
   assert.match(source, /observeElementVisibility/);
   assert.match(source, /observeDocumentVisibility/);
-  assert.match(source, /nestedFrames/);
-  assert.match(source, /DEBRIS/);
+  assert.match(source, /const DEBRIS =/);
+  assert.match(source, /shockwave/);
+  assert.match(source, /turbulence/);
   assert.match(source, /h-\[680vh\]/);
-  assert.doesNotMatch(source, /k < 14/);
+  assert.doesNotMatch(source, /nestedFrames/);
+  assert.doesNotMatch(source, /drawFrameCorners/);
 });
 
-test("index mounts the redesign v2 experience components", async () => {
+test("ProjectScrapbookOrbit provides a large rotating project screenshot ride", async () => {
+  const source = await readSource("../components/ProjectScrapbookOrbit.tsx");
+  assert.match(source, /PROJECTS/);
+  assert.match(source, /preserve-3d/);
+  assert.match(source, /rotateY/);
+  assert.match(source, /translateZ/);
+  assert.match(source, /requestAnimationFrame/);
+  assert.match(source, /onPointerDown/);
+});
+
+test("index mounts the redesign v2.1 experience components", async () => {
   const source = await readSource("../routes/index.tsx");
   assert.match(source, /ArcaneLoader/);
   assert.match(source, /SectionPixelReveal/);
   assert.match(source, /InteractiveTicker/);
   assert.match(source, /IdentityConstellation/);
+  assert.match(source, /ProjectScrapbookOrbit/);
   assert.match(source, /MetaversePortalV2/);
   assert.doesNotMatch(source, /<MetaversePortal \/>/);
 });
