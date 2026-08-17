@@ -88,8 +88,11 @@ export function GridHoverBackground() {
           continue;
         }
 
-        if (heat[i] !== undefined) heat[i] *= DECAY;
-        value = heat[i] ?? 0;
+        const current = heat[i];
+        if (current === undefined) continue;
+        const next = current * DECAY;
+        heat[i] = next;
+        value = next;
         const gx = i % cols;
         const gy = Math.floor(i / cols);
         const x = gx * CELL;
