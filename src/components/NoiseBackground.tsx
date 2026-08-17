@@ -147,10 +147,13 @@ export function NoiseBackground() {
       for (let i = 0; i < heat.length; i++) {
         const v = heat[i] ?? 0;
         if (v < 0.02) continue;
-        heat[i] = v * 0.9;
+        heat[i] = v * 0.87;
         const x = (i % cols) * CELL;
         const y = Math.floor(i / cols) * CELL;
-        ctx.fillStyle = `oklch(0.88 0.26 135 / ${(v * 0.85).toFixed(3)})`;
+        const dark = document.documentElement.classList.contains("dark");
+        ctx.fillStyle = dark
+          ? `oklch(0.88 0.26 135 / ${(v * 0.85).toFixed(3)})`
+          : `oklch(0.68 0.22 135 / ${(v * 0.8).toFixed(3)})`;
         ctx.fillRect(x + 1, y + 1, CELL - 3, CELL - 3);
       }
     };
