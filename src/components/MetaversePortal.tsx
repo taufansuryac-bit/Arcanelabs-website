@@ -188,7 +188,11 @@ function Phrase({ p, phrase }: { p: MotionValue<number>; phrase: (typeof PHRASES
   const opacity = useTransform(p, [a, b, c, d], [0, 1, 1, 0]);
   const scale = useTransform(p, [a, d], [0.7, 1.9]);
   const z = useTransform(p, [a, d], [-420, 320]);
-  const blur = useTransform(p, [a, b, c, d], ["blur(22px)", "blur(0px)", "blur(0px)", "blur(26px)"]);
+  const blur = useTransform(
+    p,
+    [a, b, c, d],
+    ["blur(22px)", "blur(0px)", "blur(0px)", "blur(26px)"],
+  );
   const skew = useTransform(p, [a, b, d], [-9, 0, 7]);
 
   return (
