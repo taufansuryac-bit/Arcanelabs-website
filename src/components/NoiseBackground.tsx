@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { isDocumentVisible, observeDocumentVisibility } from "@/lib/animation-runtime";
 
 const CELL = 14;
 
@@ -18,36 +19,61 @@ export function NoiseBackground() {
     if (!ctx) return;
 
     let raf = 0;
+    let running = false;
+    let pageVisible = isDocumentVisible();
     let w = 0;
     let h = 0;
+    let grainImage: ImageData | null = null;
 
     const resize = () => {
       w = canvas.width = Math.floor(window.innerWidth / 2);
       h = canvas.height = Math.floor(window.innerHeight / 2);
+      grainImage = ctx.createImageData(w, h);
     };
 
     let last = 0;
     const draw = (t: number) => {
-      raf = requestAnimationFrame(draw);
-      if (t - last < 50) return;
-      last = t;
-      const img = ctx.createImageData(w, h);
-      const d = img.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const v = Math.random() * 255;
-        d[i] = v;
-        d[i + 1] = v;
-        d[i + 2] = v;
-        d[i + 3] = v > 246 ? 10 : 0;
+      if (!running) return;
+
+      if (t - last >= 50 && grainImage) {
+        last = t;
+        const d = grainImage.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const v = Math.random() * 255;
+          d[i] = v;
+          d[i + 1] = v;
+          d[i + 2] = v;
+          d[i + 3] = v > 246 ? 10 : 0;
+        }
+        ctx.putImageData(grainImage, 0, 0);
       }
-      ctx.putImageData(img, 0, 0);
+
+      if (running) raf = requestAnimationFrame(draw);
+    };
+
+    const start = () => {
+      if (running || !pageVisible) return;
+      running = true;
+      raf = requestAnimationFrame(draw);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(raf);
     };
 
     resize();
-    raf = requestAnimationFrame(draw);
+    const disconnectDocument = observeDocumentVisibility((visible) => {
+      pageVisible = visible;
+      if (pageVisible) start();
+      else stop();
+    });
+    start();
     window.addEventListener("resize", resize);
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
+      disconnectDocument();
       window.removeEventListener("resize", resize);
     };
   }, []);
@@ -60,6 +86,8 @@ export function NoiseBackground() {
     if (!ctx) return;
 
     let raf = 0;
+    let running = false;
+    let pageVisible = isDocumentVisible();
     let w = 0;
     let h = 0;
     let cols = 0;
@@ -95,7 +123,7 @@ export function NoiseBackground() {
     let seeded = false;
 
     const draw = () => {
-      raf = requestAnimationFrame(draw);
+      if (!running) return;
       ctx.clearRect(0, 0, w, h);
 
       if (mouse.active) {
@@ -144,26 +172,47 @@ export function NoiseBackground() {
         seeded = false;
       }
 
+      const dark = document.documentElement.classList.contains("dark");
       for (let i = 0; i < heat.length; i++) {
         const v = heat[i] ?? 0;
         if (v < 0.02) continue;
         heat[i] = v * 0.87;
         const x = (i % cols) * CELL;
         const y = Math.floor(i / cols) * CELL;
-        const dark = document.documentElement.classList.contains("dark");
         ctx.fillStyle = dark
           ? `oklch(0.88 0.26 135 / ${(v * 0.85).toFixed(3)})`
           : `oklch(0.68 0.22 135 / ${(v * 0.8).toFixed(3)})`;
         ctx.fillRect(x + 1, y + 1, CELL - 3, CELL - 3);
       }
+
+      if (running) raf = requestAnimationFrame(draw);
     };
 
-    raf = requestAnimationFrame(draw);
+    const start = () => {
+      if (running || !pageVisible) return;
+      running = true;
+      raf = requestAnimationFrame(draw);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
+    const disconnectDocument = observeDocumentVisibility((visible) => {
+      pageVisible = visible;
+      if (pageVisible) start();
+      else stop();
+    });
+
+    start();
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerleave", onLeave);
     window.addEventListener("resize", resize);
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
+      disconnectDocument();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("resize", resize);
