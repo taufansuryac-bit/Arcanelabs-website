@@ -194,6 +194,8 @@ const CAPABILITIES: Capability[] = [
   },
 ];
 
+const DEFAULT_CAPABILITY = CAPABILITIES[0]!;
+
 function PixelCard({ card, index }: { card: Card; index: number }) {
   return (
     <motion.figure
@@ -207,7 +209,7 @@ function PixelCard({ card, index }: { card: Card; index: number }) {
         y: { type: "spring", stiffness: 95, damping: 22, mass: 0.7 },
         delay: index * 0.035,
       }}
-      className="absolute overflow-hidden border border-border bg-card shadow-[0_18px_50px_rgba(0,0,0,.18)]"
+      className="group absolute overflow-hidden border border-border bg-card shadow-[0_18px_50px_rgba(0,0,0,.18)]"
       style={{
         left: card.left,
         top: card.top,
@@ -248,13 +250,16 @@ function PixelCard({ card, index }: { card: Card; index: number }) {
 /** Our Identity V2 — capability stack drives a floating project constellation. */
 export function IdentityConstellation() {
   const [activeId, setActiveId] = useState<CapabilityId>("branding");
-  const active = useMemo(
-    () => CAPABILITIES.find((capability) => capability.id === activeId) ?? CAPABILITIES[0],
+  const active = useMemo<Capability>(
+    () => CAPABILITIES.find((capability) => capability.id === activeId) ?? DEFAULT_CAPABILITY,
     [activeId],
   );
 
   return (
-    <section id="studio" className="relative z-10 min-h-[100svh] overflow-hidden border-t border-border px-5 py-20 md:px-8 md:py-24">
+    <section
+      id="studio"
+      className="relative z-10 min-h-[100svh] overflow-hidden border-t border-border px-5 py-20 md:px-8 md:py-24"
+    >
       <div className="relative z-30 flex items-baseline justify-between">
         <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">Our Identity</h2>
         <span className="label-mono">02</span>
@@ -317,7 +322,7 @@ export function IdentityConstellation() {
         </div>
 
         <div className="relative z-20 grid grid-cols-2 gap-3 md:hidden">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             {active.cards.map((card, index) => (
               <motion.figure
                 key={`${active.id}-${card.label}`}
