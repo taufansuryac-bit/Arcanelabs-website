@@ -1,26 +1,35 @@
 import { useEffect, useRef } from "react";
 
-const CHARS = " .:-=+*i13FTR%K@#$34XН".replace("Н", "");
+/** ramp from faint to dense, tuned to look like the reference glyph field */
+const CHARS = " ...--::=++**33FFTTRR%%K@@##44";
 
 type Props = {
   text: string;
   className?: string;
-  /** approximate cell size in px */
+  /** approximate cell width in px */
   cell?: number;
+  /** how strongly the cursor distorts the field */
+  chaosStrength?: number;
 };
+
+/** stable pseudo-random in [0,1) for a cell — no per-frame jitter */
+function hash(x: number, y: number) {
+  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
 
 /**
  * Renders a word as an animated ASCII glyph field on a canvas.
- * Mouse proximity injects "chaos" into the glyph sampling.
+ * The field breathes slowly; the cursor melts the glyphs around it.
  */
-export function AsciiWordmark({ text, className, cell = 7 }: Props) {
+export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const mouse = useRef({ x: -9999, y: -9999, active: 0 });
+  const mouse = useRef({ x: -9999, y: -9999, target: 0, active: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     const off = document.createElement("canvas");
@@ -34,6 +43,8 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
     let dpr = 1;
     let cw = 0;
     let ch = 0;
+    let cellW = 0;
+    let cellH = 0;
 
     const build = () => {
       const rect = canvas.getBoundingClientRect();
@@ -41,82 +52,120 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       cw = rect.width;
       ch = rect.height;
-      canvas.width = Math.floor(cw * dpr);
-      canvas.height = Math.floor(ch * dpr);
+      canvas.width = Math.round(cw * dpr);
+      canvas.height = Math.round(ch * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      cols = Math.max(20, Math.floor(cw / cell));
-      rows = Math.max(6, Math.floor(ch / (cell * 1.55)));
+      cellW = cell;
+      cellH = cell * 1.55;
+      cols = Math.max(24, Math.floor(cw / cellW));
+      rows = Math.max(8, Math.floor(ch / cellH));
 
-      off.width = cols;
-      off.height = rows;
+      // supersample the letterforms so the glyph ramp gets smooth edges
+      const ss = 3;
+      off.width = cols * ss;
+      off.height = rows * ss;
       octx.setTransform(1, 0, 0, 1, 0, 0);
       octx.fillStyle = "#000";
-      octx.fillRect(0, 0, cols, rows);
+      octx.fillRect(0, 0, off.width, off.height);
 
-      // fit the text inside the sampling grid
-      let size = rows * 0.78;
+      let size = off.height * 0.62;
       octx.textAlign = "center";
       octx.textBaseline = "middle";
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 60; i++) {
         octx.font = `900 ${size}px "Archivo Black", "Helvetica Neue", Arial, sans-serif`;
-        const w = octx.measureText(text).width;
-        if (w <= cols * 0.94) break;
-        size *= 0.92;
+        if (octx.measureText(text).width <= off.width * 0.92) break;
+        size *= 0.94;
       }
       octx.fillStyle = "#fff";
-      octx.fillText(text, cols / 2, rows / 2 + size * 0.03);
-      data = octx.getImageData(0, 0, cols, rows).data;
+      octx.fillText(text, off.width / 2, off.height / 2);
+
+      const src = octx.getImageData(0, 0, off.width, off.height).data;
+      const out = new Uint8ClampedArray(cols * rows);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          let sum = 0;
+          for (let j = 0; j < ss; j++) {
+            for (let i = 0; i < ss; i++) {
+              const sx = x * ss + i;
+              const sy = y * ss + j;
+              sum += src[(sy * off.width + sx) * 4] ?? 0;
+            }
+          }
+          out[y * cols + x] = sum / (ss * ss);
+        }
+      }
+      data = out;
+    };
+
+    const sample = (x: number, y: number) => {
+      if (!data) return 0;
+      const xi = Math.round(x);
+      const yi = Math.round(y);
+      if (xi < 0 || yi < 0 || xi >= cols || yi >= rows) return 0;
+      return (data[yi * cols + xi] ?? 0) / 255;
     };
 
     const draw = (t: number) => {
       raf = requestAnimationFrame(draw);
       if (!data) return;
       const time = t * 0.001;
-      const cwCell = cw / cols;
-      const chCell = ch / rows;
+
+      // ease the cursor influence in/out so nothing pops
+      const m = mouse.current;
+      m.active += (m.target - m.active) * 0.08;
+
+      const gw = cw / cols;
+      const gh = ch / rows;
 
       ctx.clearRect(0, 0, cw, ch);
-      ctx.font = `${Math.max(7, cwCell * 1.35)}px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.font = `${Math.round(gh * 0.92)}px "JetBrains Mono", ui-monospace, monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      const mx = mouse.current.x;
-      const my = mouse.current.y;
-      const radius = Math.min(cw, ch) * 0.55;
+      const radius = Math.min(cw, ch) * 0.6;
 
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
-          const px = (x + 0.5) * cwCell;
-          const py = (y + 0.5) * chCell;
+          const px = (x + 0.5) * gw;
+          const py = (y + 0.5) * gh;
 
-          const dx = px - mx;
-          const dy = py - my;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const chaos = mouse.current.active * Math.max(0, 1 - dist / radius);
+          const dx = px - m.x;
+          const dy = py - m.y;
+          const d = Math.sqrt(dx * dx + dy * dy) / radius;
+          // smoothstep falloff — soft, not spiky
+          const f = d >= 1 ? 0 : (1 - d) * (1 - d) * (3 - 2 * (1 - d) * 0);
+          const chaos = m.active * Math.max(0, Math.min(1, f)) * chaosStrength;
 
-          // sample source with chaos-driven displacement
-          const wob = chaos * 6;
-          const sx = Math.round(
-            x + Math.sin(time * 3 + y * 0.6) * wob + (Math.random() - 0.5) * chaos * 5,
-          );
-          const sy = Math.round(
-            y + Math.cos(time * 2.4 + x * 0.5) * wob * 0.4 + (Math.random() - 0.5) * chaos * 3,
-          );
-          if (sx < 0 || sy < 0 || sx >= cols || sy >= rows) continue;
+          const n = hash(x, y);
+          // smooth, continuous displacement (no random per frame)
+          const wob = chaos * 5.5;
+          const sx =
+            x +
+            Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob +
+            (dx / radius) * chaos * 4;
+          const sy =
+            y +
+            Math.cos(time * 1.7 + x * 0.33 + n * 6.28) * wob * 0.45 +
+            (dy / radius) * chaos * 2;
 
-          const lum = (data[(sy * cols + sx) * 4] ?? 0) / 255;
-          const flicker = (Math.sin(time * 1.7 + x * 0.35 + y * 0.7) + 1) * 0.5;
-          let v = lum * (0.55 + flicker * 0.45) + chaos * 0.35 * Math.random();
-          // faint ambient dust outside the letterforms
-          if (lum < 0.05 && Math.random() > 0.995) v = 0.12;
-          if (v < 0.06) continue;
+          const lum = sample(sx, sy);
+          // slow shimmer keyed to the cell so it reads as texture, not noise
+          const shimmer = 0.72 + 0.28 * Math.sin(time * 1.1 + n * 12.5 + x * 0.12 - y * 0.18);
+          let v = lum * shimmer + chaos * 0.28 * n;
+
+          // sparse ambient dust
+          if (lum < 0.04) {
+            if (n > 0.994) v = 0.14 + 0.1 * Math.sin(time * 2 + n * 30);
+            else v = 0;
+          }
+          if (v < 0.05) continue;
 
           const idx = Math.min(CHARS.length - 1, Math.floor(v * CHARS.length));
           const chr = CHARS[idx];
           if (!chr || chr === " ") continue;
 
-          ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.25 + v * 0.85)})`;
+          ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.28 + v * 0.8).toFixed(3)})`;
           ctx.fillText(chr, px, py);
         }
       }
@@ -125,14 +174,13 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
     const onResize = () => build();
     const onMove = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect();
-      mouse.current.x = e.clientX - r.left;
-      mouse.current.y = e.clientY - r.top;
-      mouse.current.active = 1;
+      m0.x = e.clientX - r.left;
+      m0.y = e.clientY - r.top;
+      m0.target = 1;
     };
+    const m0 = mouse.current;
     const onLeave = () => {
-      mouse.current.active = 0;
-      mouse.current.x = -9999;
-      mouse.current.y = -9999;
+      m0.target = 0;
     };
 
     build();
@@ -150,7 +198,7 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerleave", onLeave);
     };
-  }, [text, cell]);
+  }, [text, cell, chaosStrength]);
 
   return (
     <canvas
