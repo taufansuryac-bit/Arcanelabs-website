@@ -1,3 +1,5 @@
+import "@/redesign-v2.css";
+
 const ITEMS = [
   "BRANDING",
   "UI/UX",
