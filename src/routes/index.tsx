@@ -355,7 +355,6 @@ function Index() {
           <ScrambleText text=":/ BACK TO TOP" className="label-mono text-foreground" />
         </a>
       </footer>
-
     </div>
   );
 }
