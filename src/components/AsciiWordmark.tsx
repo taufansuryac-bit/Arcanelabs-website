@@ -55,7 +55,7 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
       octx.fillRect(0, 0, cols, rows);
 
       // fit the text inside the sampling grid
-      let size = rows * 1.4;
+      let size = rows * 0.78;
       octx.textAlign = "center";
       octx.textBaseline = "middle";
       for (let i = 0; i < 40; i++) {
@@ -136,6 +136,9 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
     };
 
     build();
+    if (typeof document !== "undefined" && document.fonts) {
+      document.fonts.ready.then(build).catch(() => {});
+    }
     raf = requestAnimationFrame(draw);
     window.addEventListener("resize", onResize);
     canvas.addEventListener("pointermove", onMove);
