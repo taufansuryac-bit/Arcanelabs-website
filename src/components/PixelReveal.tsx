@@ -15,6 +15,7 @@ type Props = {
 export function PixelReveal({ children, className = "", delay = 0, block = 26 }: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [shown, setShown] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const [grid, setGrid] = useState({ cols: 0, rows: 0 });
 
   useEffect(() => {
@@ -69,6 +70,13 @@ export function PixelReveal({ children, className = "", delay = 0, block = 26 }:
     });
   }, [grid]);
 
+  useEffect(() => {
+    if (!shown || completed || cells.length === 0) return;
+    const finalDelay = Math.max(...cells) + 260;
+    const timer = window.setTimeout(() => setCompleted(true), finalDelay);
+    return () => window.clearTimeout(timer);
+  }, [shown, completed, cells]);
+
   return (
     <div ref={ref} className={`relative ${className}`}>
       <div
@@ -78,26 +86,28 @@ export function PixelReveal({ children, className = "", delay = 0, block = 26 }:
         {children}
       </div>
 
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
-          gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
-        }}
-      >
-        {cells.map((d, i) => (
-          <span
-            key={i}
-            style={{
-              backgroundColor: "var(--background)",
-              opacity: shown ? 0 : 1,
-              transition: `opacity 260ms steps(2, end) ${shown ? d : 0}ms`,
-            }}
-          />
-        ))}
-      </div>
+      {!completed && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
+            gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
+          }}
+        >
+          {cells.map((d, i) => (
+            <span
+              key={i}
+              style={{
+                backgroundColor: "var(--background)",
+                opacity: shown ? 0 : 1,
+                transition: `opacity 260ms steps(2, end) ${shown ? d : 0}ms`,
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
