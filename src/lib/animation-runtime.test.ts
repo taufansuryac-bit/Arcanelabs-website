@@ -74,3 +74,16 @@ test("PixelLogo uses first-party Arcane assets instead of the Lovable asset gate
   assert.match(source, /\/arcane-logo-black\.svg/);
   assert.match(source, /\/arcane-logo-white\.svg/);
 });
+
+test("GridHoverBackground uses one lifecycle-gated canvas grid instead of a snake trail", async () => {
+  const source = await readSource("../components/GridHoverBackground.tsx");
+  const index = await readSource("../routes/index.tsx");
+  assert.match(source, /const CELL =/);
+  assert.match(source, /requestAnimationFrame/);
+  assert.match(source, /observeDocumentVisibility/);
+  assert.match(source, /pointermove/);
+  assert.match(source, /heat\[i\] \*= DECAY/);
+  assert.match(source, /passive: true/);
+  assert.match(index, /GridHoverBackground/);
+  assert.doesNotMatch(index, /<NoiseBackground \/>/);
+});
