@@ -135,12 +135,7 @@ export function VoxelArcaneLogo({ progress, className = "" }: VoxelArcaneLogoPro
         const jitter = Math.sin(time * (1.2 + voxel.seed) + voxel.seed * 25) * 4;
         const push = separation * (22 + voxel.seed * 92);
         const twist = separation * Math.sin(voxel.seed * 19 + time * 0.8) * 26;
-        const x =
-          originX +
-          voxel.x * scale +
-          directionX * push +
-          directionY * twist +
-          jitter * separation;
+        const x = originX + voxel.x * scale + directionX * push + directionY * twist + jitter * separation;
         const y =
           originY +
           voxel.y * scale +
@@ -214,7 +209,10 @@ export function VoxelArcaneLogo({ progress, className = "" }: VoxelArcaneLogoPro
       sync();
     });
     const themeObserver = new MutationObserver(() => loadLogo());
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     window.addEventListener("resize", resize);
     start();
