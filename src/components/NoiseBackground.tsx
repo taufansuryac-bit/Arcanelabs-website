@@ -19,8 +19,12 @@ export function NoiseBackground() {
       h = canvas.height = Math.floor(window.innerHeight / 2);
     };
 
-    const draw = () => {
+    let last = 0;
+    const draw = (t: number) => {
       raf = requestAnimationFrame(draw);
+      // throttle the grain to ~20fps so it reads as film, not strobing
+      if (t - last < 50) return;
+      last = t;
       const img = ctx.createImageData(w, h);
       const d = img.data;
       for (let i = 0; i < d.length; i += 4) {
@@ -28,7 +32,7 @@ export function NoiseBackground() {
         d[i] = v;
         d[i + 1] = v;
         d[i + 2] = v;
-        d[i + 3] = v > 235 ? 18 : 0;
+        d[i + 3] = v > 246 ? 10 : 0;
       }
       ctx.putImageData(img, 0, 0);
     };
@@ -45,7 +49,7 @@ export function NoiseBackground() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0">
       <div className="absolute inset-0 bg-grid" />
-      <canvas ref={ref} className="absolute inset-0 h-full w-full opacity-70" />
+      <canvas ref={ref} className="absolute inset-0 h-full w-full opacity-60" />
       <div className="absolute inset-0 bg-vignette" />
     </div>
   );
