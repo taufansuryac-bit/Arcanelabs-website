@@ -234,3 +234,11 @@ body {
 @utility flicker-in {
   animation: flicker-in 1.6s steps(24) both;
 }
+
+/* dithered veil over project stills — keeps imagery in the pixel language */
+.pixel-veil {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.45) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+}
