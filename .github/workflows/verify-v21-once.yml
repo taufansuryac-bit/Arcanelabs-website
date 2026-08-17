@@ -1,0 +1,56 @@
+name: Verify V21 Once
+
+on:
+  push:
+    branches:
+      - feature/arcane-redesign-v2
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/arcane-redesign-v2
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Run verification and persist result
+        shell: bash
+        run: |
+          set +e
+          bun run test > /tmp/test.log 2>&1
+          TEST=$?
+          bun run typecheck > /tmp/typecheck.log 2>&1
+          TYPECHECK=$?
+          bun run lint > /tmp/lint.log 2>&1
+          LINT=$?
+          bun run build > /tmp/build.log 2>&1
+          BUILD=$?
+          set -e
+
+          mkdir -p .verification
+          {
+            echo "test=$TEST"
+            echo "typecheck=$TYPECHECK"
+            echo "lint=$LINT"
+            echo "build=$BUILD"
+            if [ "$TEST" -ne 0 ]; then echo "--- test ---"; tail -80 /tmp/test.log; fi
+            if [ "$TYPECHECK" -ne 0 ]; then echo "--- typecheck ---"; tail -80 /tmp/typecheck.log; fi
+            if [ "$LINT" -ne 0 ]; then echo "--- lint ---"; tail -80 /tmp/lint.log; fi
+            if [ "$BUILD" -ne 0 ]; then echo "--- build ---"; tail -80 /tmp/build.log; fi
+          } > .verification/v21.txt
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .verification/v21.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: record v2.1 verification"
+            git push
+          fi
+
+          if [ "$TEST" -ne 0 ] || [ "$TYPECHECK" -ne 0 ] || [ "$LINT" -ne 0 ] || [ "$BUILD" -ne 0 ]; then
+            exit 1
+          fi
