@@ -33,13 +33,14 @@ export function PixelReveal({ children, className = "", delay = 0, block = 26 }:
     const ro = new ResizeObserver(measure);
     ro.observe(el);
 
+    let timer = 0;
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
-            const id = window.setTimeout(() => setShown(true), delay);
+            timer = window.setTimeout(() => setShown(true), delay);
             io.disconnect();
-            return () => window.clearTimeout(id);
+            break;
           }
         }
       },
@@ -48,6 +49,7 @@ export function PixelReveal({ children, className = "", delay = 0, block = 26 }:
     io.observe(el);
 
     return () => {
+      window.clearTimeout(timer);
       io.disconnect();
       ro.disconnect();
     };
