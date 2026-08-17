@@ -79,10 +79,7 @@ export function PixelReveal({ children, className = "", delay = 0, block = 26 }:
 
   return (
     <div ref={ref} className={`relative ${className}`}>
-      <div
-        className="transition-opacity duration-500 ease-out"
-        style={{ opacity: shown ? 1 : 0 }}
-      >
+      <div className="transition-opacity duration-500 ease-out" style={{ opacity: shown ? 1 : 0 }}>
         {children}
       </div>
 
