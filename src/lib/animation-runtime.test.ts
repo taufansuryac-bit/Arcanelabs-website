@@ -45,3 +45,12 @@ test("MetaversePortal keeps full visual density while pausing offscreen", async 
   assert.match(source, /observeDocumentVisibility/);
   assert.match(source, /shouldAnimate/);
 });
+
+test("PixelReveal disposes its invisible overlay after the original transition finishes", async () => {
+  const source = await readSource("../components/PixelReveal.tsx");
+  assert.match(source, /const \[completed, setCompleted\] = useState\(false\)/);
+  assert.match(source, /260ms steps\(2, end\)/);
+  assert.match(source, /\* 520/);
+  assert.match(source, /!completed &&/);
+  assert.match(source, /setCompleted\(true\)/);
+});
