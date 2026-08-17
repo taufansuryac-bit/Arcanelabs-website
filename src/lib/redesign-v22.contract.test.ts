@@ -6,28 +6,31 @@ async function readSource(relativeUrl: string) {
   return readFile(new URL(relativeUrl, import.meta.url), "utf8");
 }
 
-test("voxel logo engine uses the voxel-chaos-logo R3F stack", async () => {
+test("voxel logo engine ports the voxel-chaos-logo density and depth model", async () => {
   const source = await readSource("../components/VoxelChaosLogoScene.tsx");
-  assert.match(source, /@react-three\/fiber/);
-  assert.match(source, /@react-three\/drei/);
-  assert.match(source, /THREE\.InstancedMesh/);
-  assert.match(source, /DEPTH = 7/);
-  assert.match(source, /RES = 104/);
+  assert.match(source, /const RES = 104/);
+  assert.match(source, /const DEPTH = 7/);
+  assert.match(source, /const GAP = 0\.54/);
+  assert.match(source, /drawElementsInstanced/);
+  assert.match(source, /for \(let z = 0; z < DEPTH; z\+\+\)/);
+  assert.match(source, /Math\.exp\(-\(d \* d\)/);
 });
 
 test("portal uses square depth particles without comet trails", async () => {
   const source = await readSource("../components/MetaversePortalV2.tsx");
   assert.match(source, /SquareDepthField/);
   assert.match(source, /perspective/);
-  assert.doesNotMatch(source, /fillRect\([^\n]+stretch/);
+  assert.match(source, /particleSize/);
   assert.doesNotMatch(source, /shadowBlur/);
+  assert.doesNotMatch(source, /stretch/);
 });
 
 test("project orbit inherits site background and uses 16:9 cards", async () => {
   const source = await readSource("../components/ProjectScrapbookOrbit.tsx");
   assert.match(source, /aspect-ratio:\s*16\s*\/\s*9/);
-  assert.doesNotMatch(source, /#10264/);
+  assert.doesNotMatch(source, /#0a1937/);
   assert.match(source, /bg-background/);
+  assert.match(source, /pixel/i);
 });
 
 test("loader uses voxel chaos scene instead of custom canvas pixel renderer", async () => {
