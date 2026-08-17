@@ -43,7 +43,7 @@ const projects = [
     client: "HUF",
     year: "2025",
     image:
-      "https://images.unsplash.com/photo-1470229722913-7ea0d1e0e5b6?auto=format&fit=crop&w=1000&q=75",
+      "https://images.unsplash.com/photo-1516575334481-f85287c2c82d?auto=format&fit=crop&w=1000&q=75",
   },
 ];
 
