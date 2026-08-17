@@ -3,7 +3,8 @@ import { useState } from "react";
 import { AsciiWordmark } from "@/components/AsciiWordmark";
 import { ScrambleText } from "@/components/ScrambleText";
 import { NoiseBackground } from "@/components/NoiseBackground";
-import { Reveal } from "@/components/Reveal";
+import { PixelReveal } from "@/components/PixelReveal";
+import { PixelFaq } from "@/components/PixelFaq";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -111,12 +112,12 @@ function Index() {
         </div>
 
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <Reveal>
+          <PixelReveal>
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
               Arcane Labs is a hybrid production company fusing high-end commercial work with a
               drive to explore the unconventional.
             </p>
-          </Reveal>
+          </PixelReveal>
           <span className="label-mono">Scroll ↓</span>
         </div>
       </section>
@@ -124,11 +125,11 @@ function Index() {
       {/* Selected works */}
       <section id="works" className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
         <div className="mb-12 flex items-baseline justify-between">
-          <Reveal>
+          <PixelReveal>
             <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">
               Selected works
             </h2>
-          </Reveal>
+          </PixelReveal>
           <span className="label-mono">01</span>
         </div>
 
@@ -157,7 +158,7 @@ function Index() {
             ))}
           </ul>
 
-          <Reveal className="md:sticky md:top-28 md:self-start">
+          <PixelReveal className="md:sticky md:top-28 md:self-start">
             <div className="border border-border p-6">
               <div className="mb-6 h-52 w-full overflow-hidden md:h-64">
                 <AsciiWordmark
@@ -181,28 +182,28 @@ function Index() {
                 </div>
               </dl>
             </div>
-          </Reveal>
+          </PixelReveal>
         </div>
       </section>
 
       {/* Identity */}
       <section id="studio" className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
         <div className="mb-12 flex items-baseline justify-between">
-          <Reveal>
+          <PixelReveal>
             <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">
               Our identity
             </h2>
-          </Reveal>
+          </PixelReveal>
           <span className="label-mono">02</span>
         </div>
 
-        <Reveal>
+        <PixelReveal>
           <p className="font-display text-4xl uppercase leading-[0.95] md:text-7xl">
             Camera
             <span className="text-muted-foreground"> or </span>
             Code?
           </p>
-        </Reveal>
+        </PixelReveal>
 
         <div className="mt-14 grid gap-10 md:grid-cols-3">
           {[
@@ -210,12 +211,12 @@ function Index() {
             ["Production", "One team from first frame to master."],
             ["Visual Engineering", "Pipelines built like software, not habit."],
           ].map(([title, copy], i) => (
-            <Reveal key={title} delay={i * 120}>
+            <PixelReveal key={title} delay={i * 120}>
               <div className="line-top pt-5">
                 <h3 className="mb-2 text-sm uppercase tracking-[0.18em]">{title}</h3>
                 <p className="text-sm text-muted-foreground">{copy}</p>
               </div>
-            </Reveal>
+            </PixelReveal>
           ))}
         </div>
       </section>
@@ -223,23 +224,23 @@ function Index() {
       {/* Expertise */}
       <section className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
         <div className="mb-12 flex items-baseline justify-between">
-          <Reveal>
+          <PixelReveal>
             <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">
               From vision to screen
             </h2>
-          </Reveal>
+          </PixelReveal>
           <span className="label-mono">03</span>
         </div>
 
-        <Reveal>
+        <PixelReveal>
           <p className="mb-16 font-display text-3xl uppercase leading-[1.05] md:text-6xl">
             We shoot. We produce. We finish. Commercials made from passion.
           </p>
-        </Reveal>
+        </PixelReveal>
 
         <div className="grid gap-px bg-border md:grid-cols-4">
           {expertise.map((block, i) => (
-            <Reveal key={block.id} delay={i * 90}>
+            <PixelReveal key={block.id} delay={i * 90}>
               <div className="h-full bg-background p-6">
                 <div className="mb-5 flex items-baseline justify-between">
                   <h3 className="text-sm uppercase tracking-[0.18em]">{block.title}</h3>
@@ -253,7 +254,7 @@ function Index() {
                   ))}
                 </ul>
               </div>
-            </Reveal>
+            </PixelReveal>
           ))}
         </div>
       </section>
