@@ -1,4 +1,10 @@
 import { useEffect, useRef } from "react";
+import {
+  isDocumentVisible,
+  observeDocumentVisibility,
+  observeElementVisibility,
+  shouldAnimate,
+} from "@/lib/animation-runtime";
 
 /** ramp from faint to dense, tuned to look like the reference glyph field */
 const CHARS = " ...--::=++**33FFTTRR%%K@@##44";
@@ -37,6 +43,9 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
     if (!octx) return;
 
     let raf = 0;
+    let running = false;
+    let pageVisible = isDocumentVisible();
+    let inViewport = true;
     let cols = 0;
     let rows = 0;
     let data: Uint8ClampedArray | null = null;
@@ -107,73 +116,94 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
     };
 
     const draw = (t: number) => {
-      raf = requestAnimationFrame(draw);
-      if (!data) return;
-      const time = t * 0.001;
+      if (!running) return;
 
-      // ease the cursor influence in/out so nothing pops
-      const m = mouse.current;
-      m.active += (m.target - m.active) * 0.08;
+      if (data) {
+        const time = t * 0.001;
 
-      // ink follows the active theme so light mode stays legible
-      const ink = document.documentElement.classList.contains("dark")
-        ? "255,255,255"
-        : "18,18,18";
+        // ease the cursor influence in/out so nothing pops
+        const m = mouse.current;
+        m.active += (m.target - m.active) * 0.08;
 
-      const gw = cw / cols;
-      const gh = ch / rows;
+        // ink follows the active theme so light mode stays legible
+        const ink = document.documentElement.classList.contains("dark")
+          ? "255,255,255"
+          : "18,18,18";
 
-      ctx.clearRect(0, 0, cw, ch);
-      ctx.font = `${Math.round(gh * 0.92)}px "JetBrains Mono", ui-monospace, monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+        const gw = cw / cols;
+        const gh = ch / rows;
 
-      // tight, focused chaos pocket around the cursor
-      const radius = Math.max(90, Math.min(cw, ch) * 0.22);
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.font = `${Math.round(gh * 0.92)}px "JetBrains Mono", ui-monospace, monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const px = (x + 0.5) * gw;
-          const py = (y + 0.5) * gh;
+        // tight, focused chaos pocket around the cursor
+        const radius = Math.max(90, Math.min(cw, ch) * 0.22);
 
-          const dx = px - m.x;
-          const dy = py - m.y;
-          const d = Math.sqrt(dx * dx + dy * dy) / radius;
-          // smoothstep falloff, squared for a tighter core
-          const k = d >= 1 ? 0 : 1 - d;
-          const f = k * k * k * (3 - 2 * k);
-          const chaos = m.active * Math.max(0, Math.min(1, f)) * chaosStrength;
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            const px = (x + 0.5) * gw;
+            const py = (y + 0.5) * gh;
 
-          const n = hash(x, y);
-          // smooth, continuous displacement (no random per frame)
-          const wob = chaos * 3.2;
-          const sx =
-            x + Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob + (dx / radius) * chaos * 2.2;
-          const sy =
-            y +
-            Math.cos(time * 1.7 + x * 0.33 + n * 6.28) * wob * 0.45 +
-            (dy / radius) * chaos * 1.2;
+            const dx = px - m.x;
+            const dy = py - m.y;
+            const d = Math.sqrt(dx * dx + dy * dy) / radius;
+            // smoothstep falloff, squared for a tighter core
+            const k = d >= 1 ? 0 : 1 - d;
+            const f = k * k * k * (3 - 2 * k);
+            const chaos = m.active * Math.max(0, Math.min(1, f)) * chaosStrength;
 
-          const lum = sample(sx, sy);
-          // slow shimmer keyed to the cell so it reads as texture, not noise
-          const shimmer = 0.72 + 0.28 * Math.sin(time * 1.1 + n * 12.5 + x * 0.12 - y * 0.18);
-          let v = lum * shimmer + chaos * 0.28 * n;
+            const n = hash(x, y);
+            // smooth, continuous displacement (no random per frame)
+            const wob = chaos * 3.2;
+            const sx =
+              x + Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob + (dx / radius) * chaos * 2.2;
+            const sy =
+              y +
+              Math.cos(time * 1.7 + x * 0.33 + n * 6.28) * wob * 0.45 +
+              (dy / radius) * chaos * 1.2;
 
-          // sparse ambient dust
-          if (lum < 0.04) {
-            if (n > 0.994) v = 0.14 + 0.1 * Math.sin(time * 2 + n * 30);
-            else v = 0;
+            const lum = sample(sx, sy);
+            // slow shimmer keyed to the cell so it reads as texture, not noise
+            const shimmer = 0.72 + 0.28 * Math.sin(time * 1.1 + n * 12.5 + x * 0.12 - y * 0.18);
+            let v = lum * shimmer + chaos * 0.28 * n;
+
+            // sparse ambient dust
+            if (lum < 0.04) {
+              if (n > 0.994) v = 0.14 + 0.1 * Math.sin(time * 2 + n * 30);
+              else v = 0;
+            }
+            if (v < 0.05) continue;
+
+            const idx = Math.min(CHARS.length - 1, Math.floor(v * CHARS.length));
+            const chr = CHARS[idx];
+            if (!chr || chr === " ") continue;
+
+            ctx.fillStyle = `rgba(${ink},${Math.min(1, 0.28 + v * 0.8).toFixed(3)})`;
+            ctx.fillText(chr, px, py);
           }
-          if (v < 0.05) continue;
-
-          const idx = Math.min(CHARS.length - 1, Math.floor(v * CHARS.length));
-          const chr = CHARS[idx];
-          if (!chr || chr === " ") continue;
-
-          ctx.fillStyle = `rgba(${ink},${Math.min(1, 0.28 + v * 0.8).toFixed(3)})`;
-          ctx.fillText(chr, px, py);
         }
       }
+
+      if (running) raf = requestAnimationFrame(draw);
+    };
+
+    const start = () => {
+      if (running || !shouldAnimate(pageVisible, inViewport)) return;
+      running = true;
+      raf = requestAnimationFrame(draw);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
+    const syncRunningState = () => {
+      if (shouldAnimate(pageVisible, inViewport)) start();
+      else stop();
     };
 
     const onResize = () => build();
@@ -192,13 +222,29 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
     if (typeof document !== "undefined" && document.fonts) {
       document.fonts.ready.then(build).catch(() => {});
     }
-    raf = requestAnimationFrame(draw);
+
+    const disconnectViewport = observeElementVisibility(
+      canvas,
+      (visible) => {
+        inViewport = visible;
+        syncRunningState();
+      },
+      { rootMargin: "160px 0px" },
+    );
+    const disconnectDocument = observeDocumentVisibility((visible) => {
+      pageVisible = visible;
+      syncRunningState();
+    });
+
+    start();
     window.addEventListener("resize", onResize);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerleave", onLeave);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
+      disconnectViewport();
+      disconnectDocument();
       window.removeEventListener("resize", onResize);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerleave", onLeave);
