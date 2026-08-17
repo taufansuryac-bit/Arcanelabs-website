@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - perf/zero-visual-regression
+      - feature/arcane-redesign-v2
   pull_request:
     branches:
       - main
