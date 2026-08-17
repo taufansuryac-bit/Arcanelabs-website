@@ -84,7 +84,7 @@ function Card({
           src={data.image}
           alt={`${data.title} — ${data.client}`}
           loading="lazy"
-          className="h-full w-full object-cover opacity-80 contrast-125 grayscale"
+          className="h-full w-full object-cover opacity-100 contrast-110 grayscale"
         />
         <div className="pixel-veil pointer-events-none absolute inset-0" />
       </div>
@@ -117,7 +117,7 @@ export function ProjectConverge() {
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
         <motion.div
           style={{ opacity: labelOpacity }}
-          className="pointer-events-none absolute inset-x-0 top-24 flex items-baseline justify-between px-5 md:px-8"
+          className="pointer-events-none absolute inset-x-0 top-28 flex items-baseline justify-between px-5 md:px-8"
         >
           <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">Projects</h2>
           <span className="label-mono">05</span>
