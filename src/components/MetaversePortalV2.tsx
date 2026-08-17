@@ -259,12 +259,22 @@ function RectilinearField({ progress }: { progress: MotionValue<number> }) {
   return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden />;
 }
 
-function PortalPhrase({ progress, phrase }: { progress: MotionValue<number>; phrase: (typeof PHRASES)[number] }) {
+function PortalPhrase({
+  progress,
+  phrase,
+}: {
+  progress: MotionValue<number>;
+  phrase: (typeof PHRASES)[number];
+}) {
   const [a, b, c, d] = phrase.range;
   const opacity = useTransform(progress, [a, b, c, d], [0, 1, 1, 0]);
   const y = useTransform(progress, [a, b, c, d], [42, 0, 0, -46]);
   const scale = useTransform(progress, [a, d], [0.86, 1.12]);
-  const blur = useTransform(progress, [a, b, c, d], ["blur(16px)", "blur(0px)", "blur(0px)", "blur(18px)"]);
+  const blur = useTransform(
+    progress,
+    [a, b, c, d],
+    ["blur(16px)", "blur(0px)", "blur(0px)", "blur(18px)"],
+  );
 
   return (
     <motion.p
@@ -284,7 +294,11 @@ export function MetaversePortalV2() {
 
   const logoProgress = useTransform(p, [0, 0.24, 0.54, 0.82, 1], [0, 0.18, 0.68, 0.9, 1]);
   const logoOpacity = useTransform(p, [0, 0.18, 0.38, 0.68, 0.86, 1], [1, 1, 0.08, 0.05, 1, 1]);
-  const logoScale = useTransform(p, [0, 0.22, 0.4, 0.76, 0.9, 1], [0.88, 1.06, 2.6, 2.2, 1.05, 0.92]);
+  const logoScale = useTransform(
+    p,
+    [0, 0.22, 0.4, 0.76, 0.9, 1],
+    [0.88, 1.06, 2.6, 2.2, 1.05, 0.92],
+  );
   const logoRotate = useTransform(p, [0, 0.42, 0.78, 1], [0, 3.5, -2.5, 0]);
   const environmentOpacity = useTransform(p, [0, 0.1, 0.22, 0.86, 1], [0, 0.3, 1, 1, 0]);
   const finalOpacity = useTransform(p, [0.86, 0.94, 1], [0, 1, 1]);

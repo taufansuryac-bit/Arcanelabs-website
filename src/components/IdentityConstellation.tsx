@@ -332,7 +332,11 @@ export function IdentityConstellation() {
                 transition={{ delay: index * 0.04, duration: 0.38 }}
                 className="overflow-hidden border border-border bg-card"
               >
-                <img src={card.image} alt={card.label} className="aspect-[4/3] w-full object-cover" />
+                <img
+                  src={card.image}
+                  alt={card.label}
+                  className="aspect-[4/3] w-full object-cover"
+                />
                 <figcaption className="px-2 py-2 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground">
                   {card.label}
                 </figcaption>
