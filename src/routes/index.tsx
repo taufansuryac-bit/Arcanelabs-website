@@ -259,6 +259,21 @@ function Index() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section id="faq" className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
+        <div className="mb-12 flex items-baseline justify-between">
+          <PixelReveal>
+            <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">
+              Frequently asked
+            </h2>
+          </PixelReveal>
+          <span className="label-mono">04</span>
+        </div>
+        <PixelReveal>
+          <PixelFaq />
+        </PixelReveal>
+      </section>
+
       {/* Footer */}
       <footer id="contact" className="relative z-10 line-top overflow-hidden pt-16">
         <div className="flex w-max marquee-track">
@@ -272,23 +287,65 @@ function Index() {
           ))}
         </div>
 
-        <div className="mt-16 grid gap-8 px-5 pb-10 md:grid-cols-3 md:px-8">
+        {/* Big ASCII sign-off, like the reference outro */}
+        <div className="mt-10 h-[34vh] w-full md:h-[46vh]">
+          <AsciiWordmark text="ARCANE LABS" cell={8} />
+        </div>
+
+        <div className="grid gap-8 px-5 pb-12 md:grid-cols-4 md:px-8">
           <div>
-            <p className="label-mono mb-2">Contact</p>
-            <a href="mailto:hello@arcanelabs.mov" className="text-sm underline-offset-4 hover:underline">
+            <p className="label-mono mb-2">■ Arcane Labs GmbH</p>
+            <p className="text-sm text-muted-foreground">
+              Chausseestrasse 12
+              <br />
+              10115 Berlin
+            </p>
+          </div>
+          <div>
+            <p className="label-mono mb-2">■ Get in touch</p>
+            <a
+              href="mailto:hello@arcanelabs.mov"
+              className="text-sm underline-offset-4 hover:underline"
+            >
               hello@arcanelabs.mov
             </a>
+            <p className="mt-1 text-sm text-muted-foreground">Instagram</p>
           </div>
           <div>
-            <p className="label-mono mb-2">Studio</p>
-            <p className="text-sm text-muted-foreground">Berlin, DE — Working worldwide</p>
+            <p className="label-mono mb-2">■ Index</p>
+            <ul className="space-y-1">
+              {[
+                ["Works", "#works"],
+                ["Studio", "#studio"],
+                ["FAQ", "#faq"],
+              ].map(([label, href]) => (
+                <li key={label}>
+                  <a href={href}>
+                    <ScrambleText
+                      text={String(label).toUpperCase()}
+                      className="text-[11px] tracking-[0.22em] text-muted-foreground hover:text-foreground"
+                    />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="md:text-right">
-            <p className="label-mono mb-2">© {new Date().getFullYear()}</p>
-            <ScrambleText text="ARCANE LABS" className="text-sm tracking-[0.28em]" />
+            <p className="label-mono mb-2">■ Legals</p>
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} — Imprint / Privacy
+            </p>
           </div>
         </div>
+
+        <a
+          href="#top"
+          className="line-top block bg-secondary/40 py-3 text-center transition-colors hover:bg-secondary"
+        >
+          <ScrambleText text=":/ BACK TO TOP" className="label-mono text-foreground" />
+        </a>
       </footer>
+
     </div>
   );
 }
