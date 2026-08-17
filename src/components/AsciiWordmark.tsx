@@ -115,6 +115,11 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
       const m = mouse.current;
       m.active += (m.target - m.active) * 0.08;
 
+      // ink follows the active theme so light mode stays legible
+      const ink = document.documentElement.classList.contains("dark")
+        ? "255,255,255"
+        : "18,18,18";
+
       const gw = cw / cols;
       const gh = ch / rows;
 
@@ -165,7 +170,7 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
           const chr = CHARS[idx];
           if (!chr || chr === " ") continue;
 
-          ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.28 + v * 0.8).toFixed(3)})`;
+          ctx.fillStyle = `rgba(${ink},${Math.min(1, 0.28 + v * 0.8).toFixed(3)})`;
           ctx.fillText(chr, px, py);
         }
       }
