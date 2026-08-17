@@ -105,7 +105,7 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
           );
           if (sx < 0 || sy < 0 || sx >= cols || sy >= rows) continue;
 
-          const lum = data[(sy * cols + sx) * 4] / 255;
+          const lum = (data[(sy * cols + sx) * 4] ?? 0) / 255;
           const flicker = (Math.sin(time * 1.7 + x * 0.35 + y * 0.7) + 1) * 0.5;
           let v = lum * (0.55 + flicker * 0.45) + chaos * 0.35 * Math.random();
           // faint ambient dust outside the letterforms
@@ -114,7 +114,7 @@ export function AsciiWordmark({ text, className, cell = 7 }: Props) {
 
           const idx = Math.min(CHARS.length - 1, Math.floor(v * CHARS.length));
           const chr = CHARS[idx];
-          if (chr === " ") continue;
+          if (!chr || chr === " ") continue;
 
           ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.25 + v * 0.85)})`;
           ctx.fillText(chr, px, py);
