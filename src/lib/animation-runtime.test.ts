@@ -37,19 +37,6 @@ test("GridHoverBackground uses one lifecycle-gated canvas grid instead of a snak
   assert.doesNotMatch(source, /SEGMENTS/);
 });
 
-test("MetaversePortal keeps full visual density while pausing offscreen", async () => {
-  const source = await readSource("../components/MetaversePortal.tsx");
-  assert.match(source, /const N = 460/);
-  assert.match(source, /k < 14/);
-  assert.match(source, /FROM FIRST FRAME/);
-  assert.match(source, /THROUGH THE MACHINE/);
-  assert.match(source, /INTO SOMETHING ARCANE/);
-  assert.match(source, /h-\[640vh\]/);
-  assert.match(source, /observeElementVisibility/);
-  assert.match(source, /observeDocumentVisibility/);
-  assert.match(source, /shouldAnimate/);
-});
-
 test("PixelReveal disposes its invisible overlay after the original transition finishes", async () => {
   const source = await readSource("../components/PixelReveal.tsx");
   assert.match(source, /const \[completed, setCompleted\] = useState\(false\)/);
@@ -77,4 +64,74 @@ test("PixelLogo uses first-party Arcane assets instead of the Lovable asset gate
   assert.doesNotMatch(source, /\.asset\.json/);
   assert.match(source, /\/arcane-logo-black\.svg/);
   assert.match(source, /\/arcane-logo-white\.svg/);
+});
+
+test("ArcaneLoader assembles the local mark on Canvas and has a safe exit", async () => {
+  const source = await readSource("../components/ArcaneLoader.tsx");
+  assert.match(source, /canvas/);
+  assert.match(source, /sessionStorage/);
+  assert.match(source, /arcane-logo-white\.svg/);
+  assert.match(source, /arcane-logo-black\.svg/);
+  assert.match(source, /onComplete/);
+  assert.match(source, /requestAnimationFrame/);
+});
+
+test("SectionPixelReveal is one-shot and disposes its pixel veil", async () => {
+  const source = await readSource("../components/SectionPixelReveal.tsx");
+  assert.match(source, /IntersectionObserver/);
+  assert.match(source, /setCompleted\(true\)/);
+  assert.match(source, /observer\.disconnect\(\)/);
+  assert.match(source, /!completed &&/);
+});
+
+test("InteractiveTicker contains the approved Arcane capability language", async () => {
+  const source = await readSource("../components/InteractiveTicker.tsx");
+  assert.match(source, /BRANDING/);
+  assert.match(source, /UI\/UX/);
+  assert.match(source, /WEB DEVELOPMENT/);
+  assert.match(source, /MOTION/);
+  assert.match(source, /CREATIVE TECHNOLOGY/);
+  assert.match(source, /ticker-v2-track/);
+});
+
+test("IdentityConstellation supports four interactive capabilities", async () => {
+  const source = await readSource("../components/IdentityConstellation.tsx");
+  assert.match(source, /BRANDING/);
+  assert.match(source, /UI\/UX/);
+  assert.match(source, /WEB DEVELOPMENT/);
+  assert.match(source, /MOTION \/ INTERACTION/);
+  assert.match(source, /AnimatePresence/);
+  assert.match(source, /onPointerEnter/);
+  assert.match(source, /onFocus/);
+  assert.match(source, /onClick/);
+});
+
+test("VoxelArcaneLogo uses local artwork and deterministic voxel sampling", async () => {
+  const source = await readSource("../components/VoxelArcaneLogo.tsx");
+  assert.match(source, /canvas/);
+  assert.match(source, /progress/);
+  assert.match(source, /arcane-logo-white\.svg/);
+  assert.match(source, /arcane-logo-black\.svg/);
+  assert.match(source, /seed/);
+});
+
+test("MetaversePortalV2 is a rectilinear voxel breach with lifecycle gating", async () => {
+  const source = await readSource("../components/MetaversePortalV2.tsx");
+  assert.match(source, /VoxelArcaneLogo/);
+  assert.match(source, /observeElementVisibility/);
+  assert.match(source, /observeDocumentVisibility/);
+  assert.match(source, /nestedFrames/);
+  assert.match(source, /DEBRIS/);
+  assert.match(source, /h-\[680vh\]/);
+  assert.doesNotMatch(source, /k < 14/);
+});
+
+test("index mounts the redesign v2 experience components", async () => {
+  const source = await readSource("../routes/index.tsx");
+  assert.match(source, /ArcaneLoader/);
+  assert.match(source, /SectionPixelReveal/);
+  assert.match(source, /InteractiveTicker/);
+  assert.match(source, /IdentityConstellation/);
+  assert.match(source, /MetaversePortalV2/);
+  assert.doesNotMatch(source, /<MetaversePortal \/>/);
 });
