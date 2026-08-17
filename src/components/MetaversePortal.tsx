@@ -7,6 +7,12 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import {
+  isDocumentVisible,
+  observeDocumentVisibility,
+  observeElementVisibility,
+  shouldAnimate,
+} from "@/lib/animation-runtime";
 import { PixelLogo } from "./PixelLogo";
 import { ScrambleText } from "./ScrambleText";
 
@@ -35,6 +41,9 @@ function PixelWarp({ p }: { p: MotionValue<number> }) {
     if (!ctx) return;
 
     let raf = 0;
+    let running = false;
+    let pageVisible = isDocumentVisible();
+    let inViewport = true;
     let w = 0;
     let h = 0;
 
@@ -62,6 +71,7 @@ function PixelWarp({ p }: { p: MotionValue<number> }) {
     });
 
     const draw = (t: number) => {
+      if (!running) return;
       raf = requestAnimationFrame(draw);
       ctx.clearRect(0, 0, w, h);
 
@@ -130,10 +140,42 @@ function PixelWarp({ p }: { p: MotionValue<number> }) {
       }
     };
 
-    raf = requestAnimationFrame(draw);
+    const start = () => {
+      if (running || !shouldAnimate(pageVisible, inViewport)) return;
+      running = true;
+      raf = requestAnimationFrame(draw);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+
+    const syncRunningState = () => {
+      if (shouldAnimate(pageVisible, inViewport)) start();
+      else stop();
+    };
+
+    const disconnectViewport = observeElementVisibility(
+      canvas,
+      (visible) => {
+        inViewport = visible;
+        syncRunningState();
+      },
+      { rootMargin: "240px 0px" },
+    );
+    const disconnectDocument = observeDocumentVisibility((visible) => {
+      pageVisible = visible;
+      syncRunningState();
+    });
+
+    start();
     window.addEventListener("resize", resize);
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
+      disconnectViewport();
+      disconnectDocument();
       window.removeEventListener("resize", resize);
     };
   }, []);
