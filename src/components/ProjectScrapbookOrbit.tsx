@@ -178,9 +178,18 @@ export function ProjectScrapbookOrbit() {
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/5 to-transparent" />
 
                   <span className="absolute left-2 top-2 h-2 w-2 bg-neon" aria-hidden />
-                  <span className="absolute right-2 top-2 h-2 w-2 border border-foreground/55" aria-hidden />
-                  <span className="absolute bottom-2 left-2 h-2 w-2 border border-foreground/55" aria-hidden />
-                  <span className="absolute bottom-2 right-2 h-2 w-2 bg-foreground/75" aria-hidden />
+                  <span
+                    className="absolute right-2 top-2 h-2 w-2 border border-foreground/55"
+                    aria-hidden
+                  />
+                  <span
+                    className="absolute bottom-2 left-2 h-2 w-2 border border-foreground/55"
+                    aria-hidden
+                  />
+                  <span
+                    className="absolute bottom-2 right-2 h-2 w-2 bg-foreground/75"
+                    aria-hidden
+                  />
 
                   <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-4">
                     <div>

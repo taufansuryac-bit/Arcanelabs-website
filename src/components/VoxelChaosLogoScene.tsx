@@ -189,30 +189,22 @@ void main(){
 `;
 
 const CUBE_POSITIONS = new Float32Array([
-  -0.5,-0.5, 0.5,  0.5,-0.5, 0.5,  0.5, 0.5, 0.5, -0.5, 0.5, 0.5,
-   0.5,-0.5,-0.5, -0.5,-0.5,-0.5, -0.5, 0.5,-0.5,  0.5, 0.5,-0.5,
-  -0.5,-0.5,-0.5, -0.5,-0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5,-0.5,
-   0.5,-0.5, 0.5,  0.5,-0.5,-0.5,  0.5, 0.5,-0.5,  0.5, 0.5, 0.5,
-  -0.5, 0.5, 0.5,  0.5, 0.5, 0.5,  0.5, 0.5,-0.5, -0.5, 0.5,-0.5,
-  -0.5,-0.5,-0.5,  0.5,-0.5,-0.5,  0.5,-0.5, 0.5, -0.5,-0.5, 0.5,
+  -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5,
+  -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5,
+  -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5,
+  0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5,
+  -0.5, 0.5,
 ]);
 
 const CUBE_NORMALS = new Float32Array([
-   0,0,1, 0,0,1, 0,0,1, 0,0,1,
-   0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
-  -1,0,0, -1,0,0, -1,0,0, -1,0,0,
-   1,0,0, 1,0,0, 1,0,0, 1,0,0,
-   0,1,0, 0,1,0, 0,1,0, 0,1,0,
-   0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0,
+  0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, -1, 0, 0,
+  -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1,
+  0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
 ]);
 
 const CUBE_INDICES = new Uint16Array([
-  0,1,2, 0,2,3,
-  4,5,6, 4,6,7,
-  8,9,10, 8,10,11,
-  12,13,14, 12,14,15,
-  16,17,18, 16,18,19,
-  20,21,22, 20,22,23,
+  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16,
+  18, 19, 20, 21, 22, 20, 22, 23,
 ]);
 
 function buildVoxels(image: HTMLImageElement): VoxelData {
@@ -222,7 +214,13 @@ function buildVoxels(image: HTMLImageElement): VoxelData {
   canvas.width = sampleWidth;
   canvas.height = sampleHeight;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return { base: new Float32Array(), seed: new Float32Array(), rand: new Float32Array(), count: 0 };
+  if (!ctx)
+    return {
+      base: new Float32Array(),
+      seed: new Float32Array(),
+      rand: new Float32Array(),
+      count: 0,
+    };
   ctx.clearRect(0, 0, sampleWidth, sampleHeight);
   ctx.drawImage(image, 0, 0, sampleWidth, sampleHeight);
   const data = ctx.getImageData(0, 0, sampleWidth, sampleHeight).data;
@@ -309,7 +307,15 @@ export function VoxelChaosLogoScene({
     const baseBuffer = gl.createBuffer();
     const seedBuffer = gl.createBuffer();
     const randBuffer = gl.createBuffer();
-    if (!vao || !positionBuffer || !normalBuffer || !indexBuffer || !baseBuffer || !seedBuffer || !randBuffer) {
+    if (
+      !vao ||
+      !positionBuffer ||
+      !normalBuffer ||
+      !indexBuffer ||
+      !baseBuffer ||
+      !seedBuffer ||
+      !randBuffer
+    ) {
       return;
     }
 
@@ -498,5 +504,7 @@ export function VoxelChaosLogoScene({
     };
   }, [durationMs, interactive, mode, onComplete]);
 
-  return <canvas ref={canvasRef} className={className} role="img" aria-label="Arcane Labs voxel logo" />;
+  return (
+    <canvas ref={canvasRef} className={className} role="img" aria-label="Arcane Labs voxel logo" />
+  );
 }
