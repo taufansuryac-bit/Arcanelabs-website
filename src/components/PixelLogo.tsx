@@ -1,33 +1,23 @@
-/**
- * Placeholder pixel mark — swap for the real Arcane Labs logo when it lands.
- * Drawn as a 7x7 pixel grid so it stays crisp at any scale.
- */
-const GRID = [
-  "0011100",
-  "0110110",
-  "1100011",
-  "1111111",
-  "1100011",
-  "1100011",
-  "1100011",
-];
+import logoLight from "@/assets/logo-light.png.asset.json";
+import logoDark from "@/assets/logo-dark.png.asset.json";
 
+/**
+ * Arcane Labs mark. Two versions ship: the black mark for light mode and the
+ * white mark for dark mode, swapped with the `dark` class variant.
+ */
 export function PixelLogo({ className = "" }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 7 7"
-      shapeRendering="crispEdges"
-      className={className}
-      role="img"
-      aria-label="Arcane Labs mark"
-    >
-      {GRID.map((row, y) =>
-        row.split("").map((c, x) =>
-          c === "1" ? (
-            <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="currentColor" />
-          ) : null,
-        ),
-      )}
-    </svg>
+    <span className={`inline-block ${className}`}>
+      <img
+        src={logoDark.url}
+        alt="Arcane Labs"
+        className="h-full w-full object-contain dark:hidden"
+      />
+      <img
+        src={logoLight.url}
+        alt="Arcane Labs"
+        className="hidden h-full w-full object-contain dark:block"
+      />
+    </span>
   );
 }
