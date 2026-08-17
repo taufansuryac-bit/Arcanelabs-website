@@ -1,14 +1,17 @@
 import { useEffect, useRef } from "react";
 import { isDocumentVisible, observeDocumentVisibility } from "@/lib/animation-runtime";
 
-const CELL = 18;
-const DECAY = 0.91;
-const WAKE_RADIUS = 5.5;
+const CELL = 14;
+const TRAIL_LENGTH = 24;
+const TRAIL_LIFETIME = 620;
 
-/**
- * Full-screen grid hover field inspired by the supplied Framer reference.
- * The base dot matrix stays CSS-driven; Canvas only renders illuminated cells.
- */
+type TrailCell = {
+  gx: number;
+  gy: number;
+  born: number;
+};
+
+/** One-cell cursor snake: a bright head with a thin fading grid trail. */
 export function GridHoverBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -23,10 +26,8 @@ export function GridHoverBackground() {
     let pageVisible = isDocumentVisible();
     let width = 0;
     let height = 0;
-    let cols = 0;
-    let rows = 0;
-    let heat = new Float32Array(0);
-    const pointer = { x: -9999, y: -9999, px: -9999, py: -9999, active: false };
+    let lastCell: { gx: number; gy: number } | null = null;
+    const trail: TrailCell[] = [];
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -37,84 +38,80 @@ export function GridHoverBackground() {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      cols = Math.ceil(width / CELL) + 1;
-      rows = Math.ceil(height / CELL) + 1;
-      heat = new Float32Array(cols * rows);
     };
 
-    const excite = (x: number, y: number, velocityBoost: number) => {
-      const cx = Math.floor(x / CELL);
-      const cy = Math.floor(y / CELL);
-      const span = Math.ceil(WAKE_RADIUS);
-      for (let gy = cy - span; gy <= cy + span; gy += 1) {
-        if (gy < 0 || gy >= rows) continue;
-        for (let gx = cx - span; gx <= cx + span; gx += 1) {
-          if (gx < 0 || gx >= cols) continue;
-          const dx = gx + 0.5 - x / CELL;
-          const dy = gy + 0.5 - y / CELL;
-          const d = Math.hypot(dx, dy);
-          if (d > WAKE_RADIUS) continue;
-          const falloff = 1 - d / WAKE_RADIUS;
-          const shaped = falloff * falloff * (0.72 + velocityBoost * 0.28);
-          const index = gy * cols + gx;
-          heat[index] = Math.max(heat[index] ?? 0, Math.min(1, shaped));
-        }
+    const pushCell = (gx: number, gy: number, now: number) => {
+      const previous = trail[trail.length - 1];
+      if (previous?.gx === gx && previous.gy === gy) {
+        previous.born = now;
+        return;
       }
+      trail.push({ gx, gy, born: now });
+      while (trail.length > TRAIL_LENGTH) trail.shift();
     };
 
     const onMove = (event: PointerEvent) => {
-      const dx = event.clientX - pointer.px;
-      const dy = event.clientY - pointer.py;
-      const speed = pointer.active ? Math.min(1, Math.hypot(dx, dy) / 54) : 0;
-      pointer.px = pointer.x = event.clientX;
-      pointer.py = pointer.y = event.clientY;
-      pointer.active = true;
-      excite(pointer.x, pointer.y, speed);
+      const gx = Math.floor(event.clientX / CELL);
+      const gy = Math.floor(event.clientY / CELL);
+      const now = performance.now();
+
+      if (!lastCell) {
+        pushCell(gx, gy, now);
+        lastCell = { gx, gy };
+        return;
+      }
+
+      const dx = gx - lastCell.gx;
+      const dy = gy - lastCell.gy;
+      const steps = Math.max(Math.abs(dx), Math.abs(dy));
+      for (let step = 1; step <= steps; step += 1) {
+        const t = step / Math.max(1, steps);
+        pushCell(
+          Math.round(lastCell.gx + dx * t),
+          Math.round(lastCell.gy + dy * t),
+          now - (steps - step) * 6,
+        );
+      }
+      lastCell = { gx, gy };
     };
 
     const onLeave = () => {
-      pointer.active = false;
+      lastCell = null;
     };
 
-    const draw = () => {
+    const draw = (now: number) => {
       if (!running) return;
       ctx.clearRect(0, 0, width, height);
       const dark = document.documentElement.classList.contains("dark");
 
-      for (let i = 0; i < heat.length; i += 1) {
-        let value = heat[i] ?? 0;
-        if (value < 0.008) {
-          heat[i] = 0;
-          continue;
-        }
+      while (trail.length > 0 && now - trail[0]!.born > TRAIL_LIFETIME) trail.shift();
 
-        const current = heat[i];
-        if (current === undefined) continue;
-        const next = current * DECAY;
-        heat[i] = next;
-        value = next;
-        const gx = i % cols;
-        const gy = Math.floor(i / cols);
-        const x = gx * CELL;
-        const y = gy * CELL;
-        const inset = 2 + (1 - value) * 2.5;
-        const size = Math.max(2, CELL - inset * 2);
+      for (let index = 0; index < trail.length; index += 1) {
+        const cell = trail[index]!;
+        const age = Math.max(0, 1 - (now - cell.born) / TRAIL_LIFETIME);
+        const order = (index + 1) / Math.max(1, trail.length);
+        const strength = age * (0.18 + order * 0.82);
+        if (strength <= 0.01) continue;
 
-        const alpha = Math.min(0.9, 0.08 + value * 0.78);
+        const isHead = index === trail.length - 1;
+        const inset = isHead ? 2 : 3.25;
+        const size = CELL - inset * 2;
+        const x = cell.gx * CELL + inset;
+        const y = cell.gy * CELL + inset;
+        const alpha = Math.min(0.96, strength * (isHead ? 1 : 0.62));
+
         ctx.fillStyle = dark
           ? `oklch(0.88 0.26 135 / ${alpha.toFixed(3)})`
-          : `oklch(0.62 0.22 135 / ${(alpha * 0.88).toFixed(3)})`;
-        ctx.fillRect(x + inset, y + inset, size, size);
+          : `oklch(0.58 0.22 135 / ${(alpha * 0.9).toFixed(3)})`;
+        ctx.fillRect(x, y, size, size);
 
-        if (value > 0.56) {
-          ctx.fillStyle = dark
-            ? `rgba(238,255,226,${((value - 0.56) * 0.5).toFixed(3)})`
-            : `rgba(255,255,255,${((value - 0.56) * 0.28).toFixed(3)})`;
-          ctx.fillRect(x + inset + 1, y + inset + 1, Math.max(1, size - 3), 1);
+        if (isHead) {
+          ctx.fillStyle = dark ? "rgba(244,255,232,.72)" : "rgba(255,255,255,.48)";
+          ctx.fillRect(x + 1, y + 1, Math.max(1, size - 2), 1);
         }
       }
 
-      if (running) raf = requestAnimationFrame(draw);
+      raf = requestAnimationFrame(draw);
     };
 
     const start = () => {
@@ -152,7 +149,7 @@ export function GridHoverBackground() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
-      <div className="absolute inset-0 bg-grid opacity-80" />
+      <div className="absolute inset-0 bg-grid opacity-70" />
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
       <div className="absolute inset-0 bg-vignette" />
     </div>
