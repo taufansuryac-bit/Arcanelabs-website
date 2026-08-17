@@ -89,39 +89,71 @@ export function NoiseBackground() {
       mouse.active = false;
     };
 
-    const radius = 78;
+    // snake: a chain of segments that each chase the one in front of it
+    const SEGMENTS = 16;
+    const snake = Array.from({ length: SEGMENTS }, () => ({ x: -9999, y: -9999 }));
+    let seeded = false;
 
     const draw = () => {
       raf = requestAnimationFrame(draw);
       ctx.clearRect(0, 0, w, h);
 
       if (mouse.active) {
-        const cx = Math.floor(mouse.x / CELL);
-        const cy = Math.floor(mouse.y / CELL);
-        const span = Math.ceil(radius / CELL);
-        for (let y = cy - span; y <= cy + span; y++) {
-          if (y < 0 || y >= rows) continue;
-          for (let x = cx - span; x <= cx + span; x++) {
-            if (x < 0 || x >= cols) continue;
-            const dx = x * CELL + CELL / 2 - mouse.x;
-            const dy = y * CELL + CELL / 2 - mouse.y;
-            const d = Math.hypot(dx, dy);
-            if (d > radius) continue;
-            const f = 1 - d / radius;
-            const jitter = 0.55 + Math.random() * 0.45;
-            const i = y * cols + x;
-            heat[i] = Math.max(heat[i] ?? 0, f * f * jitter);
+        if (!seeded) {
+          for (const s of snake) {
+            s.x = mouse.x;
+            s.y = mouse.y;
+          }
+          seeded = true;
+        }
+        const head = snake[0]!;
+        head.x += (mouse.x - head.x) * 0.45;
+        head.y += (mouse.y - head.y) * 0.45;
+        for (let i = 1; i < SEGMENTS; i++) {
+          const s = snake[i]!;
+          const prev = snake[i - 1]!;
+          const ease = 0.34 - i * 0.008;
+          s.x += (prev.x - s.x) * ease;
+          s.y += (prev.y - s.y) * ease;
+        }
+
+        for (let i = 0; i < SEGMENTS; i++) {
+          const s = snake[i]!;
+          const t = 1 - i / SEGMENTS;
+          // tight focused point, tapering along the tail
+          const radius = CELL * (1.9 * t + 0.35);
+          const power = t * t;
+          const cx = Math.floor(s.x / CELL);
+          const cy = Math.floor(s.y / CELL);
+          const span = Math.ceil(radius / CELL);
+          for (let y = cy - span; y <= cy + span; y++) {
+            if (y < 0 || y >= rows) continue;
+            for (let x = cx - span; x <= cx + span; x++) {
+              if (x < 0 || x >= cols) continue;
+              const dx = x * CELL + CELL / 2 - s.x;
+              const dy = y * CELL + CELL / 2 - s.y;
+              const d = Math.hypot(dx, dy);
+              if (d > radius) continue;
+              const f = (1 - d / radius) * power;
+              const idx = y * cols + x;
+              heat[idx] = Math.max(heat[idx] ?? 0, Math.min(1, f * 1.35));
+            }
           }
         }
+      } else {
+        seeded = false;
       }
 
       for (let i = 0; i < heat.length; i++) {
         const v = heat[i] ?? 0;
         if (v < 0.02) continue;
-        heat[i] = v * 0.9;
+        heat[i] = v * 0.87;
         const x = (i % cols) * CELL;
         const y = Math.floor(i / cols) * CELL;
-        ctx.fillStyle = `oklch(0.88 0.26 135 / ${(v * 0.85).toFixed(3)})`;
+        const dark = document.documentElement.classList.contains("dark");
+        ctx.fillStyle = dark
+          ? `oklch(0.88 0.26 135 / ${(v * 0.85).toFixed(3)})`
+          : `oklch(0.68 0.22 135 / ${(v * 0.8).toFixed(3)})`;
         ctx.fillRect(x + 1, y + 1, CELL - 3, CELL - 3);
       }
     };
