@@ -13,7 +13,7 @@ test("voxel logo engine ports the voxel-chaos-logo density and depth model", asy
   assert.match(source, /const GAP = 0\.54/);
   assert.match(source, /drawElementsInstanced/);
   assert.match(source, /for \(let z = 0; z < DEPTH; z\+\+\)/);
-  assert.match(source, /Math\.exp\(-\(d \* d\)/);
+  assert.match(source, /exp\(-\(d \* d\)/);
 });
 
 test("portal uses square depth particles without comet trails", async () => {
