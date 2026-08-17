@@ -53,13 +53,7 @@ export function ScrambleText({ text, className, auto = false, speed = 28 }: Prop
   }, [auto, run, stop]);
 
   return (
-    <span
-      className={className}
-      onPointerEnter={run}
-      onFocus={run}
-      tabIndex={-1}
-      aria-label={text}
-    >
+    <span className={className} onPointerEnter={run} onFocus={run} tabIndex={-1} aria-label={text}>
       {output}
     </span>
   );
