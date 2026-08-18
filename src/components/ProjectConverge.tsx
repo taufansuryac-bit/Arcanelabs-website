@@ -59,7 +59,6 @@ function ProjectCard({ data, index }: { data: (typeof projects)[number]; index: 
   const col = index % 3;
   const depth = [1, 0.55, 1.35][col] ?? 1;
 
-  // arrival: rises and sharpens between 0 → 0.45 of its own travel
   const y = useTransform(p, [0, 0.45, 1], [120 * depth, 0, -70 * depth]);
   const opacity = useTransform(p, [0, 0.18, 0.4, 1], [0, 0.35, 1, 1]);
   const scale = useTransform(p, [0, 0.45], [0.9, 1]);
@@ -98,7 +97,7 @@ function ProjectCard({ data, index }: { data: (typeof projects)[number]; index: 
 /** Projects grid: 3 × 2 cards, each arriving with its own parallax. */
 export function ProjectConverge() {
   return (
-    <section id="projects" className="relative z-10 line-top px-5 py-24 md:px-8 md:py-32">
+    <section id="projects" className="relative z-10 line-top px-5 pt-24 pb-8 md:px-8 md:pt-32 md:pb-10">
       <div className="mb-14 flex items-baseline justify-between">
         <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">Projects</h2>
         <span className="label-mono">05</span>
