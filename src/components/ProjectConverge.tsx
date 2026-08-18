@@ -97,7 +97,7 @@ function ProjectCard({ data, index }: { data: (typeof projects)[number]; index: 
 /** Projects grid: 3 × 2 cards, each arriving with its own parallax. */
 export function ProjectConverge() {
   return (
-    <section id="projects" className="relative z-10 line-top px-5 pt-24 pb-8 md:px-8 md:pt-32 md:pb-10">
+    <section id="projects" className="relative z-10 line-top px-5 pt-24 pb-0 md:px-8 md:pt-32 md:pb-0">
       <div className="mb-14 flex items-baseline justify-between">
         <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">Projects</h2>
         <span className="label-mono">05</span>
