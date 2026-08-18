@@ -7,7 +7,7 @@ const carouselSource = await readFile(
   "utf8",
 );
 
-test("V12 removes global world scaling and uses responsive geometry variables", () => {
+test("carousel keeps responsive geometry variables and no global world scale", () => {
   assert.doesNotMatch(carouselSource, /--carousel-scale/);
   assert.doesNotMatch(carouselSource, /scale\(var\(--carousel-scale\)\)/);
   assert.match(carouselSource, /--carousel-card-w/);
@@ -18,28 +18,23 @@ test("V12 removes global world scaling and uses responsive geometry variables", 
   assert.match(carouselSource, /--carousel-tilt/);
 });
 
-test("V12 centers the ring and gives it a viewport-sized stage", () => {
-  assert.match(carouselSource, /h-\[86svh\]/);
-  assert.match(carouselSource, /min-h-\[620px\]/);
-  assert.match(carouselSource, /max-h-\[980px\]/);
-  assert.match(carouselSource, /top-1\/2/);
+test("carousel keeps a viewport-relative stage and centered perspective", () => {
+  assert.match(carouselSource, /svh/);
   assert.match(carouselSource, /perspectiveOrigin:\s*["']50% 50%["']/);
+  assert.match(carouselSource, /left-1\/2/);
 });
 
-test("V12 applies camera and radius directly instead of scaling the entire 3D world", () => {
+test("carousel applies camera and radius directly instead of scaling the entire 3D world", () => {
   assert.match(
     carouselSource,
     /translateZ\(var\(--carousel-camera-z\)\) rotateX\(var\(--carousel-tilt\)\)/,
   );
-  assert.match(
-    carouselSource,
-    /translateZ\(var\(--carousel-radius\)\)/,
-  );
+  assert.match(carouselSource, /translateZ\(var\(--carousel-radius\)\)/);
   assert.match(carouselSource, /width:\s*["']var\(--carousel-card-w\)["']/);
   assert.match(carouselSource, /height:\s*["']var\(--carousel-card-h\)["']/);
 });
 
-test("V12 remains transparent and does not introduce a local stage background", () => {
+test("carousel remains transparent and does not introduce a local stage background", () => {
   assert.match(carouselSource, /bg-transparent/);
   assert.doesNotMatch(carouselSource, /enchanted-stage-glow/);
   assert.doesNotMatch(carouselSource, /radial-gradient\(/);
