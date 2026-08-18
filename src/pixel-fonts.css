@@ -1,0 +1,26 @@
+/*
+ * Pixellari by Zacchary Dempsey-Plante.
+ * 100% free for commercial use; author requests credit for the original font.
+ * Source: https://github.com/zedseven/Pixellari
+ */
+@font-face {
+  font-family: "Pixellari";
+  src: url("https://raw.githubusercontent.com/zedseven/Pixellari/master/Pixellari.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root,
+.dark {
+  --font-mono-ui: "Pixellari", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  font-family: var(--font-mono-ui);
+}
+
+.label-mono,
+.font-mono {
+  font-family: var(--font-mono-ui);
+}
