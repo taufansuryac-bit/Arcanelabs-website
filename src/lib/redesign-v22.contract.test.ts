@@ -29,7 +29,7 @@ test("voxel logo uses the source repo camera controls for genuine 360 degree ins
   assert.match(source, /maxDistance/);
 });
 
-test("voxel logo enables cursor-local chaos in the loader and portal mounts", async () => {
+test("voxel logo keeps cursor-local chaos in the loader while portal uses the unified scene", async () => {
   const scene = await readSource("../components/VoxelChaosLogoScene.tsx");
   const loader = await readSource("../components/ArcaneLoader.tsx");
   const portal = await readSource("../components/MetaversePortalV2.tsx");
@@ -38,7 +38,7 @@ test("voxel logo enables cursor-local chaos in the loader and portal mounts", as
   assert.match(scene, /Raycaster/);
   assert.match(scene, /intersectPlane/);
   assert.match(loader, /interactive/);
-  assert.match(portal, /interactive/);
+  assert.match(portal, /UnifiedVoxelDimensionScene/);
 });
 
 test("loader countdown waits until voxel geometry is ready", async () => {
@@ -57,13 +57,17 @@ test("voxel logo fits measured geometry responsively and uses the original stand
   assert.match(source, /directionalLight/);
 });
 
-test("portal uses square depth particles without comet trails", async () => {
-  const source = await readSource("../components/MetaversePortalV2.tsx");
-  assert.match(source, /SquareDepthField/);
-  assert.match(source, /perspective/);
-  assert.match(source, /particleSize/);
-  assert.doesNotMatch(source, /shadowBlur/);
-  assert.doesNotMatch(source, /stretch/);
+test("portal morphs the same voxel instances through depth and back into the mark", async () => {
+  const portal = await readSource("../components/MetaversePortalV2.tsx");
+  const scene = await readSource("../components/UnifiedVoxelDimensionScene.tsx");
+  assert.match(portal, /UnifiedVoxelDimensionScene/);
+  assert.doesNotMatch(portal, /SquareDepthField/);
+  assert.match(scene, /fieldAmount/);
+  assert.match(scene, /reassemble/);
+  assert.match(scene, /current\.setMatrixAt/);
+  assert.match(scene, /camera\.lookAt\(origin\)/);
+  assert.doesNotMatch(scene, /shadowBlur/);
+  assert.doesNotMatch(scene, /fillRect/);
 });
 
 test("project orbit inherits site background and uses 16:9 cards", async () => {
