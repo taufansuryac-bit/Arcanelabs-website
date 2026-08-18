@@ -4,8 +4,6 @@ export const VOXEL_GAP = 0.54;
 export const VOXEL_SIZE = VOXEL_GAP * 0.9;
 export const LOGO_SCENE_WIDTH = VOXEL_RESOLUTION * VOXEL_GAP;
 export const LOGO_SCENE_HEIGHT = VOXEL_RESOLUTION * VOXEL_GAP;
-export const PORTAL_SCALE_INPUT = [0, 0.12, 0.24, 0.4, 0.76, 1];
-export const PORTAL_SCALE_OUTPUT = [0.66, 0.76, 0.9, 1.02, 0.94, 0.76];
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 
@@ -14,17 +12,9 @@ const smooth = (value: number) => {
   return t * t * (3 - 2 * t);
 };
 
-const interpolate = (value: number, input: number[], output: number[]) => {
-  if (value <= input[0]!) return output[0]!;
-  for (let index = 1; index < input.length; index += 1) {
-    if (value <= input[index]!) {
-      const from = input[index - 1]!;
-      const to = input[index]!;
-      const progress = (value - from) / (to - from);
-      return output[index - 1]! + (output[index]! - output[index - 1]!) * progress;
-    }
-  }
-  return output.at(-1)!;
+const smoother = (value: number) => {
+  const t = clamp01(value);
+  return t * t * t * (t * (t * 6 - 15) + 10);
 };
 
 export function getResponsiveCameraDistance(
@@ -45,10 +35,19 @@ export function getResponsiveCameraDistance(
 
 export function getPortalVisualState(progress: number) {
   const p = clamp01(progress);
-  const fractureIn = smooth((p - 0.22) / 0.22);
-  const fractureOut = smooth((p - 0.78) / 0.16);
+
+  // One continuous approach curve: no scale reversals, no discrete-looking handoff.
+  const approach = smoother(p / 0.58);
+  const cameraPush = smoother((p - 0.58) / 0.24);
+  const scale = 0.62 + approach * 0.62 + cameraPush * 0.18;
+
+  // Fracture begins while the logo is still large and visible, then naturally
+  // hands the same voxel matter into the dimensional field.
+  const fractureIn = smoother((p - 0.42) / 0.28);
+  const fractureOut = smoother((p - 0.86) / 0.12);
+
   return {
-    scale: interpolate(p, PORTAL_SCALE_INPUT, PORTAL_SCALE_OUTPUT),
-    chaos: fractureIn * (1 - fractureOut) * 0.96,
+    scale,
+    chaos: fractureIn * (1 - fractureOut) * 0.92,
   };
 }
