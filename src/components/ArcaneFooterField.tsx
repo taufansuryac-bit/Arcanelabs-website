@@ -1,6 +1,6 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { motion } from "motion/react";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { AsciiWordmark } from "./AsciiWordmark";
 import {
@@ -214,37 +214,6 @@ function CameraRig() {
   return null;
 }
 
-type FloatingInfoProps = {
-  children: ReactNode;
-  className: string;
-  phase: number;
-  active: boolean;
-};
-
-function FloatingInfo({ children, className, phase, active }: FloatingInfoProps) {
-  return (
-    <motion.div
-      className={`pointer-events-none absolute z-20 text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] ${className}`}
-      animate={
-        active
-          ? {
-              x: [0, 4 + phase * 0.7, -2 - phase * 0.3, 0],
-              y: [0, -8 - phase * 1.4, 3 + phase * 0.5, 0],
-            }
-          : { x: 0, y: 0 }
-      }
-      transition={{
-        duration: 7.8 + phase * 1.25,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay: phase * 0.32,
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 export function ArcaneFooterField() {
   const containerRef = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState(false);
@@ -275,6 +244,12 @@ export function ArcaneFooterField() {
   }, []);
 
   const background = dark ? "#020203" : "#f3f3ee";
+  const frameClass = dark
+    ? "border-[#697076]/80 bg-[#090b0d]/82 shadow-[0_18px_70px_rgba(0,0,0,0.42)]"
+    : "border-[#7f8582]/75 bg-[#ecece6]/88 shadow-[0_18px_70px_rgba(42,45,43,0.18)]";
+  const primaryText = dark ? "text-[#f2f1e9]" : "text-[#111315]";
+  const secondaryText = dark ? "text-[#9da4a8]" : "text-[#5d6562]";
+  const accentText = dark ? "text-[#9cff45]" : "text-[#315f1f]";
 
   return (
     <section
@@ -316,12 +291,12 @@ export function ArcaneFooterField() {
         <CameraRig />
       </Canvas>
 
-      <div className="pointer-events-none absolute inset-x-0 top-[2.5%] z-20 overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-[5%] z-10 overflow-hidden opacity-35">
         <div className="flex w-max marquee-track">
           {[0, 1].map((key) => (
             <span
               key={key}
-              className="whitespace-nowrap px-6 font-display text-5xl uppercase text-foreground/22 md:text-8xl"
+              className={`whitespace-nowrap px-6 font-display text-5xl uppercase md:text-8xl ${secondaryText}`}
             >
               Arcane Labs — Let&apos;s build something arcane —&nbsp;
             </span>
@@ -329,65 +304,86 @@ export function ArcaneFooterField() {
         </div>
       </div>
 
-      <FloatingInfo active={active} phase={0.65} className="inset-x-[5%] top-[13%] h-[30vh] md:h-[36vh]">
-        <div className="h-full w-full opacity-78">
-          <AsciiWordmark text="ARCANE LABS" cell={8} />
-        </div>
-      </FloatingInfo>
+      <div className="pointer-events-none absolute inset-x-[8%] top-[17%] z-10 h-[24vh] opacity-18 md:h-[30vh]">
+        <AsciiWordmark text="ARCANE LABS" cell={8} />
+      </div>
 
-      <FloatingInfo
-        active={active}
-        phase={0}
-        className="inset-x-0 top-[11%] px-5 text-center md:px-8"
+      <motion.div
+        data-footer-frame
+        className={`absolute left-1/2 top-[58%] z-30 w-[88%] max-w-[1380px] -translate-x-1/2 -translate-y-1/2 border px-5 py-5 backdrop-blur-md md:w-[82%] md:px-8 md:py-7 ${frameClass}`}
+        animate={
+          active
+            ? {
+                y: [0, -7, 3, 0],
+                rotateZ: [0, -0.08, 0.06, 0],
+              }
+            : { y: 0, rotateZ: 0 }
+        }
+        transition={{ duration: 10.5, repeat: Infinity, ease: "easeInOut" }}
       >
-        <p className="label-mono text-foreground/95">ARCANE LABS / END OF JOURNEY</p>
-        <p className="mt-2 text-xs tracking-[0.16em] text-foreground/65">
-          FIELD STABILIZED / RESIDUAL VOXELS ACTIVE
-        </p>
-      </FloatingInfo>
+        <span className={`absolute left-[-4px] top-[-4px] h-2 w-2 ${dark ? "bg-[#9cff45]" : "bg-[#315f1f]"}`} />
+        <span className={`absolute right-[-4px] top-[-4px] h-2 w-2 ${dark ? "bg-[#9cff45]" : "bg-[#315f1f]"}`} />
+        <span className={`absolute bottom-[-4px] left-[-4px] h-2 w-2 ${dark ? "bg-[#9cff45]" : "bg-[#315f1f]"}`} />
+        <span className={`absolute bottom-[-4px] right-[-4px] h-2 w-2 ${dark ? "bg-[#9cff45]" : "bg-[#315f1f]"}`} />
 
-      <FloatingInfo active={active} phase={1} className="left-[6%] top-[46%] max-w-[18rem]">
-        <p className="label-mono mb-2 text-foreground/80">■ CONTACT</p>
-        <a
-          href="mailto:hello@arcanelabs.mov"
-          className="pointer-events-auto text-sm tracking-[0.08em] text-foreground underline-offset-4 hover:underline md:text-base"
-        >
-          hello@arcanelabs.mov
-        </a>
-        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/70">INSTAGRAM / WORLDWIDE</p>
-      </FloatingInfo>
-
-      <FloatingInfo active={active} phase={2} className="right-[6%] top-[43%] text-right">
-        <p className="label-mono mb-2 text-foreground/80">■ INDEX</p>
-        <div className="flex flex-col gap-1 text-xs tracking-[0.18em] text-foreground/90 md:text-sm">
-          <a href="#works" className="pointer-events-auto hover:text-foreground">WORKS</a>
-          <a href="#faq" className="pointer-events-auto hover:text-foreground">FAQ</a>
-          <a href="#top" className="pointer-events-auto hover:text-foreground">TOP</a>
+        <div className="mb-6 flex flex-col items-center border-b border-current/15 pb-5 text-center md:mb-7">
+          <p className={`label-mono ${accentText}`}>ARCANE LABS / END OF JOURNEY</p>
+          <p className={`mt-2 text-[11px] tracking-[0.18em] md:text-xs ${secondaryText}`}>
+            FIELD STABILIZED / RESIDUAL VOXELS ACTIVE
+          </p>
         </div>
-      </FloatingInfo>
 
-      <FloatingInfo active={active} phase={3} className="bottom-[15%] left-[6%]">
-        <p className="label-mono mb-2 text-foreground/85">■ CREATED BY</p>
-        <p className="text-sm tracking-[0.1em] text-foreground md:text-base">ARCANE LABS</p>
-        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/70">DESIGN / CODE / MOTION</p>
-      </FloatingInfo>
+        <div className="grid gap-6 text-center md:grid-cols-4 md:gap-0 md:divide-x md:divide-current/15">
+          <div className="px-3 md:px-6">
+            <p className={`label-mono mb-3 ${accentText}`}>■ CONTACT</p>
+            <a
+              href="mailto:hello@arcanelabs.mov"
+              className={`pointer-events-auto text-sm tracking-[0.06em] underline-offset-4 hover:underline md:text-base ${primaryText}`}
+            >
+              hello@arcanelabs.mov
+            </a>
+            <p className={`mt-2 text-[11px] tracking-[0.14em] ${secondaryText}`}>
+              INSTAGRAM / WORLDWIDE
+            </p>
+          </div>
 
-      <FloatingInfo active={active} phase={4} className="bottom-[15%] right-[6%] text-right">
-        <p className="label-mono mb-2 text-foreground/85">■ LEGALS</p>
-        <p className="text-xs tracking-[0.1em] text-foreground md:text-sm">
-          © {new Date().getFullYear()} ARCANE LABS
-        </p>
-        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/70">IMPRINT / PRIVACY</p>
-      </FloatingInfo>
+          <div className="px-3 md:px-6">
+            <p className={`label-mono mb-3 ${accentText}`}>■ INDEX</p>
+            <div className={`flex justify-center gap-4 text-xs tracking-[0.18em] md:flex-col md:gap-1 ${primaryText}`}>
+              <a href="#works" className="pointer-events-auto hover:opacity-65">WORKS</a>
+              <a href="#faq" className="pointer-events-auto hover:opacity-65">FAQ</a>
+              <a href="#top" className="pointer-events-auto hover:opacity-65">TOP</a>
+            </div>
+          </div>
 
-      <FloatingInfo active={active} phase={2.5} className="inset-x-0 bottom-[3.5%] text-center">
-        <a
-          href="#top"
-          className="pointer-events-auto label-mono text-foreground/90 transition-opacity hover:text-foreground"
-        >
-          :/ BACK TO TOP
-        </a>
-      </FloatingInfo>
+          <div className="px-3 md:px-6">
+            <p className={`label-mono mb-3 ${accentText}`}>■ CREATED BY</p>
+            <p className={`text-sm tracking-[0.1em] md:text-base ${primaryText}`}>ARCANE LABS</p>
+            <p className={`mt-2 text-[11px] tracking-[0.14em] ${secondaryText}`}>
+              DESIGN / CODE / MOTION
+            </p>
+          </div>
+
+          <div className="px-3 md:px-6">
+            <p className={`label-mono mb-3 ${accentText}`}>■ LEGALS</p>
+            <p className={`text-xs tracking-[0.1em] md:text-sm ${primaryText}`}>
+              © {new Date().getFullYear()} ARCANE LABS
+            </p>
+            <p className={`mt-2 text-[11px] tracking-[0.14em] ${secondaryText}`}>
+              IMPRINT / PRIVACY
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-current/15 pt-4 text-center">
+          <a
+            href="#top"
+            className={`pointer-events-auto label-mono transition-opacity hover:opacity-65 ${accentText}`}
+          >
+            :/ BACK TO TOP
+          </a>
+        </div>
+      </motion.div>
     </section>
   );
 }
