@@ -13,7 +13,7 @@ import {
   observeElementVisibility,
   shouldAnimate,
 } from "@/lib/animation-runtime";
-import { PORTAL_SCALE_INPUT, PORTAL_SCALE_OUTPUT } from "@/lib/voxel-scene-model";
+import { getPortalVisualState } from "@/lib/voxel-scene-model";
 import { VoxelChaosLogoScene } from "./VoxelChaosLogoScene";
 
 const PARTICLE_COUNT = 1120;
@@ -30,6 +30,10 @@ function seeded(value: number) {
 }
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
+const smootherstep = (value: number) => {
+  const t = clamp01(value);
+  return t * t * t * (t * (t * 6 - 15) + 10);
+};
 
 function SquareDepthField({ progress }: { progress: MotionValue<number> }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -57,7 +61,7 @@ function SquareDepthField({ progress }: { progress: MotionValue<number> }) {
       y: seeded(index + 37) * 2 - 1,
       z: seeded(index + 73),
       seed: seeded(index + 127),
-      accent: seeded(index + 241) > 0.9,
+      accent: seeded(index + 241) > 0.96,
     }));
 
     const resize = () => {
@@ -80,30 +84,33 @@ function SquareDepthField({ progress }: { progress: MotionValue<number> }) {
       const dark = document.documentElement.classList.contains("dark");
       const ink = dark ? "236,239,231" : "26,28,24";
       const green = dark ? "170,243,84" : "72,123,26";
-      const fieldIn = clamp01((p - 0.12) / 0.18);
-      const fieldOut = clamp01((p - 0.84) / 0.14);
+      const fieldIn = smootherstep(clamp01((p - 0.20) / 0.30));
+      const fieldOut = smootherstep(clamp01((p - 0.90) / 0.10));
       const field = fieldIn * (1 - fieldOut);
       if (field < 0.01) return;
 
-      const cx = width * 0.5 + Math.sin(time * 0.28) * width * 0.003;
-      const cy = height * 0.5 + Math.cos(time * 0.24) * height * 0.003;
-      const speed = 0.035 + field * 0.085;
+      const cx = width * 0.5 + Math.sin(time * 0.22) * width * 0.002;
+      const cy = height * 0.5 + Math.cos(time * 0.2) * height * 0.002;
+      const speed = 0.028 + field * 0.072;
 
       for (const particle of particles) {
-        const travel = (particle.z + time * speed * (0.72 + particle.seed * 0.42) + p * 1.8) % 1;
+        const travel = (particle.z + time * speed * (0.78 + particle.seed * 0.34) + p * 1.42) % 1;
         const depth = travel * travel;
-        const perspective = 0.035 + depth * 1.32;
-        const driftX = Math.sin(time * 0.42 + particle.seed * 31) * (1 - depth) * 2.2;
-        const driftY = Math.cos(time * 0.37 + particle.seed * 19) * (1 - depth) * 1.8;
-        const x = cx + particle.x * width * 0.48 * perspective + driftX;
-        const y = cy + particle.y * height * 0.5 * perspective + driftY;
+        const perspective = 0.03 + depth * 1.28;
+        const orbit = (1 - depth) * 0.014 * Math.sin(time * 0.7 + particle.seed * 24);
+        const cos = Math.cos(orbit);
+        const sin = Math.sin(orbit);
+        const rx = particle.x * cos - particle.y * sin;
+        const ry = particle.x * sin + particle.y * cos;
+        const x = cx + rx * width * 0.48 * perspective;
+        const y = cy + ry * height * 0.5 * perspective;
         if (x < -12 || x > width + 12 || y < -12 || y > height + 12) continue;
 
-        const particleSize = Math.min(5.4, 0.8 + depth * (2.4 + particle.seed * 2.8));
-        const alpha = Math.min(0.9, field * (0.08 + depth * 0.82) * (0.76 + particle.seed * 0.24));
+        const particleSize = Math.min(5.0, 0.7 + depth * (2.2 + particle.seed * 2.5));
+        const alpha = Math.min(0.86, field * (0.06 + depth * 0.8) * (0.78 + particle.seed * 0.22));
         ctx.fillStyle = particle.accent
-          ? `rgba(${green},${alpha.toFixed(3)})`
-          : `rgba(${ink},${(alpha * 0.86).toFixed(3)})`;
+          ? `rgba(${green},${(alpha * 0.7).toFixed(3)})`
+          : `rgba(${ink},${(alpha * 0.9).toFixed(3)})`;
         const snappedX = Math.round(x);
         const snappedY = Math.round(y);
         const size = Math.max(1, Math.round(particleSize));
@@ -182,17 +189,17 @@ function PortalPhrase({
   );
 }
 
-/** V2.2: clean dimensional particle field — small square particles, no light trails. */
+/** V2.3: one continuous logo-to-dimension handoff with no visual scene jump. */
 export function MetaversePortalV2() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const p = useSpring(scrollYProgress, { stiffness: 110, damping: 26, mass: 0.35 });
+  const p = useSpring(scrollYProgress, { stiffness: 72, damping: 30, mass: 0.62 });
 
-  const environmentOpacity = useTransform(p, [0, 0.08, 0.18, 0.86, 1], [0, 0.2, 1, 1, 0]);
-  const logoOpacity = useTransform(p, [0, 0.28, 0.5, 0.76, 0.9, 1], [1, 1, 0.08, 0.08, 1, 1]);
-  const logoScale = useTransform(p, PORTAL_SCALE_INPUT, PORTAL_SCALE_OUTPUT);
-  const finalOpacity = useTransform(p, [0.88, 0.95, 1], [0, 1, 1]);
-  const finalY = useTransform(p, [0.88, 1], [22, 0]);
+  const environmentOpacity = useTransform(p, [0, 0.14, 0.34, 0.92, 1], [0, 0.08, 1, 1, 0]);
+  const logoOpacity = useTransform(p, [0, 0.42, 0.72, 0.9, 1], [1, 1, 0.38, 0.06, 0]);
+  const logoScale = useTransform(p, (value) => getPortalVisualState(value).scale);
+  const finalOpacity = useTransform(p, [0.9, 0.97, 1], [0, 1, 1]);
+  const finalY = useTransform(p, [0.9, 1], [22, 0]);
 
   return (
     <section ref={sectionRef} className="relative z-10 h-[620vh] border-t border-border">
@@ -203,7 +210,7 @@ export function MetaversePortalV2() {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(circle at 50% 50%, color-mix(in oklab,var(--neon) 5%,transparent), transparent 32%, color-mix(in oklab,var(--background) 92%,transparent) 88%)",
+                "radial-gradient(circle at 50% 50%, color-mix(in oklab,var(--foreground) 3%,transparent), transparent 38%, color-mix(in oklab,var(--background) 94%,transparent) 90%)",
             }}
           />
         </motion.div>
