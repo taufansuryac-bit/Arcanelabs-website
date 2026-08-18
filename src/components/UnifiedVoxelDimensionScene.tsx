@@ -8,7 +8,12 @@ import {
   observeElementVisibility,
   shouldAnimate,
 } from "@/lib/animation-runtime";
-import { VOXEL_DEPTH, VOXEL_GAP, VOXEL_RESOLUTION, VOXEL_SIZE } from "@/lib/voxel-scene-model";
+import {
+  VOXEL_DEPTH,
+  VOXEL_GAP,
+  VOXEL_RESOLUTION,
+  VOXEL_SIZE,
+} from "@/lib/voxel-scene-model";
 
 type UnifiedVoxelDimensionSceneProps = {
   progress: MotionValue<number>;
@@ -37,7 +42,8 @@ const smoother = (value: number) => {
   const t = clamp01(value);
   return t * t * t * (t * (t * 6 - 15) + 10);
 };
-const phase = (progress: number, start: number, end: number) => smoother((progress - start) / (end - start));
+const phase = (progress: number, start: number, end: number) =>
+  smoother((progress - start) / (end - start));
 
 function seeded(value: number) {
   const n = Math.sin(value * 127.1 + 311.7) * 43758.5453;
@@ -74,7 +80,11 @@ function buildFieldTarget(index: number) {
   const radius = 7 + Math.pow(radiusSeed, 0.72) * 62;
   const verticalCompression = 0.72 + seeded(index * 2.31 + 41.7) * 0.2;
   const z = -145 + seeded(index * 12.77 + 73.2) * 175;
-  return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius * verticalCompression, z);
+  return new THREE.Vector3(
+    Math.cos(angle) * radius,
+    Math.sin(angle) * radius * verticalCompression,
+    z,
+  );
 }
 
 function useLogoVoxels(url: string) {
@@ -102,7 +112,12 @@ function useLogoVoxels(url: string) {
       const drawOffsetY = (VOXEL_RESOLUTION - drawHeight) / 2;
       context.drawImage(image, drawOffsetX, drawOffsetY, drawWidth, drawHeight);
 
-      const pixels = context.getImageData(0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION).data;
+      const pixels = context.getImageData(
+        0,
+        0,
+        VOXEL_RESOLUTION,
+        VOXEL_RESOLUTION,
+      ).data;
       const voxels: Voxel[] = [];
       let voxelIndex = 0;
 
@@ -134,14 +149,19 @@ function useLogoVoxels(url: string) {
               rand,
               size: VOXEL_SIZE,
               orbitPhase: seeded(voxelIndex * 17.13 + 5.2) * Math.PI * 2,
-              orbitRadius: rand < 0.03 ? 0.55 + seeded(voxelIndex * 19.7 + 2.8) * 0.9 : 0,
+              orbitRadius:
+                rand < 0.03
+                  ? 0.55 + seeded(voxelIndex * 19.7 + 2.8) * 0.9
+                  : 0,
             });
             voxelIndex += 1;
           }
         }
       }
 
-      if (!cancelled && voxels.length > 0) setData(recenterVoxelGeometry(voxels));
+      if (!cancelled && voxels.length > 0) {
+        setData(recenterVoxelGeometry(voxels));
+      }
     };
 
     return () => {
@@ -153,17 +173,29 @@ function useLogoVoxels(url: string) {
   return data;
 }
 
-function computeFitDistance(camera: THREE.PerspectiveCamera, width: number, height: number, data: VoxelData) {
+function computeFitDistance(
+  camera: THREE.PerspectiveCamera,
+  width: number,
+  height: number,
+  data: VoxelData,
+) {
   const aspect = Math.max(0.1, width / Math.max(1, height));
   const verticalFov = THREE.MathUtils.degToRad(camera.fov);
   const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * aspect);
   const verticalDistance = data.measuredHeight / (2 * Math.tan(verticalFov / 2));
   const horizontalDistance = data.measuredWidth / (2 * Math.tan(horizontalFov / 2));
-  const radiusDistance = data.measuredRadius / Math.sin(Math.min(verticalFov, horizontalFov) / 2);
+  const radiusDistance =
+    data.measuredRadius / Math.sin(Math.min(verticalFov, horizontalFov) / 2);
   return Math.max(verticalDistance, horizontalDistance, radiusDistance) * 1.08;
 }
 
-function UnifiedScene({ data, targetProgress }: { data: VoxelData; targetProgress: React.MutableRefObject<number> }) {
+function UnifiedScene({
+  data,
+  targetProgress,
+}: {
+  data: VoxelData;
+  targetProgress: React.MutableRefObject<number>;
+}) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const actualProgress = useRef(targetProgress.current);
@@ -184,7 +216,8 @@ function UnifiedScene({ data, targetProgress }: { data: VoxelData; targetProgres
     if (!current || !(camera instanceof THREE.PerspectiveCamera)) return;
 
     const response = 1 - Math.exp(-Math.min(delta, 0.05) * 4.6);
-    actualProgress.current += (targetProgress.current - actualProgress.current) * response;
+    actualProgress.current +=
+      (targetProgress.current - actualProgress.current) * response;
     const p = clamp01(actualProgress.current);
 
     const approach = phase(p, 0.02, 0.28);
@@ -196,7 +229,11 @@ function UnifiedScene({ data, targetProgress }: { data: VoxelData; targetProgres
 
     const fit = fitDistance.current;
     const approachZ = THREE.MathUtils.lerp(fit * 1.08, fit * 0.7, approach);
-    const travelZ = THREE.MathUtils.lerp(approachZ, fit * 0.54, travel * (1 - reassemble));
+    const travelZ = THREE.MathUtils.lerp(
+      approachZ,
+      fit * 0.54,
+      travel * (1 - reassemble),
+    );
     const cameraZ = THREE.MathUtils.lerp(travelZ, fit * 0.96, reassemble);
     const cameraDrift = fieldAmount * 0.7;
     camera.position.set(
@@ -223,15 +260,31 @@ function UnifiedScene({ data, targetProgress }: { data: VoxelData; targetProgres
       const sinSwirl = Math.sin(swirl);
       const fieldX = voxel.field.x * cosSwirl - voxel.field.y * sinSwirl;
       const fieldY = voxel.field.x * sinSwirl + voxel.field.y * cosSwirl;
-      const fieldZ = voxel.field.z + travelDistance * (0.72 + voxel.rand * 0.5);
+      const fieldZ =
+        voxel.field.z + travelDistance * (0.72 + voxel.rand * 0.5);
 
-      const unstableX = voxel.base.x + orbitX + voxel.seed.x * fracture * 0.8;
-      const unstableY = voxel.base.y + orbitY + voxel.seed.y * fracture * 0.8;
-      const unstableZ = voxel.base.z + orbitZ + voxel.seed.z * fracture * 1.15;
+      const unstableX =
+        voxel.base.x + orbitX + voxel.seed.x * fracture * 0.8;
+      const unstableY =
+        voxel.base.y + orbitY + voxel.seed.y * fracture * 0.8;
+      const unstableZ =
+        voxel.base.z + orbitZ + voxel.seed.z * fracture * 1.15;
 
-      const dimensionalX = THREE.MathUtils.lerp(unstableX, fieldX, fieldAmount);
-      const dimensionalY = THREE.MathUtils.lerp(unstableY, fieldY, fieldAmount);
-      const dimensionalZ = THREE.MathUtils.lerp(unstableZ, fieldZ, fieldAmount);
+      const dimensionalX = THREE.MathUtils.lerp(
+        unstableX,
+        fieldX,
+        fieldAmount,
+      );
+      const dimensionalY = THREE.MathUtils.lerp(
+        unstableY,
+        fieldY,
+        fieldAmount,
+      );
+      const dimensionalZ = THREE.MathUtils.lerp(
+        unstableZ,
+        fieldZ,
+        fieldAmount,
+      );
 
       const x = THREE.MathUtils.lerp(dimensionalX, voxel.base.x, reassemble);
       const y = THREE.MathUtils.lerp(dimensionalY, voxel.base.y, reassemble);
@@ -245,11 +298,16 @@ function UnifiedScene({ data, targetProgress }: { data: VoxelData; targetProgres
         voxel.seed.z * spin,
       );
 
-      const nearCamera = z > cameraZ - 2.2;
       const dimensionalScale = 0.82 + voxel.rand * 0.24;
-      const scale = THREE.MathUtils.lerp(voxel.size, voxel.size * dimensionalScale, fieldAmount);
-      const finalScale = THREE.MathUtils.lerp(scale, voxel.size, settle);
-      dummy.scale.setScalar(nearCamera ? 0.001 : finalScale);
+      const scale = THREE.MathUtils.lerp(
+        voxel.size,
+        voxel.size * dimensionalScale,
+        fieldAmount,
+      );
+      const settledScale = THREE.MathUtils.lerp(scale, voxel.size, settle);
+      const cameraClearance = cameraZ - z;
+      const cameraVisibility = smoother((cameraClearance - 0.45) / 4.5);
+      dummy.scale.setScalar(settledScale * cameraVisibility);
       dummy.updateMatrix();
       current.setMatrixAt(index, dummy.matrix);
     }
@@ -258,7 +316,11 @@ function UnifiedScene({ data, targetProgress }: { data: VoxelData; targetProgres
   });
 
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, data.voxels.length]} frustumCulled={false}>
+    <instancedMesh
+      ref={mesh}
+      args={[undefined, undefined, data.voxels.length]}
+      frustumCulled={false}
+    >
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial
         color="#f4f4f5"
@@ -271,7 +333,10 @@ function UnifiedScene({ data, targetProgress }: { data: VoxelData; targetProgres
   );
 }
 
-export function UnifiedVoxelDimensionScene({ progress, className = "" }: UnifiedVoxelDimensionSceneProps) {
+export function UnifiedVoxelDimensionScene({
+  progress,
+  className = "",
+}: UnifiedVoxelDimensionSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const targetProgress = useRef(progress.get());
   const [active, setActive] = useState(true);
@@ -309,16 +374,28 @@ export function UnifiedVoxelDimensionScene({ progress, className = "" }: Unified
   }, []);
 
   return (
-    <div ref={containerRef} className={className} aria-label="Arcane Labs unified voxel dimension">
+    <div
+      ref={containerRef}
+      className={className}
+      aria-label="Arcane Labs unified voxel dimension"
+    >
       <Canvas
         camera={{ position: [0, 0, 90], fov: 45, near: 0.1, far: 700 }}
         dpr={[1, 1.75]}
         frameloop={active ? "always" : "never"}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        gl={{
+          alpha: true,
+          antialias: true,
+          powerPreference: "high-performance",
+        }}
       >
         <ambientLight intensity={0.5} />
         <directionalLight position={[30, 40, 50]} intensity={2.2} />
-        <directionalLight position={[-40, -20, -30]} intensity={0.8} color="#6b7cff" />
+        <directionalLight
+          position={[-40, -20, -30]}
+          intensity={0.8}
+          color="#6b7cff"
+        />
         {data && <UnifiedScene data={data} targetProgress={targetProgress} />}
       </Canvas>
     </div>
