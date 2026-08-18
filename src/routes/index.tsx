@@ -272,22 +272,7 @@ function Index() {
 
         <MetaversePortalV2 />
 
-        <footer id="contact" className="relative z-10 line-top overflow-hidden pt-16">
-          <div className="flex w-max marquee-track">
-            {[0, 1].map((key) => (
-              <span
-                key={key}
-                className="whitespace-nowrap px-6 font-display text-5xl uppercase text-foreground/15 md:text-8xl"
-              >
-                Arcane Labs — Let&apos;s build something arcane —&nbsp;
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-10 h-[34vh] w-full md:h-[46vh]">
-            <AsciiWordmark text="ARCANE LABS" cell={8} />
-          </div>
-
+        <footer id="contact" className="relative z-10 overflow-hidden">
           <ArcaneFooterField />
         </footer>
       </div>
