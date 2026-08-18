@@ -16,7 +16,7 @@ const routeSource = await readFile(
 );
 const fontSource = await readFile(new URL("../pixel-fonts.css", import.meta.url), "utf8");
 
-test("Arcane field lives inside the footer and no longer mounts from the portal", () => {
+test("Arcane field owns the entire footer experience and no longer mounts from the portal", () => {
   const footerStart = routeSource.indexOf('<footer id="contact"');
   const fieldIndex = routeSource.indexOf("<ArcaneFooterField");
   const footerEnd = routeSource.indexOf("</footer>", fieldIndex);
@@ -25,20 +25,29 @@ test("Arcane field lives inside the footer and no longer mounts from the portal"
   assert.ok(fieldIndex > footerStart);
   assert.ok(footerEnd > fieldIndex);
   assert.doesNotMatch(portalSource, /ArcaneFooterField/);
+  assert.doesNotMatch(routeSource.slice(footerStart, fieldIndex), /marquee-track|AsciiWordmark/);
 });
 
-test("footer field uses animated wave terrain and real 3D residue cubes", () => {
+test("marquee and ASCII wordmark are integrated into ArcaneFooterField", () => {
+  assert.match(footerSource, /marquee-track/);
+  assert.match(footerSource, /AsciiWordmark/);
+  assert.match(footerSource, /Arcane Labs — Let&apos;s build something arcane/);
+});
+
+test("footer field uses animated high-amplitude wave terrain and real 3D residue cubes", () => {
   assert.match(footerSource, /planeGeometry/i);
   assert.match(footerSource, /instancedMesh/i);
   assert.match(footerSource, /terrainWave/);
-  assert.match(footerSource, /2\.15/);
-  assert.match(footerSource, /1\.75/);
+  assert.match(footerSource, /2\.75/);
+  assert.match(footerSource, /2\.20/);
   assert.match(footerSource, /useFrame/);
   assert.match(footerSource, /state\.pointer/);
 });
 
-test("residual cubes are white-silver rather than blue", () => {
-  assert.match(footerSource, /#ffffff/i);
+test("dark-mode residual cubes remain white-silver and do not use blue material accents", () => {
+  assert.match(footerSource, /dark \? "#ffffff" : "#17191a"/);
+  assert.match(footerSource, /emissive=\{dark \? "#ffffff" : "#000000"\}/);
+  assert.match(footerSource, /toneMapped=\{false\}/);
   assert.doesNotMatch(footerSource, /#7786ff/i);
   assert.doesNotMatch(footerSource, /#9aa0ff/i);
 });
