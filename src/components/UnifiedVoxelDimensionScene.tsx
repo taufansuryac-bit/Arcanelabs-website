@@ -1,3 +1,4 @@
+import { Text } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import type { MotionValue } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -36,6 +37,38 @@ type VoxelData = {
   measuredHeight: number;
   measuredRadius: number;
 };
+
+type DimensionPhrase = {
+  text: string;
+  start: number;
+  end: number;
+  depthFrom: number;
+  depthTo: number;
+};
+
+export const DIMENSION_PHRASES: DimensionPhrase[] = [
+  {
+    text: "ENTER THE ARCANE FIELD",
+    start: 0.28,
+    end: 0.43,
+    depthFrom: -34,
+    depthTo: 6,
+  },
+  {
+    text: "PIXELS BECOME SPACE",
+    start: 0.45,
+    end: 0.6,
+    depthFrom: -40,
+    depthTo: 7,
+  },
+  {
+    text: "BUILD BEYOND THE FRAME",
+    start: 0.62,
+    end: 0.78,
+    depthFrom: -46,
+    depthTo: 8,
+  },
+];
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 const smoother = (value: number) => {
@@ -189,18 +222,98 @@ function computeFitDistance(
   return Math.max(verticalDistance, horizontalDistance, radiusDistance) * 1.08;
 }
 
+function DimensionalPhrase({
+  phrase,
+  sceneProgress,
+}: {
+  phrase: DimensionPhrase;
+  sceneProgress: React.MutableRefObject<number>;
+}) {
+  const group = useRef<THREE.Group>(null);
+  const textMesh = useRef<THREE.Mesh>(null);
+
+  useFrame(() => {
+    const groupObject = group.current;
+    const textObject = textMesh.current;
+    if (!groupObject || !textObject) return;
+
+    const phraseWindow = clamp01(
+      (sceneProgress.current - phrase.start) / (phrase.end - phrase.start),
+    );
+    const fadeIn = smoother(clamp01(phraseWindow / 0.22));
+    const fadeOut = smoother(clamp01((phraseWindow - 0.72) / 0.28));
+    const phraseOpacity = fadeIn * (1 - fadeOut);
+    const travel = smoother(phraseWindow);
+    const phraseDepth = THREE.MathUtils.lerp(
+      phrase.depthFrom,
+      phrase.depthTo,
+      travel,
+    );
+    const phraseScale = THREE.MathUtils.lerp(0.78, 1.12, travel);
+
+    groupObject.visible = phraseOpacity > 0.002;
+    groupObject.position.set(0, THREE.MathUtils.lerp(0.5, -0.2, travel), phraseDepth);
+    groupObject.scale.setScalar(phraseScale);
+
+    const material = textObject.material;
+    if (!Array.isArray(material)) {
+      material.transparent = true;
+      material.opacity = phraseOpacity;
+      material.depthWrite = false;
+    }
+  });
+
+  return (
+    <group ref={group} visible={false}>
+      <Text
+        ref={textMesh}
+        color="#f4f4f5"
+        fontSize={4.8}
+        letterSpacing={0.015}
+        maxWidth={62}
+        textAlign="center"
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={0.025}
+        outlineColor="#11131a"
+      >
+        {phrase.text}
+      </Text>
+    </group>
+  );
+}
+
+function DimensionalPhrases({
+  sceneProgress,
+}: {
+  sceneProgress: React.MutableRefObject<number>;
+}) {
+  return (
+    <>
+      {DIMENSION_PHRASES.map((phrase) => (
+        <DimensionalPhrase
+          key={phrase.text}
+          phrase={phrase}
+          sceneProgress={sceneProgress}
+        />
+      ))}
+    </>
+  );
+}
+
 function UnifiedScene({
   data,
   targetProgress,
+  sceneProgress,
   pointerInside,
 }: {
   data: VoxelData;
   targetProgress: React.MutableRefObject<number>;
+  sceneProgress: React.MutableRefObject<number>;
   pointerInside: React.MutableRefObject<boolean>;
 }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const actualProgress = useRef(targetProgress.current);
   const pointerHit = useMemo(() => new THREE.Vector3(999, 999, 0), []);
   const ray = useMemo(() => new THREE.Raycaster(), []);
   const interactionPlane = useMemo(
@@ -229,9 +342,9 @@ function UnifiedScene({
     if (!current || !(camera instanceof THREE.PerspectiveCamera)) return;
 
     const response = 1 - Math.exp(-Math.min(delta, 0.05) * 4.6);
-    actualProgress.current +=
-      (targetProgress.current - actualProgress.current) * response;
-    const p = clamp01(actualProgress.current);
+    sceneProgress.current +=
+      (targetProgress.current - sceneProgress.current) * response;
+    const p = clamp01(sceneProgress.current);
 
     const approach = phase(p, 0.02, 0.28);
     const fracture = phase(p, 0.2, 0.46);
@@ -242,7 +355,8 @@ function UnifiedScene({
 
     const stableInteraction = 1 - phase(p, 0.14, 0.34);
     const rebuiltInteraction = phase(p, 0.88, 0.985);
-    const fieldInteraction = phase(p, 0.32, 0.52) * (1 - phase(p, 0.78, 0.94));
+    const fieldInteraction =
+      phase(p, 0.32, 0.52) * (1 - phase(p, 0.78, 0.94));
     const interactionBlend = clamp01(stableInteraction + rebuiltInteraction);
     const pointerFracture = interactionBlend * (pointerInside.current ? 1 : 0);
 
@@ -282,7 +396,8 @@ function UnifiedScene({
     const cameraZ = THREE.MathUtils.lerp(travelZ, fit * 0.96, reassemble);
     const ambientDrift = fieldAmount * 0.42;
     camera.position.set(
-      cameraParallaxX.current + Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
+      cameraParallaxX.current +
+        Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
       cameraParallaxY.current +
         Math.cos(state.clock.elapsedTime * 0.19) * ambientDrift * 0.55,
       cameraZ,
@@ -360,7 +475,8 @@ function UnifiedScene({
       const z = THREE.MathUtils.lerp(dimensionalZ, voxel.base.z, reassemble);
 
       dummy.position.set(x, y, z);
-      const spin = fieldAmount * (1.2 + voxel.rand * 3.6) + localInfluence * 3.2;
+      const spin =
+        fieldAmount * (1.2 + voxel.rand * 3.6) + localInfluence * 3.2;
       dummy.rotation.set(
         voxel.seed.x * spin,
         voxel.seed.y * spin + travel * voxel.seed.z * 1.2,
@@ -374,7 +490,11 @@ function UnifiedScene({
         fieldAmount,
       );
       const fracturedScale = scale * (1 - localInfluence * 0.16);
-      const settledScale = THREE.MathUtils.lerp(fracturedScale, voxel.size, settle);
+      const settledScale = THREE.MathUtils.lerp(
+        fracturedScale,
+        voxel.size,
+        settle,
+      );
       const cameraClearance = cameraZ - z;
       const cameraVisibility = smoother((cameraClearance - 0.45) / 4.5);
       dummy.scale.setScalar(settledScale * cameraVisibility);
@@ -409,6 +529,7 @@ export function UnifiedVoxelDimensionScene({
 }: UnifiedVoxelDimensionSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const targetProgress = useRef(progress.get());
+  const sceneProgress = useRef(progress.get());
   const pointerInside = useRef(false);
   const [active, setActive] = useState(true);
   const data = useLogoVoxels("/arcane-logo-black.svg");
@@ -477,9 +598,11 @@ export function UnifiedVoxelDimensionScene({
           <UnifiedScene
             data={data}
             targetProgress={targetProgress}
+            sceneProgress={sceneProgress}
             pointerInside={pointerInside}
           />
         )}
+        <DimensionalPhrases sceneProgress={sceneProgress} />
       </Canvas>
     </div>
   );
