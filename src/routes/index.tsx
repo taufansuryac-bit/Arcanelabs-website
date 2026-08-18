@@ -201,8 +201,6 @@ function Index() {
           </section>
         </SectionPixelReveal>
 
-        <EnchantedProjectCarousel />
-
         <SectionPixelReveal threshold={0.05}>
           <InteractiveTicker />
         </SectionPixelReveal>
@@ -253,6 +251,8 @@ function Index() {
         <SectionPixelReveal threshold={0.05}>
           <ProjectConverge />
         </SectionPixelReveal>
+
+        <EnchantedProjectCarousel />
 
         <SectionPixelReveal>
           <section id="faq" className="relative z-10 line-top px-5 py-20 md:px-8 md:py-28">
