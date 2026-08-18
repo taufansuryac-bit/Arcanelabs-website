@@ -80,7 +80,6 @@ const items: CardItem[] = [
   },
 ];
 
-const RADIUS = 620;
 const STEP = 360 / items.length;
 
 export function EnchantedProjectCarousel() {
@@ -155,16 +154,27 @@ export function EnchantedProjectCarousel() {
   return (
     <div className="relative isolate w-full overflow-hidden bg-transparent">
       <style>{`
+        .enchanted-carousel-stage {
+          --carousel-card-w: clamp(220px, 58vw, 280px);
+          --carousel-card-h: clamp(142px, 37vw, 180px);
+          --carousel-radius: clamp(320px, 78vw, 460px);
+          --carousel-camera-z: clamp(-650px, -88vw, -520px);
+          --carousel-perspective: 1500px;
+          --carousel-tilt: -2deg;
+        }
+        @media (min-width: 768px) {
+          .enchanted-carousel-stage {
+            --carousel-card-w: clamp(340px, 22vw, 400px);
+            --carousel-card-h: clamp(220px, 14vw, 258px);
+            --carousel-radius: clamp(560px, 37vw, 740px);
+            --carousel-camera-z: clamp(-960px, -45vw, -700px);
+            --carousel-perspective: clamp(1800px, 105vw, 2100px);
+            --carousel-tilt: -3deg;
+          }
+        }
         .enchanted-ring-stage {
-          --carousel-scale: 1.1;
           transform-style: preserve-3d;
           will-change: transform;
-        }
-        @media (min-width: 1280px) {
-          .enchanted-ring-stage { --carousel-scale: 1.28; }
-        }
-        @media (min-width: 1700px) {
-          .enchanted-ring-stage { --carousel-scale: 1.38; }
         }
         .enchanted-ring-card {
           transform-style: preserve-3d;
@@ -190,8 +200,11 @@ export function EnchantedProjectCarousel() {
       `}</style>
 
       <div
-        className="relative h-[68svh] min-h-[540px] max-h-[820px] w-full cursor-grab select-none active:cursor-grabbing"
-        style={{ perspective: "1400px", perspectiveOrigin: "50% 46%" }}
+        className="enchanted-carousel-stage relative h-[86svh] min-h-[620px] max-h-[980px] w-full cursor-grab select-none active:cursor-grabbing"
+        style={{
+          perspective: "var(--carousel-perspective)",
+          perspectiveOrigin: "50% 50%",
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -201,9 +214,10 @@ export function EnchantedProjectCarousel() {
         }}
       >
         <div
-          className="enchanted-ring-stage absolute left-1/2 top-[43%]"
+          className="enchanted-ring-stage absolute left-1/2 top-1/2"
           style={{
-            transform: `translate(-50%, -50%) translateZ(-700px) rotateX(-8deg) rotateY(${angle}deg) scale(var(--carousel-scale))`,
+            transform:
+              `translate(-50%, -50%) translateZ(var(--carousel-camera-z)) rotateX(var(--carousel-tilt)) rotateY(${angle}deg)`,
           }}
         >
           {items.map((item, i) => {
@@ -218,9 +232,11 @@ export function EnchantedProjectCarousel() {
                   if (drag.current.moved) return;
                   setSelected(isSelected ? null : item.id);
                 }}
-                className="enchanted-ring-card absolute left-1/2 top-1/2 h-[180px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left outline-none"
+                className="enchanted-ring-card absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left outline-none"
                 style={{
-                  transform: `rotateY(${i * STEP}deg) translateZ(${RADIUS}px)`,
+                  width: "var(--carousel-card-w)",
+                  height: "var(--carousel-card-h)",
+                  transform: `rotateY(${i * STEP}deg) translateZ(var(--carousel-radius))`,
                   opacity: selected !== null && !isSelected ? 0.18 : 1,
                   transition: "opacity 600ms ease",
                 }}
