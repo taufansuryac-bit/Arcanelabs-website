@@ -2,6 +2,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
+import { AsciiWordmark } from "./AsciiWordmark";
 import {
   isDocumentVisible,
   observeDocumentVisibility,
@@ -9,7 +10,7 @@ import {
   shouldAnimate,
 } from "@/lib/animation-runtime";
 
-const RESIDUE_COUNT = 520;
+const RESIDUE_COUNT = 560;
 
 function seeded(value: number) {
   const n = Math.sin(value * 127.1 + 311.7) * 43758.5453;
@@ -35,15 +36,15 @@ function Terrain({ dark }: { dark: boolean }) {
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uLow: { value: new THREE.Color(dark ? "#bfc6c8" : "#34383a") },
-      uHigh: { value: new THREE.Color(dark ? "#ffffff" : "#08090a") },
+      uLow: { value: new THREE.Color(dark ? "#d7dddd" : "#414748") },
+      uHigh: { value: new THREE.Color(dark ? "#ffffff" : "#090a0b") },
     }),
     [],
   );
 
   useEffect(() => {
-    uniforms.uLow.value.set(dark ? "#bfc6c8" : "#34383a");
-    uniforms.uHigh.value.set(dark ? "#ffffff" : "#08090a");
+    uniforms.uLow.value.set(dark ? "#d7dddd" : "#414748");
+    uniforms.uHigh.value.set(dark ? "#ffffff" : "#090a0b");
   }, [dark, uniforms]);
 
   useFrame((state) => {
@@ -51,8 +52,8 @@ function Terrain({ dark }: { dark: boolean }) {
   });
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4.7, -62]}>
-      <planeGeometry args={[220, 240, 156, 156]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4.8, -62]}>
+      <planeGeometry args={[224, 244, 164, 164]} />
       <shaderMaterial
         uniforms={uniforms}
         wireframe
@@ -65,28 +66,29 @@ function Terrain({ dark }: { dark: boolean }) {
           varying float vHeight;
 
           float terrainWave(vec2 p) {
-            float broad = 0.0;
-            broad += sin(p.x * 0.045 + uTime * 0.32) * 2.15;
-            broad += sin(p.y * 0.038 - uTime * 0.25) * 1.75;
-            broad += sin((p.x + p.y) * 0.031 + uTime * 0.19) * 1.15;
+            float ocean = 0.0;
+            ocean += sin(p.x * 0.038 + uTime * 0.34) * 2.75;
+            ocean += sin(p.y * 0.032 - uTime * 0.27) * 2.20;
+            ocean += sin((p.x + p.y) * 0.025 + uTime * 0.21) * 1.55;
+            ocean += sin((p.x - p.y) * 0.022 - uTime * 0.16) * 0.95;
 
-            float detail = 0.0;
-            detail += sin((p.x + p.y) * 0.082 - uTime * 0.20) * 0.58;
-            detail += sin((p.x - p.y) * 0.067 + uTime * 0.14) * 0.42;
+            float ripples = 0.0;
+            ripples += sin((p.x + p.y) * 0.078 - uTime * 0.23) * 0.62;
+            ripples += sin((p.x - p.y) * 0.064 + uTime * 0.17) * 0.48;
 
             float trough = pow(
-              abs(sin(p.x * 0.041 + uTime * 0.07) * sin(p.y * 0.037 - uTime * 0.06)),
+              abs(sin(p.x * 0.036 + uTime * 0.065) * sin(p.y * 0.034 - uTime * 0.055)),
               0.72
-            ) * 0.72;
+            ) * 0.62;
 
-            return broad + detail - trough;
+            return ocean + ripples - trough;
           }
 
           void main() {
             vec3 pos = position;
-            float breathe = 0.94 + 0.09 * sin(uTime * 0.24);
+            float breathe = 0.96 + 0.08 * sin(uTime * 0.22);
             float h = terrainWave(pos.xy) * breathe;
-            pos.z += h * 1.18;
+            pos.z += h * 1.24;
             vec4 mv = modelViewMatrix * vec4(pos, 1.0);
             vDepth = -mv.z;
             vHeight = h;
@@ -100,10 +102,10 @@ function Terrain({ dark }: { dark: boolean }) {
           varying float vHeight;
 
           void main() {
-            float crest = smoothstep(-1.5, 2.6, vHeight);
+            float crest = smoothstep(-1.8, 3.0, vHeight);
             vec3 color = mix(uLow, uHigh, crest);
-            float depthFade = 1.0 - smoothstep(54.0, 172.0, vDepth);
-            float horizonFade = 0.46 + crest * 0.54;
+            float depthFade = 1.0 - smoothstep(54.0, 176.0, vDepth);
+            float horizonFade = 0.48 + crest * 0.52;
             gl_FragColor = vec4(color, depthFade * horizonFade);
           }
         `}
@@ -125,29 +127,20 @@ type Residue = {
 function ResidueVoxels({ dark }: { dark: boolean }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const mainColor = useMemo(() => new THREE.Color(), []);
   const residues = useMemo<Residue[]>(() => {
     return Array.from({ length: RESIDUE_COUNT }, (_, index) => {
       const depth = seeded(index * 7.71 + 8.2);
       return {
-        x: (seeded(index * 3.17 + 1.1) - 0.5) * 150,
-        y: 3 + seeded(index * 5.31 + 4.7) * 62,
-        z: -198 + depth * 208,
-        size: 0.13 + Math.pow(seeded(index * 11.3 + 2.4), 1.65) * 0.58,
-        speed: 0.42 + seeded(index * 13.9 + 6.8) * 1.05,
+        x: (seeded(index * 3.17 + 1.1) - 0.5) * 152,
+        y: 2 + seeded(index * 5.31 + 4.7) * 66,
+        z: -202 + depth * 214,
+        size: 0.12 + Math.pow(seeded(index * 11.3 + 2.4), 1.62) * 0.62,
+        speed: 0.42 + seeded(index * 13.9 + 6.8) * 1.08,
         phase: seeded(index * 17.4 + 7.1) * Math.PI * 2,
-        spin: 0.25 + seeded(index * 19.1 + 3.2) * 0.8,
+        spin: 0.25 + seeded(index * 19.1 + 3.2) * 0.82,
       };
     });
   }, []);
-
-  useEffect(() => {
-    const current = mesh.current;
-    if (!current) return;
-    mainColor.set(dark ? "#ffffff" : "#17191a");
-    residues.forEach((_, index) => current.setColorAt(index, mainColor));
-    if (current.instanceColor) current.instanceColor.needsUpdate = true;
-  }, [dark, mainColor, residues]);
 
   useFrame((state) => {
     const current = mesh.current;
@@ -155,16 +148,16 @@ function ResidueVoxels({ dark }: { dark: boolean }) {
     const time = state.clock.elapsedTime;
 
     residues.forEach((residue, index) => {
-      const travelSpan = 214;
-      const z = ((residue.z + time * residue.speed * 3.15 + 208) % travelSpan) - 202;
-      const depthRatio = THREE.MathUtils.clamp((z + 202) / travelSpan, 0, 1);
-      const orbit = residue.phase + time * 0.085 * residue.spin;
-      const drift = 0.38 + depthRatio * 1.35;
+      const travelSpan = 220;
+      const z = ((residue.z + time * residue.speed * 3.2 + 214) % travelSpan) - 208;
+      const depthRatio = THREE.MathUtils.clamp((z + 208) / travelSpan, 0, 1);
+      const orbit = residue.phase + time * 0.09 * residue.spin;
+      const drift = 0.42 + depthRatio * 1.45;
       const x = residue.x + Math.cos(orbit) * drift;
-      const y = residue.y + Math.sin(orbit * 1.31) * drift * 0.78;
+      const y = residue.y + Math.sin(orbit * 1.31) * drift * 0.82;
 
       dummy.position.set(x, y, z);
-      dummy.rotation.set(orbit * 0.35, orbit * 0.62 + residue.phase, orbit * 0.21);
+      dummy.rotation.set(orbit * 0.38, orbit * 0.68 + residue.phase, orbit * 0.24);
       dummy.scale.setScalar(residue.size);
       dummy.updateMatrix();
       current.setMatrixAt(index, dummy.matrix);
@@ -181,12 +174,12 @@ function ResidueVoxels({ dark }: { dark: boolean }) {
     >
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial
-        vertexColors
-        color="#ffffff"
-        metalness={0.34}
-        roughness={0.3}
-        emissive="#ffffff"
-        emissiveIntensity={dark ? 0.018 : 0.005}
+        color={dark ? "#ffffff" : "#17191a"}
+        metalness={dark ? 0.08 : 0.14}
+        roughness={0.46}
+        emissive={dark ? "#ffffff" : "#000000"}
+        emissiveIntensity={dark ? 0.48 : 0}
+        toneMapped={false}
       />
     </instancedMesh>
   );
@@ -202,17 +195,17 @@ function CameraRig() {
     smooth.current.x += (state.pointer.x - smooth.current.x) * response;
     smooth.current.y += (state.pointer.y - smooth.current.y) * response;
 
-    const ambientX = Math.sin(time * 0.14) * 0.48;
-    const ambientY = Math.sin(time * 0.11 + 1.3) * 0.24;
-    const ambientLook = Math.sin(time * 0.09 + 0.6) * 0.75;
+    const ambientX = Math.sin(time * 0.14) * 0.52;
+    const ambientY = Math.sin(time * 0.11 + 1.3) * 0.28;
+    const ambientLook = Math.sin(time * 0.09 + 0.6) * 0.8;
 
-    state.camera.position.x = smooth.current.x * 2.6 + ambientX;
-    state.camera.position.y = 8.15 - smooth.current.y * 1.55 + ambientY;
+    state.camera.position.x = smooth.current.x * 2.75 + ambientX;
+    state.camera.position.y = 8.0 - smooth.current.y * 1.6 + ambientY;
     state.camera.position.z = 26;
     state.camera.rotation.z = -smooth.current.x * 0.018 + Math.sin(time * 0.08) * 0.004;
     lookTarget.set(
-      smooth.current.x * 5.2 + ambientLook,
-      3.9 - smooth.current.y * 2.0 + ambientY,
+      smooth.current.x * 5.4 + ambientLook,
+      3.8 - smooth.current.y * 2.05 + ambientY,
       -62,
     );
     state.camera.lookAt(lookTarget);
@@ -231,7 +224,7 @@ type FloatingInfoProps = {
 function FloatingInfo({ children, className, phase, active }: FloatingInfoProps) {
   return (
     <motion.div
-      className={`absolute z-20 ${className}`}
+      className={`pointer-events-none absolute z-20 text-foreground drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] ${className}`}
       animate={
         active
           ? {
@@ -269,7 +262,7 @@ export function ArcaneFooterField() {
         inViewport = visible;
         sync();
       },
-      { rootMargin: "420px 0px" },
+      { rootMargin: "460px 0px" },
     );
     const disconnectDocument = observeDocumentVisibility((visible) => {
       pageVisible = visible;
@@ -281,16 +274,16 @@ export function ArcaneFooterField() {
     };
   }, []);
 
-  const background = dark ? "#030304" : "#f3f3ee";
+  const background = dark ? "#020203" : "#f3f3ee";
 
   return (
     <section
       ref={containerRef}
       aria-label="Arcane field footer epilogue"
-      className="relative h-[82vh] min-h-[620px] overflow-hidden border-t border-border bg-background md:h-[96vh] md:min-h-[720px]"
+      className="relative h-[112vh] min-h-[820px] overflow-hidden border-t border-border bg-background md:h-[124vh] md:min-h-[920px]"
     >
       <Canvas
-        camera={{ position: [0, 8.15, 26], fov: 48, near: 0.1, far: 420 }}
+        camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
         dpr={[1, 1.6]}
         frameloop={active ? "always" : "never"}
         gl={{
@@ -300,61 +293,97 @@ export function ArcaneFooterField() {
         }}
       >
         <color attach="background" args={[background]} />
-        <ambientLight intensity={dark ? 0.76 : 0.82} />
-        <directionalLight position={[28, 36, 42]} intensity={dark ? 2.25 : 1.55} color="#ffffff" />
-        <directionalLight position={[-34, -12, -24]} intensity={dark ? 0.5 : 0.28} color="#ffffff" />
+        <ambientLight intensity={dark ? 1.7 : 1.0} />
+        <hemisphereLight
+          args={[
+            dark ? "#ffffff" : "#ffffff",
+            dark ? "#111113" : "#9da1a0",
+            dark ? 1.35 : 0.72,
+          ]}
+        />
+        <directionalLight
+          position={[28, 36, 42]}
+          intensity={dark ? 2.45 : 1.45}
+          color="#ffffff"
+        />
+        <directionalLight
+          position={[-34, 8, 6]}
+          intensity={dark ? 1.15 : 0.45}
+          color="#ffffff"
+        />
         <Terrain dark={dark} />
         <ResidueVoxels dark={dark} />
         <CameraRig />
       </Canvas>
 
-      <FloatingInfo
-        active={active}
-        phase={0}
-        className="inset-x-0 top-[9%] px-5 text-center md:px-8"
-      >
-        <p className="label-mono text-foreground/90">ARCANE LABS / END OF JOURNEY</p>
-        <p className="mt-2 text-xs tracking-[0.16em] text-foreground/55">FIELD STABILIZED / RESIDUAL VOXELS ACTIVE</p>
-      </FloatingInfo>
+      <div className="pointer-events-none absolute inset-x-0 top-[2.5%] z-20 overflow-hidden">
+        <div className="flex w-max marquee-track">
+          {[0, 1].map((key) => (
+            <span
+              key={key}
+              className="whitespace-nowrap px-6 font-display text-5xl uppercase text-foreground/22 md:text-8xl"
+            >
+              Arcane Labs — Let&apos;s build something arcane —&nbsp;
+            </span>
+          ))}
+        </div>
+      </div>
 
-      <FloatingInfo active={active} phase={1} className="left-[6%] top-[34%] max-w-[18rem]">
-        <p className="label-mono mb-2 text-foreground/70">■ CONTACT</p>
-        <a
-          href="mailto:hello@arcanelabs.mov"
-          className="text-sm tracking-[0.08em] text-foreground underline-offset-4 hover:underline md:text-base"
-        >
-          hello@arcanelabs.mov
-        </a>
-        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/60">INSTAGRAM / WORLDWIDE</p>
-      </FloatingInfo>
-
-      <FloatingInfo active={active} phase={2} className="right-[6%] top-[31%] text-right">
-        <p className="label-mono mb-2 text-foreground/70">■ INDEX</p>
-        <div className="flex flex-col gap-1 text-xs tracking-[0.18em] text-foreground/80 md:text-sm">
-          <a href="#works" className="hover:text-foreground">WORKS</a>
-          <a href="#faq" className="hover:text-foreground">FAQ</a>
-          <a href="#top" className="hover:text-foreground">TOP</a>
+      <FloatingInfo active={active} phase={0.65} className="inset-x-[5%] top-[13%] h-[30vh] md:h-[36vh]">
+        <div className="h-full w-full opacity-78">
+          <AsciiWordmark text="ARCANE LABS" cell={8} />
         </div>
       </FloatingInfo>
 
-      <FloatingInfo active={active} phase={3} className="bottom-[12%] left-[6%]">
-        <p className="label-mono mb-2 text-foreground/70">■ CREATED BY</p>
-        <p className="text-sm tracking-[0.1em] text-foreground md:text-base">ARCANE LABS</p>
-        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/55">DESIGN / CODE / MOTION</p>
+      <FloatingInfo
+        active={active}
+        phase={0}
+        className="inset-x-0 top-[11%] px-5 text-center md:px-8"
+      >
+        <p className="label-mono text-foreground/95">ARCANE LABS / END OF JOURNEY</p>
+        <p className="mt-2 text-xs tracking-[0.16em] text-foreground/65">
+          FIELD STABILIZED / RESIDUAL VOXELS ACTIVE
+        </p>
       </FloatingInfo>
 
-      <FloatingInfo active={active} phase={4} className="bottom-[12%] right-[6%] text-right">
-        <p className="label-mono mb-2 text-foreground/70">■ LEGALS</p>
-        <p className="text-xs tracking-[0.1em] text-foreground/75 md:text-sm">
+      <FloatingInfo active={active} phase={1} className="left-[6%] top-[46%] max-w-[18rem]">
+        <p className="label-mono mb-2 text-foreground/80">■ CONTACT</p>
+        <a
+          href="mailto:hello@arcanelabs.mov"
+          className="pointer-events-auto text-sm tracking-[0.08em] text-foreground underline-offset-4 hover:underline md:text-base"
+        >
+          hello@arcanelabs.mov
+        </a>
+        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/70">INSTAGRAM / WORLDWIDE</p>
+      </FloatingInfo>
+
+      <FloatingInfo active={active} phase={2} className="right-[6%] top-[43%] text-right">
+        <p className="label-mono mb-2 text-foreground/80">■ INDEX</p>
+        <div className="flex flex-col gap-1 text-xs tracking-[0.18em] text-foreground/90 md:text-sm">
+          <a href="#works" className="pointer-events-auto hover:text-foreground">WORKS</a>
+          <a href="#faq" className="pointer-events-auto hover:text-foreground">FAQ</a>
+          <a href="#top" className="pointer-events-auto hover:text-foreground">TOP</a>
+        </div>
+      </FloatingInfo>
+
+      <FloatingInfo active={active} phase={3} className="bottom-[15%] left-[6%]">
+        <p className="label-mono mb-2 text-foreground/85">■ CREATED BY</p>
+        <p className="text-sm tracking-[0.1em] text-foreground md:text-base">ARCANE LABS</p>
+        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/70">DESIGN / CODE / MOTION</p>
+      </FloatingInfo>
+
+      <FloatingInfo active={active} phase={4} className="bottom-[15%] right-[6%] text-right">
+        <p className="label-mono mb-2 text-foreground/85">■ LEGALS</p>
+        <p className="text-xs tracking-[0.1em] text-foreground md:text-sm">
           © {new Date().getFullYear()} ARCANE LABS
         </p>
-        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/55">IMPRINT / PRIVACY</p>
+        <p className="mt-2 text-xs tracking-[0.12em] text-foreground/70">IMPRINT / PRIVACY</p>
       </FloatingInfo>
 
       <FloatingInfo active={active} phase={2.5} className="inset-x-0 bottom-[3.5%] text-center">
         <a
           href="#top"
-          className="pointer-events-auto label-mono text-foreground/80 transition-opacity hover:text-foreground"
+          className="pointer-events-auto label-mono text-foreground/90 transition-opacity hover:text-foreground"
         >
           :/ BACK TO TOP
         </a>
