@@ -294,7 +294,7 @@ export function ArcaneFooterField() {
 
       <motion.div
         data-footer-content
-        className="absolute inset-x-[4%] top-[13%] z-20 flex flex-col items-center md:inset-x-[6%] md:top-[12%]"
+        className="absolute inset-x-[4%] top-[17%] z-20 flex flex-col items-center md:inset-x-[6%] md:top-[16%]"
         animate={active ? { y: [0, -3, 2, 0] } : { y: 0 }}
         transition={{ duration: 11.5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -306,72 +306,68 @@ export function ArcaneFooterField() {
         </div>
 
         <div
-          className={`mt-2 w-full max-w-[1320px] text-center md:mt-4 ${textGlow}`}
+          data-footer-nav
+          className={`mt-2 w-full max-w-[1320px] text-left md:mt-3 ${textGlow}`}
           aria-label="Arcane Labs footer navigation and contact"
         >
-          <div className="grid grid-cols-2 gap-x-5 gap-y-5 md:grid-cols-6 md:gap-4">
+          <div className="grid grid-cols-2 gap-x-7 gap-y-7 border-t border-current/15 pt-5 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-x-12 md:pt-6">
             <div>
-              <p className={`label-mono mb-2 ${accentText} ${accentGlow}`}>■ CONTACT</p>
+              <p className={`label-mono mb-3 ${accentText} ${accentGlow}`}>■ CONTACT</p>
               <a
                 href="mailto:hello@arcanelabs.mov"
-                className={`text-xs tracking-[0.08em] hover:opacity-70 md:text-sm ${primaryText}`}
+                className={`block text-xs tracking-[0.08em] hover:opacity-70 md:text-sm ${primaryText}`}
               >
                 hello@arcanelabs.mov
               </a>
+              <p className={`mt-2 text-[10px] tracking-[0.12em] md:text-xs ${secondaryText}`}>
+                WORLDWIDE DIGITAL STUDIO
+              </p>
+              <p className={`mt-1 text-[10px] tracking-[0.12em] md:text-xs ${secondaryText}`}>
+                DESIGN / CODE / MOTION
+              </p>
             </div>
 
             <div>
-              <p className={`label-mono mb-2 ${accentText} ${accentGlow}`}>■ WORKS</p>
-              <a href="#works" className={`text-xs tracking-[0.12em] hover:opacity-70 md:text-sm ${primaryText}`}>
-                SELECTED WORK
-              </a>
+              <p className={`label-mono mb-3 ${accentText} ${accentGlow}`}>■ INDEX</p>
+              <div className={`space-y-2 text-xs tracking-[0.12em] md:text-sm ${primaryText}`}>
+                <a href="#works" className="block hover:opacity-70">WORKS</a>
+                <a href="#top" className="block hover:opacity-70">STUDIO</a>
+                <a href="#faq" className="block hover:opacity-70">FAQ</a>
+                <a href="#contact" className="block hover:opacity-70">CONTACT</a>
+              </div>
             </div>
 
             <div>
-              <p className={`label-mono mb-2 ${accentText} ${accentGlow}`}>■ STUDIO</p>
-              <a href="#top" className={`text-xs tracking-[0.12em] hover:opacity-70 md:text-sm ${primaryText}`}>
-                ARCANE LABS
-              </a>
+              <p className={`label-mono mb-3 ${accentText} ${accentGlow}`}>■ STUDIO</p>
+              <div className={`space-y-2 text-xs tracking-[0.12em] md:text-sm ${primaryText}`}>
+                <span className="block">ARCANE LABS</span>
+                <span className="block">DEVELOPER STUDIO</span>
+                <span className="block">AI / WEB / MOTION</span>
+              </div>
             </div>
 
             <div>
-              <p className={`label-mono mb-2 ${accentText} ${accentGlow}`}>■ FAQ</p>
-              <a href="#faq" className={`text-xs tracking-[0.12em] hover:opacity-70 md:text-sm ${primaryText}`}>
-                QUESTIONS
-              </a>
-            </div>
-
-            <div>
-              <p className={`label-mono mb-2 ${accentText} ${accentGlow}`}>■ CREATED BY</p>
-              <p className={`text-xs tracking-[0.1em] md:text-sm ${primaryText}`}>TAUFAN SURC</p>
-              <p className={`mt-1 text-[10px] tracking-[0.12em] ${secondaryText}`}>DESIGN / CODE / MOTION</p>
-            </div>
-
-            <div>
-              <p className={`label-mono mb-2 ${accentText} ${accentGlow}`}>■ LEGALS</p>
-              <p className={`text-xs tracking-[0.1em] md:text-sm ${primaryText}`}>© 2026 ARCANE LABS</p>
-              <p className={`mt-1 text-[10px] tracking-[0.12em] ${secondaryText}`}>PRIVACY / IMPRINT</p>
+              <p className={`label-mono mb-3 ${accentText} ${accentGlow}`}>■ LEGALS</p>
+              <div className={`space-y-2 text-xs tracking-[0.12em] md:text-sm ${primaryText}`}>
+                <span className="block">© 2026 ARCANE LABS</span>
+                <span className="block">CREATED BY TAUFAN SURC</span>
+                <span className={`block ${secondaryText}`}>PRIVACY / IMPRINT</span>
+                <a href="#top" className="block hover:opacity-70">:/ BACK TO TOP</a>
+              </div>
             </div>
           </div>
-
-          <a
-            href="#top"
-            className={`mt-5 inline-block label-mono transition-opacity hover:opacity-65 ${secondaryText}`}
-          >
-            :/ BACK TO TOP
-          </a>
         </div>
       </motion.div>
 
       <div
         data-footer-ticker
-        className={`absolute inset-x-0 bottom-[2%] z-30 overflow-hidden border-y border-current/10 py-2 ${textGlow}`}
+        className={`absolute inset-x-0 bottom-[2%] z-30 overflow-hidden border-y border-white/10 bg-black/40 py-2 backdrop-blur-[1px] ${textGlow}`}
       >
         <div className="flex w-max marquee-track">
           {[0, 1, 2].map((key) => (
             <span
               key={key}
-              className={`whitespace-nowrap px-4 font-mono text-[9px] uppercase tracking-[0.2em] md:text-[11px] ${secondaryText}`}
+              className="whitespace-nowrap px-4 font-mono text-[9px] uppercase tracking-[0.2em] text-white/80 md:text-[11px]"
             >
               {FOOTER_TICKER}
             </span>
