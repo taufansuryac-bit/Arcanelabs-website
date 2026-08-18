@@ -153,12 +153,18 @@ export function EnchantedProjectCarousel() {
   const selectedItem = selected === null ? null : items.find((i) => i.id === selected)!;
 
   return (
-    <div className="relative isolate w-full overflow-hidden">
+    <div className="relative isolate w-full overflow-hidden bg-transparent">
       <style>{`
-        .enchanted-stage-glow {
-          background:
-            radial-gradient(60% 45% at 50% 42%, rgba(111, 18, 18, .18), transparent 70%),
-            radial-gradient(90% 70% at 50% 100%, rgba(24, 27, 33, .68), transparent 75%);
+        .enchanted-ring-stage {
+          --carousel-scale: 1.1;
+          transform-style: preserve-3d;
+          will-change: transform;
+        }
+        @media (min-width: 1280px) {
+          .enchanted-ring-stage { --carousel-scale: 1.28; }
+        }
+        @media (min-width: 1700px) {
+          .enchanted-ring-stage { --carousel-scale: 1.38; }
         }
         .enchanted-ring-card {
           transform-style: preserve-3d;
@@ -183,11 +189,9 @@ export function EnchantedProjectCarousel() {
         .card-pop { animation: enchanted-card-pop 620ms cubic-bezier(.22,1,.36,1) both; }
       `}</style>
 
-      <div className="enchanted-stage-glow pointer-events-none absolute inset-0 -z-10" />
-
       <div
-        className="relative h-[70vh] min-h-[460px] w-full cursor-grab select-none active:cursor-grabbing"
-        style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
+        className="relative h-[68svh] min-h-[540px] max-h-[820px] w-full cursor-grab select-none active:cursor-grabbing"
+        style={{ perspective: "1400px", perspectiveOrigin: "50% 46%" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -197,10 +201,9 @@ export function EnchantedProjectCarousel() {
         }}
       >
         <div
-          className="absolute left-1/2 top-1/2"
+          className="enchanted-ring-stage absolute left-1/2 top-[43%]"
           style={{
-            transformStyle: "preserve-3d",
-            transform: `translate(-50%, -50%) translateZ(-700px) rotateX(-8deg) rotateY(${angle}deg)`,
+            transform: `translate(-50%, -50%) translateZ(-700px) rotateX(-8deg) rotateY(${angle}deg) scale(var(--carousel-scale))`,
           }}
         >
           {items.map((item, i) => {
