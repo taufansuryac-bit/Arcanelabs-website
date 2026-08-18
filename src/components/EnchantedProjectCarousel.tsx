@@ -155,21 +155,21 @@ export function EnchantedProjectCarousel() {
     <div className="relative isolate w-full overflow-hidden bg-transparent">
       <style>{`
         .enchanted-carousel-stage {
-          --carousel-card-w: clamp(220px, 58vw, 280px);
-          --carousel-card-h: clamp(142px, 37vw, 180px);
-          --carousel-radius: clamp(320px, 78vw, 460px);
-          --carousel-camera-z: clamp(-650px, -88vw, -520px);
-          --carousel-perspective: 1500px;
+          --carousel-card-w: clamp(230px, 60vw, 300px);
+          --carousel-card-h: clamp(148px, 38vw, 194px);
+          --carousel-radius: clamp(380px, 88vw, 520px);
+          --carousel-camera-z: clamp(-700px, -92vw, -560px);
+          --carousel-perspective: 1600px;
           --carousel-tilt: -2deg;
         }
         @media (min-width: 768px) {
           .enchanted-carousel-stage {
-            --carousel-card-w: clamp(340px, 22vw, 400px);
-            --carousel-card-h: clamp(220px, 14vw, 258px);
-            --carousel-radius: clamp(560px, 37vw, 740px);
-            --carousel-camera-z: clamp(-960px, -45vw, -700px);
-            --carousel-perspective: clamp(1800px, 105vw, 2100px);
-            --carousel-tilt: -3deg;
+            --carousel-card-w: clamp(380px, 22vw, 430px);
+            --carousel-card-h: clamp(238px, 14vw, 270px);
+            --carousel-radius: clamp(800px, 52vw, 1050px);
+            --carousel-camera-z: clamp(-980px, -48vw, -820px);
+            --carousel-perspective: clamp(1900px, 110vw, 2300px);
+            --carousel-tilt: -2deg;
           }
         }
         .enchanted-ring-stage {
@@ -200,7 +200,7 @@ export function EnchantedProjectCarousel() {
       `}</style>
 
       <div
-        className="enchanted-carousel-stage relative h-[86svh] min-h-[620px] max-h-[980px] w-full cursor-grab select-none active:cursor-grabbing"
+        className="enchanted-carousel-stage relative h-[56svh] min-h-[480px] max-h-[620px] w-full cursor-grab select-none active:cursor-grabbing"
         style={{
           perspective: "var(--carousel-perspective)",
           perspectiveOrigin: "50% 50%",
@@ -214,7 +214,7 @@ export function EnchantedProjectCarousel() {
         }}
       >
         <div
-          className="enchanted-ring-stage absolute left-1/2 top-1/2"
+          className="enchanted-ring-stage absolute left-1/2 top-[46%]"
           style={{
             transform:
               `translate(-50%, -50%) translateZ(var(--carousel-camera-z)) rotateX(var(--carousel-tilt)) rotateY(${angle}deg)`,
