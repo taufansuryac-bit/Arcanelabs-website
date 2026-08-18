@@ -6,14 +6,14 @@ const footerSource = await readFile(
   new URL("../components/ArcaneFooterField.tsx", import.meta.url),
   "utf8",
 );
-const routeSource = await readFile(
-  new URL("../routes/index.tsx", import.meta.url),
+const portalSource = await readFile(
+  new URL("../components/MetaversePortalV2.tsx", import.meta.url),
   "utf8",
 );
-const stylesSource = await readFile(new URL("../styles.css", import.meta.url), "utf8");
+const fontSource = await readFile(new URL("../pixel-fonts.css", import.meta.url), "utf8");
 
-test("footer epilogue mounts ArcaneFooterField below the voxel journey", () => {
-  assert.match(routeSource, /ArcaneFooterField/);
+test("footer epilogue mounts ArcaneFooterField directly after the voxel journey", () => {
+  assert.match(portalSource, /ArcaneFooterField/);
   assert.match(footerSource, /PlaneGeometry|planeGeometry/i);
   assert.match(footerSource, /InstancedMesh|instancedMesh/);
   assert.match(footerSource, /pointer/i);
@@ -26,9 +26,9 @@ test("footer field reuses Arcane voxel material language", () => {
   assert.doesNotMatch(footerSource, /comet|trail|streak/i);
 });
 
-test("global pixel typography defines a self-hosted Pixellari family", () => {
-  assert.match(stylesSource, /@font-face/);
-  assert.match(stylesSource, /font-family:\s*["']Pixellari["']/i);
-  assert.match(stylesSource, /pixellari/i);
-  assert.match(stylesSource, /--font-mono-ui:\s*["']Pixellari["']/i);
+test("global pixel typography defines Pixellari and overrides the UI font token", () => {
+  assert.match(fontSource, /@font-face/);
+  assert.match(fontSource, /font-family:\s*["']Pixellari["']/i);
+  assert.match(fontSource, /pixellari/i);
+  assert.match(fontSource, /--font-mono-ui:\s*["']Pixellari["']/i);
 });
