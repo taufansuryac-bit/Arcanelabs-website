@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { ArcaneFooterField } from "@/components/ArcaneFooterField";
 import { ArcaneLoader } from "@/components/ArcaneLoader";
 import { AsciiWordmark } from "@/components/AsciiWordmark";
+import { EnchantedProjectCarousel } from "@/components/EnchantedProjectCarousel";
 import { IdentityConstellation } from "@/components/IdentityConstellation";
 import { InteractiveTicker } from "@/components/InteractiveTicker";
 import { MetaversePortalV2 } from "@/components/MetaversePortalV2";
@@ -10,7 +11,6 @@ import { NoiseBackground } from "@/components/NoiseBackground";
 import { PixelFaq } from "@/components/PixelFaq";
 import { PixelReveal } from "@/components/PixelReveal";
 import { ProjectConverge } from "@/components/ProjectConverge";
-import { ProjectScrapbookOrbit } from "@/components/ProjectScrapbookOrbit";
 import { ScrambleText } from "@/components/ScrambleText";
 import { SectionPixelReveal } from "@/components/SectionPixelReveal";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -201,7 +201,7 @@ function Index() {
           </section>
         </SectionPixelReveal>
 
-        <ProjectScrapbookOrbit />
+        <EnchantedProjectCarousel />
 
         <SectionPixelReveal threshold={0.05}>
           <InteractiveTicker />
