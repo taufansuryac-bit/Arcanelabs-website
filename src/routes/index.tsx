@@ -87,7 +87,7 @@ function Index() {
       <div
         className={`relative z-10 transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
       >
-        <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-5 mix-blend-difference md:px-8">
+        <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 py-5 text-foreground md:px-8">
           <a href="#top" className="group">
             <ScrambleText
               text="ARCANE LABS"
@@ -272,7 +272,7 @@ function Index() {
 
         <MetaversePortalV2 />
 
-        <footer id="contact" className="relative z-10 overflow-hidden">
+        <footer id="contact" className="relative z-20 -mt-[12vh] overflow-visible">
           <ArcaneFooterField />
         </footer>
       </div>
