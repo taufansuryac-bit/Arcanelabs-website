@@ -6,6 +6,10 @@ const footerSource = await readFile(
   new URL("../components/ArcaneFooterField.tsx", import.meta.url),
   "utf8",
 );
+const asciiSource = await readFile(
+  new URL("../components/AsciiWordmark.tsx", import.meta.url),
+  "utf8",
+);
 const portalSource = await readFile(
   new URL("../components/MetaversePortalV2.tsx", import.meta.url),
   "utf8",
@@ -28,18 +32,13 @@ test("Arcane field owns the entire footer experience and no longer mounts from t
   assert.doesNotMatch(routeSource.slice(footerStart, fieldIndex), /marquee-track|AsciiWordmark/);
 });
 
-test("marquee and ASCII wordmark are integrated into ArcaneFooterField", () => {
-  assert.match(footerSource, /marquee-track/);
-  assert.match(footerSource, /AsciiWordmark/);
-  assert.match(footerSource, /Arcane Labs — Let&apos;s build something arcane/);
-});
-
-test("footer field uses animated high-amplitude wave terrain and real 3D residue cubes", () => {
+test("footer uses the animated terrain and real 3D residue cubes strictly as the scene background", () => {
   assert.match(footerSource, /planeGeometry/i);
   assert.match(footerSource, /instancedMesh/i);
   assert.match(footerSource, /terrainWave/);
   assert.match(footerSource, /2\.75/);
   assert.match(footerSource, /2\.20/);
+  assert.match(footerSource, /0\.98\s*\+\s*0\.18\s*\*\s*sin/);
   assert.match(footerSource, /useFrame/);
   assert.match(footerSource, /state\.pointer/);
 });
@@ -52,20 +51,37 @@ test("dark-mode residual cubes remain white-silver and do not use blue material 
   assert.doesNotMatch(footerSource, /#9aa0ff/i);
 });
 
-test("footer information is consolidated into one centered readable frame", () => {
-  assert.match(footerSource, /data-footer-frame/);
-  assert.match(footerSource, /top-\[58%\]/);
-  assert.match(footerSource, /backdrop-blur-md/);
+test("footer has one centered composition without a blocking panel", () => {
+  assert.match(footerSource, /data-footer-content/);
+  assert.doesNotMatch(footerSource, /data-footer-frame/);
+  assert.doesNotMatch(footerSource, /backdrop-blur-md/);
+  assert.match(footerSource, /data-footer-logo/);
+  assert.match(footerSource, /AsciiWordmark text="ARCANE LABS" cell=\{8\} chaosStrength=\{1\.65\}/);
   assert.match(footerSource, /CONTACT/);
   assert.match(footerSource, /hello@arcanelabs\.mov/);
-  assert.match(footerSource, /INDEX/);
-  assert.match(footerSource, /CREATED BY/);
+  assert.match(footerSource, /WORKS/);
+  assert.match(footerSource, /STUDIO/);
+  assert.match(footerSource, /FAQ/);
   assert.match(footerSource, /LEGALS/);
-  assert.match(footerSource, /BACK TO TOP/);
-  assert.match(footerSource, /#9cff45/);
-  assert.match(footerSource, /#f2f1e9/);
-  assert.match(footerSource, /#9da4a8/);
-  assert.doesNotMatch(footerSource, /FloatingInfo/);
+  assert.match(footerSource, /CREATED BY/);
+  assert.match(footerSource, /drop-shadow/);
+});
+
+test("small continuous creator ticker is the final in-frame footer element", () => {
+  assert.match(footerSource, /data-footer-ticker/);
+  assert.match(footerSource, /marquee-track/);
+  assert.match(
+    footerSource,
+    /\[c\] ARCANE LABS CREATED BY TAUFAN SURC 2026 — THE BEGININNG OF DEVELOPER ERA/,
+  );
+  assert.match(footerSource, /bottom-\[2%\]/);
+  assert.doesNotMatch(footerSource, /Let&apos;s build something arcane/);
+});
+
+test("ASCII cursor chaos is stronger by default while footer can opt into a stronger local value", () => {
+  assert.match(asciiSource, /chaosStrength\s*=\s*1\.3/);
+  assert.match(asciiSource, /const wob = chaos \* 3\.8/);
+  assert.match(asciiSource, /\* chaos \* 2\.65/);
 });
 
 test("global pixel typography defines Pixellari and overrides the UI font token", () => {
