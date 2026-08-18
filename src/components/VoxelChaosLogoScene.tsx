@@ -1,16 +1,22 @@
-import { useEffect, useRef } from "react";
+import { OrbitControls } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import type { MotionValue } from "motion/react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
 import {
   isDocumentVisible,
   observeDocumentVisibility,
   observeElementVisibility,
   shouldAnimate,
 } from "@/lib/animation-runtime";
-
-const RES = 104;
-const DEPTH = 7;
-const GAP = 0.54;
-const VOXEL_SIZE = GAP * 0.9;
+import {
+  VOXEL_DEPTH,
+  VOXEL_GAP,
+  VOXEL_RESOLUTION,
+  VOXEL_SIZE,
+  getPortalVisualState,
+  getResponsiveCameraDistance,
+} from "@/lib/voxel-scene-model";
 
 type VoxelChaosLogoSceneProps = {
   mode?: "loader" | "portal";
@@ -28,6 +34,11 @@ type VoxelData = {
   count: number;
 };
 
+type SceneState = {
+  globalChaos: number;
+  opacity: number;
+};
+
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 const smooth = (value: number) => {
   const t = clamp01(value);
@@ -39,222 +50,338 @@ function seeded(value: number) {
   return n - Math.floor(n);
 }
 
-function compileShader(gl: WebGL2RenderingContext, type: number, source: string) {
-  const shader = gl.createShader(type);
-  if (!shader) throw new Error("Unable to create voxel shader");
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const log = gl.getShaderInfoLog(shader);
-    gl.deleteShader(shader);
-    throw new Error(`Voxel shader compile failed: ${log ?? "unknown"}`);
-  }
-  return shader;
+function useVoxels(url: string) {
+  const [voxels, setVoxels] = useState<VoxelData | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+    image.onload = () => {
+      const width = VOXEL_RESOLUTION;
+      const height = Math.max(1, Math.round(VOXEL_RESOLUTION * (1153 / 1600)));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) return;
+
+      context.clearRect(0, 0, width, height);
+      context.drawImage(image, 0, 0, width, height);
+      const pixels = context.getImageData(0, 0, width, height).data;
+      const bases: number[] = [];
+      const seeds: number[] = [];
+      const randoms: number[] = [];
+      let voxelIndex = 0;
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const pixelIndex = (y * width + x) * 4;
+          const alpha = (pixels[pixelIndex + 3] ?? 0) / 255;
+          if (alpha < 0.52) continue;
+
+          const px = (x - width / 2 + 0.5) * VOXEL_GAP;
+          const py = (height / 2 - y - 0.5) * VOXEL_GAP;
+          for (let z = 0; z < VOXEL_DEPTH; z += 1) {
+            const pz = (z - (VOXEL_DEPTH - 1) / 2) * VOXEL_GAP;
+            bases.push(px, py, pz);
+            seeds.push(
+              seeded(voxelIndex * 3.17 + 1.1) * 2 - 1,
+              seeded(voxelIndex * 5.31 + 7.2) * 2 - 1,
+              seeded(voxelIndex * 9.73 + 13.4) * 2 - 1,
+            );
+            randoms.push(seeded(voxelIndex * 11.91 + 23.7));
+            voxelIndex += 1;
+          }
+        }
+      }
+
+      if (!cancelled) {
+        setVoxels({
+          base: new Float32Array(bases),
+          seed: new Float32Array(seeds),
+          rand: new Float32Array(randoms),
+          count: randoms.length,
+        });
+      }
+    };
+
+    return () => {
+      cancelled = true;
+      image.onload = null;
+    };
+  }, [url]);
+
+  return voxels;
 }
 
-function createProgram(gl: WebGL2RenderingContext, vertex: string, fragment: string) {
-  const program = gl.createProgram();
-  if (!program) throw new Error("Unable to create voxel program");
-  const vs = compileShader(gl, gl.VERTEX_SHADER, vertex);
-  const fs = compileShader(gl, gl.FRAGMENT_SHADER, fragment);
-  gl.attachShader(program, vs);
-  gl.attachShader(program, fs);
-  gl.linkProgram(program);
-  gl.deleteShader(vs);
-  gl.deleteShader(fs);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const log = gl.getProgramInfoLog(program);
-    gl.deleteProgram(program);
-    throw new Error(`Voxel program link failed: ${log ?? "unknown"}`);
-  }
-  return program;
+function SceneController({
+  ready,
+  mode,
+  durationMs,
+  progressRef,
+  sceneState,
+  completeRef,
+  onCompleteRef,
+}: {
+  ready: boolean;
+  mode: "loader" | "portal";
+  durationMs: number;
+  progressRef: React.MutableRefObject<number>;
+  sceneState: React.MutableRefObject<SceneState>;
+  completeRef: React.MutableRefObject<boolean>;
+  onCompleteRef: React.MutableRefObject<(() => void) | undefined>;
+}) {
+  const elapsedMs = useRef(0);
+
+  useFrame((_, delta) => {
+    if (!ready) return;
+
+    if (mode === "loader") {
+      elapsedMs.current += Math.min(delta, 0.05) * 1000;
+      const p = clamp01(elapsedMs.current / durationMs);
+      const settle = smooth(p / 0.42);
+      const exit = smooth((p - 0.86) / 0.14);
+      sceneState.current.globalChaos = (1 - settle) * 1.28;
+      sceneState.current.opacity = 1 - exit;
+
+      if (p >= 1 && !completeRef.current) {
+        completeRef.current = true;
+        queueMicrotask(() => onCompleteRef.current?.());
+      }
+      return;
+    }
+
+    const p = clamp01(progressRef.current);
+    const visual = getPortalVisualState(p);
+    const middleFade = smooth((p - 0.38) / 0.18) * (1 - smooth((p - 0.8) / 0.1));
+    sceneState.current.globalChaos = visual.chaos;
+    sceneState.current.opacity = 1 - middleFade * 0.96;
+  });
+
+  return null;
 }
 
-const VERTEX_SHADER = `#version 300 es
+const VERTEX_SHADER = `
 precision highp float;
-layout(location=0) in vec3 aPosition;
-layout(location=1) in vec3 aNormal;
-layout(location=2) in vec3 iBase;
-layout(location=3) in vec3 iSeed;
-layout(location=4) in float iRand;
-
+attribute vec3 aSeed;
+attribute float aRand;
 uniform float uTime;
-uniform float uChaos;
-uniform float uScale;
-uniform float uAspect;
-uniform float uOpacity;
-uniform float uPointerInfluence;
+uniform float uGlobalChaos;
+uniform float uLocalChaos;
 uniform vec2 uPointer;
+varying vec3 vNormal;
+varying float vRand;
 
-out vec3 vNormal;
-out float vRand;
-out float vOpacity;
-out float vViewDepth;
-
-mat3 rotX(float a){
-  float c=cos(a), s=sin(a);
-  return mat3(1.,0.,0., 0.,c,-s, 0.,s,c);
+mat3 rotX(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(1., 0., 0., 0., c, -s, 0., s, c);
 }
-mat3 rotY(float a){
-  float c=cos(a), s=sin(a);
-  return mat3(c,0.,s, 0.,1.,0., -s,0.,c);
+mat3 rotY(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(c, 0., s, 0., 1., 0., -s, 0., c);
 }
-mat3 rotZ(float a){
-  float c=cos(a), s=sin(a);
-  return mat3(c,-s,0., s,c,0., 0.,0.,1.);
+mat3 rotZ(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(c, -s, 0., s, c, 0., 0., 0., 1.);
 }
 
-void main(){
-  float d = distance(iBase.xy, uPointer);
-  float influence = exp(-(d * d) / (2.0 * 6.0 * 6.0));
-  float localChaos = mix(1.0, influence, uPointerInfluence);
-  float c = clamp(uChaos * localChaos, 0.0, 1.35);
-  float c2 = c * c;
+void main() {
+  vec3 base = instanceMatrix[3].xyz;
+  vec2 pointerDelta = base.xy - uPointer;
+  float distanceToPointer = length(pointerDelta);
+  float influence = exp(-(distanceToPointer * distanceToPointer) / (2.0 * 6.0 * 6.0));
+  float localChaos = influence * uLocalChaos;
+  float chaos = clamp(max(uGlobalChaos, localChaos), 0.0, 1.35);
+  float chaosSquared = chaos * chaos;
+  vec2 radial = distanceToPointer > 0.001 ? pointerDelta / distanceToPointer : vec2(0.0);
+  float push = chaosSquared * 4.5;
+  float scatterDistance = mix(2.0, 18.0, step(0.01, uGlobalChaos));
+  float scatter = chaosSquared * scatterDistance;
+  float wobble = sin(uTime * 2.0 + aRand * 30.0);
 
-  vec2 radial2 = iBase.xy;
-  float radialLen = max(length(radial2), 0.001);
-  vec3 radial = vec3(radial2 / radialLen, 0.0);
-  float wobble = sin(uTime * 2.0 + iRand * 30.0);
-  float push = c2 * 4.5;
-  float scatter = c2 * 18.0;
+  vec3 world = base;
+  world.xy += radial * push;
+  world += aSeed * scatter;
+  world.z += aSeed.z * scatter * 0.6 + wobble * 2.5 * chaos;
 
-  vec3 world = iBase;
-  world += radial * push;
-  world += iSeed * scatter;
-  world.z += wobble * 2.5 * c;
+  mat3 cubeRotation = rotX(aSeed.x * (chaos * 6.0 + uTime * 0.08 * chaos))
+                    * rotY(aSeed.y * (chaos * 6.0 + uTime * 0.08 * chaos))
+                    * rotZ(aSeed.z * chaos * 6.0 + uTime * 0.4 * chaos);
+  vec3 localPosition = cubeRotation * (position * (1.0 - min(chaos, 1.0) * 0.3));
+  vec3 transformed = world + localPosition;
 
-  float phase = iRand * 62.8;
-  world += vec3(
-    sin(uTime * 0.6 + phase),
-    cos(uTime * 0.5 + phase * 1.3),
-    sin(uTime * 0.4 + phase * 0.7)
-  ) * 0.08 * (1.0 - min(c, 1.0));
+  vNormal = normalize(normalMatrix * cubeRotation * normal);
+  vRand = aRand;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
+}
+`;
 
-  mat3 cubeRot = rotX(iSeed.x * c * 5.5 + uTime * 0.03 * c)
-              * rotY(iSeed.y * c * 5.5 + uTime * 0.04 * c)
-              * rotZ(iSeed.z * c * 5.5 + uTime * 0.12 * c);
-  vec3 local = cubeRot * (aPosition * ${VOXEL_SIZE.toFixed(4)} * (1.0 - min(c, 1.0) * 0.22));
-  world += local;
+const FRAGMENT_SHADER = `
+precision highp float;
+uniform float uDark;
+uniform float uOpacity;
+varying vec3 vNormal;
+varying float vRand;
 
-  float idleYaw = sin(uTime * 0.32) * 0.055 * (1.0 - min(c, 1.0) * 0.35);
-  float idlePitch = cos(uTime * 0.27) * 0.032 * (1.0 - min(c, 1.0) * 0.35);
-  mat3 sceneRot = rotY(idleYaw) * rotX(idlePitch);
-  world = sceneRot * world;
+void main() {
+  vec3 normalDirection = normalize(vNormal);
+  vec3 lightDirection = normalize(vec3(0.55, 0.78, 0.92));
+  float diffuse = max(dot(normalDirection, lightDirection), 0.0);
+  float rim = pow(1.0 - max(abs(normalDirection.z), 0.0), 2.0);
+  float specular = pow(max(dot(reflect(-lightDirection, normalDirection), vec3(0.0, 0.0, 1.0)), 0.0), 18.0);
+  vec3 base = mix(vec3(0.055, 0.062, 0.052), vec3(0.90, 0.92, 0.89), uDark);
+  vec3 accent = mix(vec3(0.29, 0.52, 0.08), vec3(0.62, 0.93, 0.24), uDark);
+  float isAccent = step(0.935, vRand);
+  vec3 materialColor = mix(base, accent, isAccent);
+  float shade = 0.58 + diffuse * 0.48 + rim * 0.1 + specular * 0.2;
+  gl_FragColor = vec4(materialColor * shade, uOpacity);
+}
+`;
 
-  float cameraZ = 90.0;
-  float viewZ = max(24.0, cameraZ - world.z);
-  float perspective = 70.0 / viewZ;
-  vec2 clip = vec2(
-    world.x * uScale * perspective / max(0.65, uAspect),
-    world.y * uScale * perspective
+function ResponsiveCamera() {
+  const { camera, size } = useThree();
+
+  useLayoutEffect(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    const distance = getResponsiveCameraDistance(size.width, size.height, camera.fov, 1.18);
+    const direction =
+      camera.position.lengthSq() > 0
+        ? camera.position.clone().normalize()
+        : new THREE.Vector3(0, 0, 1);
+    camera.position.copy(direction.multiplyScalar(distance));
+    camera.far = Math.max(600, distance * 4);
+    camera.updateProjectionMatrix();
+  }, [camera, size.height, size.width]);
+
+  return null;
+}
+
+function VoxelShaderMesh({
+  voxels,
+  hoverChaos,
+  hovering,
+  sceneState,
+  dark,
+}: {
+  voxels: VoxelData;
+  hoverChaos: React.MutableRefObject<number>;
+  hovering: React.MutableRefObject<boolean>;
+  sceneState: React.MutableRefObject<SceneState>;
+  dark: boolean;
+}) {
+  const mesh = useRef<THREE.InstancedMesh>(null);
+  const material = useRef<THREE.ShaderMaterial>(null);
+  const pointer = useRef(new THREE.Vector2(999, 999));
+  const pointerHit = useMemo(() => new THREE.Vector3(), []);
+  const ray = useMemo(() => new THREE.Raycaster(), []);
+  const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), []);
+  const elapsed = useRef(0);
+  const { camera } = useThree();
+
+  const geometry = useMemo(() => {
+    const next = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
+    next.setAttribute("aSeed", new THREE.InstancedBufferAttribute(voxels.seed, 3));
+    next.setAttribute("aRand", new THREE.InstancedBufferAttribute(voxels.rand, 1));
+    return next;
+  }, [voxels]);
+
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uGlobalChaos: { value: 0 },
+      uLocalChaos: { value: 0 },
+      uPointer: { value: new THREE.Vector2(999, 999) },
+      uDark: { value: 0 },
+      uOpacity: { value: 1 },
+    }),
+    [],
   );
 
-  gl_Position = vec4(clip, clamp((world.z + 38.0) / 130.0, -0.95, 0.95), 1.0);
-  vNormal = normalize(sceneRot * cubeRot * aNormal);
-  vRand = iRand;
-  vOpacity = uOpacity;
-  vViewDepth = perspective;
-}
-`;
-
-const FRAGMENT_SHADER = `#version 300 es
-precision highp float;
-in vec3 vNormal;
-in float vRand;
-in float vOpacity;
-in float vViewDepth;
-uniform float uDark;
-out vec4 outColor;
-
-void main(){
-  vec3 n = normalize(vNormal);
-  vec3 lightDir = normalize(vec3(0.55, 0.78, 0.92));
-  float diffuse = max(dot(n, lightDir), 0.0);
-  float rim = pow(1.0 - max(abs(n.z), 0.0), 2.0);
-  float spec = pow(max(dot(reflect(-lightDir, n), vec3(0.0,0.0,1.0)), 0.0), 18.0);
-
-  vec3 darkBase = vec3(0.70, 0.74, 0.67);
-  vec3 lightBase = vec3(0.16, 0.17, 0.15);
-  vec3 base = mix(lightBase, darkBase, uDark);
-  vec3 neonDark = vec3(0.58, 0.95, 0.20);
-  vec3 neonLight = vec3(0.30, 0.58, 0.07);
-  vec3 neon = mix(neonLight, neonDark, uDark);
-  float accent = step(0.925, vRand);
-  vec3 material = mix(base, neon, accent);
-  float shade = 0.48 + diffuse * 0.58 + rim * 0.12 + spec * 0.36;
-  material *= shade;
-  material += neon * accent * spec * 0.18;
-  outColor = vec4(material, vOpacity);
-}
-`;
-
-const CUBE_POSITIONS = new Float32Array([
-  -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5,
-  -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5,
-  -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5,
-  0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5,
-  -0.5, 0.5,
-]);
-
-const CUBE_NORMALS = new Float32Array([
-  0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, -1, 0, 0,
-  -1, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1,
-  0, 0, -1, 0, 0, -1, 0, 0, -1, 0,
-]);
-
-const CUBE_INDICES = new Uint16Array([
-  0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16,
-  18, 19, 20, 21, 22, 20, 22, 23,
-]);
-
-function buildVoxels(image: HTMLImageElement): VoxelData {
-  const sampleWidth = RES;
-  const sampleHeight = Math.max(1, Math.round(RES * (1153 / 1600)));
-  const canvas = document.createElement("canvas");
-  canvas.width = sampleWidth;
-  canvas.height = sampleHeight;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx)
-    return {
-      base: new Float32Array(),
-      seed: new Float32Array(),
-      rand: new Float32Array(),
-      count: 0,
-    };
-  ctx.clearRect(0, 0, sampleWidth, sampleHeight);
-  ctx.drawImage(image, 0, 0, sampleWidth, sampleHeight);
-  const data = ctx.getImageData(0, 0, sampleWidth, sampleHeight).data;
-  const bases: number[] = [];
-  const seeds: number[] = [];
-  const randoms: number[] = [];
-  let voxelIndex = 0;
-
-  for (let y = 0; y < sampleHeight; y++) {
-    for (let x = 0; x < sampleWidth; x++) {
-      const i = (y * sampleWidth + x) * 4;
-      const alpha = (data[i + 3] ?? 0) / 255;
-      if (alpha < 0.52) continue;
-      const px = (x - sampleWidth / 2 + 0.5) * GAP;
-      const py = (sampleHeight / 2 - y - 0.5) * GAP;
-      for (let z = 0; z < DEPTH; z++) {
-        const pz = (z - (DEPTH - 1) / 2) * GAP;
-        const r1 = seeded(voxelIndex * 3.17 + 1.1);
-        const r2 = seeded(voxelIndex * 5.31 + 7.2);
-        const r3 = seeded(voxelIndex * 9.73 + 13.4);
-        bases.push(px, py, pz);
-        seeds.push(r1 * 2 - 1, r2 * 2 - 1, r3 * 2 - 1);
-        randoms.push(seeded(voxelIndex * 11.91 + 23.7));
-        voxelIndex += 1;
-      }
+  useEffect(() => {
+    const current = mesh.current;
+    if (!current) return;
+    const matrix = new THREE.Matrix4();
+    for (let index = 0; index < voxels.count; index += 1) {
+      const offset = index * 3;
+      matrix.makeTranslation(
+        voxels.base[offset] ?? 0,
+        voxels.base[offset + 1] ?? 0,
+        voxels.base[offset + 2] ?? 0,
+      );
+      current.setMatrixAt(index, matrix);
     }
-  }
+    current.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+    current.instanceMatrix.needsUpdate = true;
+  }, [voxels]);
 
-  return {
-    base: new Float32Array(bases),
-    seed: new Float32Array(seeds),
-    rand: new Float32Array(randoms),
-    count: randoms.length,
-  };
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  useFrame((state, delta) => {
+    const currentMaterial = material.current;
+    if (!currentMaterial) return;
+
+    elapsed.current += Math.min(delta, 0.05);
+    const damping = 1 - Math.exp(-3 * delta);
+    hoverChaos.current += ((hovering.current ? 1 : 0) - hoverChaos.current) * damping;
+
+    if (hovering.current || hoverChaos.current > 0.001) {
+      ray.setFromCamera(state.pointer, camera);
+      if (ray.ray.intersectPlane(plane, pointerHit))
+        pointer.current.set(pointerHit.x, pointerHit.y);
+    } else {
+      pointer.current.set(999, 999);
+    }
+
+    currentMaterial.uniforms["uTime"]!.value = elapsed.current;
+    currentMaterial.uniforms["uGlobalChaos"]!.value = sceneState.current.globalChaos;
+    currentMaterial.uniforms["uLocalChaos"]!.value = hoverChaos.current;
+    currentMaterial.uniforms["uPointer"]!.value.copy(pointer.current);
+    currentMaterial.uniforms["uDark"]!.value = dark ? 1 : 0;
+    currentMaterial.uniforms["uOpacity"]!.value = sceneState.current.opacity;
+  });
+
+  return (
+    <instancedMesh ref={mesh} args={[geometry, undefined, voxels.count]} frustumCulled={false}>
+      <shaderMaterial
+        ref={material}
+        uniforms={uniforms}
+        vertexShader={VERTEX_SHADER}
+        fragmentShader={FRAGMENT_SHADER}
+        transparent
+        depthTest
+        depthWrite
+      />
+    </instancedMesh>
+  );
+}
+
+function ResponsiveControls({
+  mode,
+  interactive,
+}: {
+  mode: "loader" | "portal";
+  interactive: boolean;
+}) {
+  const { size } = useThree();
+  const fittedDistance = getResponsiveCameraDistance(size.width, size.height, 40, 1.18);
+
+  return (
+    <OrbitControls
+      enablePan={false}
+      enableRotate={interactive}
+      enableZoom={interactive && mode === "loader"}
+      autoRotate={mode === "loader"}
+      autoRotateSpeed={mode === "loader" ? 1.1 : 0.65}
+      enableDamping
+      dampingFactor={0.065}
+      minDistance={fittedDistance * 0.78}
+      maxDistance={fittedDistance * 2.4}
+      minPolarAngle={0}
+      maxPolarAngle={Math.PI}
+    />
+  );
 }
 
 export function VoxelChaosLogoScene({
@@ -263,11 +390,22 @@ export function VoxelChaosLogoScene({
   className = "",
   durationMs = 1900,
   onComplete,
-  interactive = false,
+  interactive = true,
 }: VoxelChaosLogoSceneProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(0);
   const completeRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  const hoverChaos = useRef(0);
+  const hovering = useRef(false);
+  const sceneState = useRef<SceneState>({ globalChaos: mode === "loader" ? 1.28 : 0, opacity: 1 });
+  const [active, setActive] = useState(true);
+  const [dark, setDark] = useState(false);
+  const voxels = useVoxels("/arcane-logo-black.svg");
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     if (!progress) return;
@@ -278,193 +416,13 @@ export function VoxelChaosLogoScene({
   }, [progress]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const gl = canvas.getContext("webgl2", {
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
-    if (!gl) return;
-
-    let raf = 0;
-    let running = false;
+    const container = containerRef.current;
+    if (!container) return;
     let pageVisible = isDocumentVisible();
     let inViewport = true;
-    let width = 1;
-    let height = 1;
-    let startedAt = 0;
-    let data: VoxelData | null = null;
-    let pointerX = 999;
-    let pointerY = 999;
-    let image: HTMLImageElement | null = null;
-
-    const program = createProgram(gl, VERTEX_SHADER, FRAGMENT_SHADER);
-    const vao = gl.createVertexArray();
-    const positionBuffer = gl.createBuffer();
-    const normalBuffer = gl.createBuffer();
-    const indexBuffer = gl.createBuffer();
-    const baseBuffer = gl.createBuffer();
-    const seedBuffer = gl.createBuffer();
-    const randBuffer = gl.createBuffer();
-    if (
-      !vao ||
-      !positionBuffer ||
-      !normalBuffer ||
-      !indexBuffer ||
-      !baseBuffer ||
-      !seedBuffer ||
-      !randBuffer
-    ) {
-      return;
-    }
-
-    gl.bindVertexArray(vao);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, CUBE_POSITIONS, gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, CUBE_NORMALS, gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(1);
-    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, CUBE_INDICES, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, baseBuffer);
-    gl.enableVertexAttribArray(2);
-    gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribDivisor(2, 1);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, seedBuffer);
-    gl.enableVertexAttribArray(3);
-    gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribDivisor(3, 1);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, randBuffer);
-    gl.enableVertexAttribArray(4);
-    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 0, 0);
-    gl.vertexAttribDivisor(4, 1);
-
-    gl.bindVertexArray(null);
-
-    const uniforms = {
-      time: gl.getUniformLocation(program, "uTime"),
-      chaos: gl.getUniformLocation(program, "uChaos"),
-      scale: gl.getUniformLocation(program, "uScale"),
-      aspect: gl.getUniformLocation(program, "uAspect"),
-      opacity: gl.getUniformLocation(program, "uOpacity"),
-      pointerInfluence: gl.getUniformLocation(program, "uPointerInfluence"),
-      pointer: gl.getUniformLocation(program, "uPointer"),
-      dark: gl.getUniformLocation(program, "uDark"),
-    };
-
-    const uploadInstances = (next: VoxelData) => {
-      data = next;
-      gl.bindBuffer(gl.ARRAY_BUFFER, baseBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, next.base, gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ARRAY_BUFFER, seedBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, next.seed, gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ARRAY_BUFFER, randBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, next.rand, gl.STATIC_DRAW);
-    };
-
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-      width = Math.max(1, rect.width);
-      height = Math.max(1, rect.height);
-      canvas.width = Math.max(1, Math.round(width * dpr));
-      canvas.height = Math.max(1, Math.round(height * dpr));
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    };
-
-    const getState = (timeMs: number) => {
-      if (mode === "loader") {
-        if (!startedAt) startedAt = timeMs;
-        const p = clamp01((timeMs - startedAt) / durationMs);
-        const settle = smooth(p / 0.68);
-        const chaos = (1 - settle) * 1.26;
-        const exit = smooth((p - 0.84) / 0.16);
-        const opacity = 1 - exit;
-        const scale = 0.0505 * (0.92 + settle * 0.08 + exit * 0.08);
-        if (p >= 1 && !completeRef.current) {
-          completeRef.current = true;
-          queueMicrotask(() => onComplete?.());
-        }
-        return { chaos, opacity, scale };
-      }
-
-      const p = clamp01(progressRef.current);
-      const fractureIn = smooth((p - 0.14) / 0.18);
-      const fractureOut = smooth((p - 0.76) / 0.18);
-      const chaos = Math.max(0, fractureIn * (1 - fractureOut)) * 1.08;
-      const middleFade = smooth((p - 0.28) / 0.16) * (1 - smooth((p - 0.78) / 0.12));
-      const opacity = 1 - middleFade * 0.96;
-      const scale = 0.055 + smooth(p / 0.26) * 0.004;
-      return { chaos, opacity, scale };
-    };
-
-    const draw = (timeMs: number) => {
-      if (!running) return;
-      raf = requestAnimationFrame(draw);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      if (!data || data.count === 0) return;
-
-      const state = getState(timeMs);
-      const dark = document.documentElement.classList.contains("dark");
-      gl.enable(gl.DEPTH_TEST);
-      gl.enable(gl.CULL_FACE);
-      gl.cullFace(gl.BACK);
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      gl.useProgram(program);
-      gl.uniform1f(uniforms.time, timeMs * 0.001);
-      gl.uniform1f(uniforms.chaos, state.chaos);
-      gl.uniform1f(uniforms.scale, state.scale);
-      gl.uniform1f(uniforms.aspect, width / height);
-      gl.uniform1f(uniforms.opacity, state.opacity);
-      gl.uniform1f(uniforms.pointerInfluence, interactive ? 1 : 0);
-      gl.uniform2f(uniforms.pointer, pointerX, pointerY);
-      gl.uniform1f(uniforms.dark, dark ? 1 : 0);
-      gl.bindVertexArray(vao);
-      gl.drawElementsInstanced(gl.TRIANGLES, CUBE_INDICES.length, gl.UNSIGNED_SHORT, 0, data.count);
-      gl.bindVertexArray(null);
-    };
-
-    const start = () => {
-      if (running || !shouldAnimate(pageVisible, inViewport)) return;
-      running = true;
-      raf = requestAnimationFrame(draw);
-    };
-
-    const stop = () => {
-      if (!running) return;
-      running = false;
-      cancelAnimationFrame(raf);
-    };
-
-    const sync = () => {
-      if (shouldAnimate(pageVisible, inViewport)) start();
-      else stop();
-    };
-
-    const onPointerMove = (event: PointerEvent) => {
-      if (!interactive) return;
-      const rect = canvas.getBoundingClientRect();
-      const nx = (event.clientX - rect.left) / Math.max(1, rect.width);
-      const ny = (event.clientY - rect.top) / Math.max(1, rect.height);
-      pointerX = (nx - 0.5) * RES * GAP;
-      pointerY = (0.5 - ny) * RES * GAP * (1153 / 1600);
-    };
-
-    resize();
+    const sync = () => setActive(shouldAnimate(pageVisible, inViewport));
     const disconnectViewport = observeElementVisibility(
-      canvas,
+      container,
       (visible) => {
         inViewport = visible;
         sync();
@@ -475,36 +433,64 @@ export function VoxelChaosLogoScene({
       pageVisible = visible;
       sync();
     });
-
-    const source = new Image();
-    source.decoding = "async";
-    source.src = "/arcane-logo-black.svg";
-    source.onload = () => uploadInstances(buildVoxels(source));
-    image = source;
-
-    window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    start();
-
     return () => {
-      stop();
       disconnectViewport();
       disconnectDocument();
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", onPointerMove);
-      image = null;
-      gl.deleteBuffer(positionBuffer);
-      gl.deleteBuffer(normalBuffer);
-      gl.deleteBuffer(indexBuffer);
-      gl.deleteBuffer(baseBuffer);
-      gl.deleteBuffer(seedBuffer);
-      gl.deleteBuffer(randBuffer);
-      gl.deleteVertexArray(vao);
-      gl.deleteProgram(program);
     };
-  }, [durationMs, interactive, mode, onComplete]);
+  }, [mode]);
+
+  useEffect(() => {
+    const syncTheme = () => setDark(document.documentElement.classList.contains("dark"));
+    syncTheme();
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <canvas ref={canvasRef} className={className} role="img" aria-label="Arcane Labs voxel logo" />
+    <div
+      ref={containerRef}
+      className={className}
+      role="img"
+      aria-label="Interactive Arcane Labs 3D voxel logo. Drag to rotate and move the cursor for chaos."
+      style={{ touchAction: mode === "loader" ? "none" : "pan-y" }}
+      onPointerEnter={() => {
+        if (interactive) hovering.current = true;
+      }}
+      onPointerLeave={() => {
+        hovering.current = false;
+      }}
+      onPointerDown={() => {
+        if (interactive) hoverChaos.current = Math.min(hoverChaos.current, 0.15);
+      }}
+    >
+      <Canvas
+        camera={{ position: [0, 0, 80], fov: 40, near: 0.1, far: 600 }}
+        dpr={[1, 1.5]}
+        frameloop={active ? "always" : "never"}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+      >
+        <ResponsiveCamera />
+        <SceneController
+          ready={Boolean(voxels)}
+          mode={mode}
+          durationMs={durationMs}
+          progressRef={progressRef}
+          sceneState={sceneState}
+          completeRef={completeRef}
+          onCompleteRef={onCompleteRef}
+        />
+        {voxels && (
+          <VoxelShaderMesh
+            voxels={voxels}
+            hoverChaos={hoverChaos}
+            hovering={hovering}
+            sceneState={sceneState}
+            dark={dark}
+          />
+        )}
+        <ResponsiveControls mode={mode} interactive={interactive} />
+      </Canvas>
+    </div>
   );
 }

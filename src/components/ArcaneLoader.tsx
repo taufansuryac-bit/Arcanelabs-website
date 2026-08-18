@@ -49,11 +49,12 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
       aria-label="Loading Arcane Labs"
     >
       <div className="absolute inset-0 bg-grid opacity-25" aria-hidden />
-      <div className="absolute left-1/2 top-1/2 h-[76vh] w-[96vw] max-w-[1220px] -translate-x-1/2 -translate-y-1/2">
+      <div className="absolute inset-0">
         <VoxelChaosLogoScene
           mode="loader"
-          durationMs={1880}
+          durationMs={3200}
           onComplete={finish}
+          interactive
           className="h-full w-full"
         />
       </div>

@@ -13,9 +13,10 @@ import {
   observeElementVisibility,
   shouldAnimate,
 } from "@/lib/animation-runtime";
+import { PORTAL_SCALE_INPUT, PORTAL_SCALE_OUTPUT } from "@/lib/voxel-scene-model";
 import { VoxelChaosLogoScene } from "./VoxelChaosLogoScene";
 
-const PARTICLE_COUNT = 980;
+const PARTICLE_COUNT = 1120;
 
 const PHRASES = [
   { text: "ENTER THE ARCANE FIELD", range: [0.28, 0.35, 0.43, 0.49] },
@@ -185,11 +186,11 @@ function PortalPhrase({
 export function MetaversePortalV2() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  const p = useSpring(scrollYProgress, { stiffness: 72, damping: 28, mass: 0.58 });
+  const p = useSpring(scrollYProgress, { stiffness: 110, damping: 26, mass: 0.35 });
 
   const environmentOpacity = useTransform(p, [0, 0.08, 0.18, 0.86, 1], [0, 0.2, 1, 1, 0]);
-  const logoOpacity = useTransform(p, [0, 0.18, 0.34, 0.76, 0.9, 1], [1, 1, 0.08, 0.08, 1, 1]);
-  const logoScale = useTransform(p, [0, 0.22, 0.36, 0.8, 1], [0.92, 1.06, 1.18, 1.04, 0.92]);
+  const logoOpacity = useTransform(p, [0, 0.28, 0.5, 0.76, 0.9, 1], [1, 1, 0.08, 0.08, 1, 1]);
+  const logoScale = useTransform(p, PORTAL_SCALE_INPUT, PORTAL_SCALE_OUTPUT);
   const finalOpacity = useTransform(p, [0.88, 0.95, 1], [0, 1, 1]);
   const finalY = useTransform(p, [0.88, 1], [22, 0]);
 
@@ -209,9 +210,9 @@ export function MetaversePortalV2() {
 
         <motion.div
           style={{ opacity: logoOpacity, scale: logoScale }}
-          className="absolute z-20 h-[62vh] w-[88vw] max-w-[1040px]"
+          className="absolute inset-0 z-20"
         >
-          <VoxelChaosLogoScene mode="portal" progress={p} className="h-full w-full" />
+          <VoxelChaosLogoScene mode="portal" progress={p} interactive className="h-full w-full" />
         </motion.div>
 
         {PHRASES.map((phrase) => (
