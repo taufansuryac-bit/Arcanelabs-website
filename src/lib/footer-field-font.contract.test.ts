@@ -18,6 +18,14 @@ const routeSource = await readFile(
   new URL("../routes/index.tsx", import.meta.url),
   "utf8",
 );
+const rootSource = await readFile(
+  new URL("../routes/__root.tsx", import.meta.url),
+  "utf8",
+);
+const themeSource = await readFile(
+  new URL("../components/ThemeToggle.tsx", import.meta.url),
+  "utf8",
+);
 const fontSource = await readFile(new URL("../pixel-fonts.css", import.meta.url), "utf8");
 
 test("Arcane field owns the entire footer experience and no longer mounts from the portal", () => {
@@ -32,18 +40,36 @@ test("Arcane field owns the entire footer experience and no longer mounts from t
   assert.doesNotMatch(routeSource.slice(footerStart, fieldIndex), /marquee-track|AsciiWordmark/);
 });
 
+test("dark mode is the versioned default while a new explicit user choice can persist", () => {
+  assert.match(rootSource, /<html lang="en" className="dark"/);
+  assert.match(rootSource, /al-theme-v2/);
+  assert.match(rootSource, /\|\|'dark'/);
+  assert.match(themeSource, /al-theme-v2/);
+  assert.match(themeSource, /useState<Mode>\("dark"\)/);
+});
+
+test("navbar uses semantic theme colors instead of blend-mode inversion", () => {
+  assert.doesNotMatch(routeSource, /mix-blend-difference/);
+  assert.match(routeSource, /text-foreground/);
+});
+
 test("footer uses the animated terrain and real 3D residue cubes strictly as the scene background", () => {
   assert.match(footerSource, /planeGeometry/i);
   assert.match(footerSource, /instancedMesh/i);
   assert.match(footerSource, /terrainWave/);
-  assert.match(footerSource, /2\.75/);
-  assert.match(footerSource, /2\.20/);
-  assert.match(footerSource, /0\.98\s*\+\s*0\.18\s*\*\s*sin/);
+  assert.match(footerSource, /state\.clock\.elapsedTime \* 1\.45/);
+  assert.match(footerSource, /0\.90\s*\+\s*0\.30\s*\*\s*sin\(uTime \* 0\.55\)/);
   assert.match(footerSource, /useFrame/);
   assert.match(footerSource, /state\.pointer/);
 });
 
-test("dark-mode residual cubes remain white-silver and do not use blue material accents", () => {
+test("light mode terrain renders graphite with normal blending while dark mode remains additive", () => {
+  assert.match(footerSource, /dark \? THREE\.AdditiveBlending : THREE\.NormalBlending/);
+  assert.match(footerSource, /dark \? "#d7dddd" : "#2d3132"/);
+  assert.match(footerSource, /dark \? "#ffffff" : "#070809"/);
+});
+
+test("dark-mode residual cubes remain white-silver and light-mode cubes become graphite", () => {
   assert.match(footerSource, /dark \? "#ffffff" : "#17191a"/);
   assert.match(footerSource, /emissive=\{dark \? "#ffffff" : "#000000"\}/);
   assert.match(footerSource, /toneMapped=\{false\}/);
@@ -51,11 +77,17 @@ test("dark-mode residual cubes remain white-silver and do not use blue material 
   assert.doesNotMatch(footerSource, /#9aa0ff/i);
 });
 
+test("portal and footer overlap through a gradient fade without a hard separator", () => {
+  assert.match(routeSource, /-mt-\[12vh\]/);
+  assert.doesNotMatch(footerSource, /border-t border-border/);
+  assert.match(footerSource, /data-footer-scene/);
+  assert.match(footerSource, /mask-image:linear-gradient/);
+});
+
 test("footer logo composition sits slightly lower than v5 without a blocking panel", () => {
   assert.match(footerSource, /data-footer-content/);
   assert.match(footerSource, /top-\[17%\]/);
   assert.match(footerSource, /md:top-\[16%\]/);
-  assert.doesNotMatch(footerSource, /top-\[13%\]/);
   assert.doesNotMatch(footerSource, /data-footer-frame/);
   assert.doesNotMatch(footerSource, /backdrop-blur-md/);
   assert.match(footerSource, /data-footer-logo/);
