@@ -201,11 +201,11 @@ function Index() {
           </section>
         </SectionPixelReveal>
 
+        <ProjectScrapbookOrbit />
+
         <SectionPixelReveal threshold={0.05}>
           <InteractiveTicker />
         </SectionPixelReveal>
-
-        <ProjectScrapbookOrbit />
 
         <SectionPixelReveal threshold={0.06}>
           <IdentityConstellation />
