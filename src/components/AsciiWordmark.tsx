@@ -28,7 +28,7 @@ function hash(x: number, y: number) {
  * Renders a word as an animated ASCII glyph field on a canvas.
  * The field breathes slowly; the cursor melts the glyphs around it.
  */
-export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: Props) {
+export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1.3 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const mouse = useRef({ x: -9999, y: -9999, target: 0, active: 0 });
 
@@ -70,7 +70,6 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
       cols = Math.max(24, Math.floor(cw / cellW));
       rows = Math.max(8, Math.floor(ch / cellH));
 
-      // supersample the letterforms so the glyph ramp gets smooth edges
       const ss = 3;
       off.width = cols * ss;
       off.height = rows * ss;
@@ -120,12 +119,9 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
 
       if (data) {
         const time = t * 0.001;
-
-        // ease the cursor influence in/out so nothing pops
         const m = mouse.current;
         m.active += (m.target - m.active) * 0.08;
 
-        // ink follows the active theme so light mode stays legible
         const ink = document.documentElement.classList.contains("dark")
           ? "255,255,255"
           : "18,18,18";
@@ -138,8 +134,7 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        // tight, focused chaos pocket around the cursor
-        const radius = Math.max(90, Math.min(cw, ch) * 0.22);
+        const radius = Math.max(96, Math.min(cw, ch) * 0.25);
 
         for (let y = 0; y < rows; y++) {
           for (let x = 0; x < cols; x++) {
@@ -149,27 +144,25 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1 }: 
             const dx = px - m.x;
             const dy = py - m.y;
             const d = Math.sqrt(dx * dx + dy * dy) / radius;
-            // smoothstep falloff, squared for a tighter core
             const k = d >= 1 ? 0 : 1 - d;
             const f = k * k * k * (3 - 2 * k);
             const chaos = m.active * Math.max(0, Math.min(1, f)) * chaosStrength;
 
             const n = hash(x, y);
-            // smooth, continuous displacement (no random per frame)
-            const wob = chaos * 3.2;
+            const wob = chaos * 3.8;
             const sx =
-              x + Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob + (dx / radius) * chaos * 2.2;
+              x +
+              Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob +
+              (dx / radius) * chaos * 2.65;
             const sy =
               y +
-              Math.cos(time * 1.7 + x * 0.33 + n * 6.28) * wob * 0.45 +
-              (dy / radius) * chaos * 1.2;
+              Math.cos(time * 1.7 + x * 0.33 + n * 6.28) * wob * 0.48 +
+              (dy / radius) * chaos * 1.45;
 
             const lum = sample(sx, sy);
-            // slow shimmer keyed to the cell so it reads as texture, not noise
             const shimmer = 0.72 + 0.28 * Math.sin(time * 1.1 + n * 12.5 + x * 0.12 - y * 0.18);
-            let v = lum * shimmer + chaos * 0.28 * n;
+            let v = lum * shimmer + chaos * 0.32 * n;
 
-            // sparse ambient dust
             if (lum < 0.04) {
               if (n > 0.994) v = 0.14 + 0.1 * Math.sin(time * 2 + n * 30);
               else v = 0;
