@@ -52,15 +52,20 @@ test("dark-mode residual cubes remain white-silver and do not use blue material 
   assert.doesNotMatch(footerSource, /#9aa0ff/i);
 });
 
-test("footer contact, index, creator and legal copy float inside the Arcane field", () => {
-  assert.match(footerSource, /FloatingInfo/);
+test("footer information is consolidated into one centered readable frame", () => {
+  assert.match(footerSource, /data-footer-frame/);
+  assert.match(footerSource, /top-\[58%\]/);
+  assert.match(footerSource, /backdrop-blur-md/);
   assert.match(footerSource, /CONTACT/);
   assert.match(footerSource, /hello@arcanelabs\.mov/);
   assert.match(footerSource, /INDEX/);
   assert.match(footerSource, /CREATED BY/);
   assert.match(footerSource, /LEGALS/);
   assert.match(footerSource, /BACK TO TOP/);
-  assert.match(footerSource, /repeat:\s*Infinity/);
+  assert.match(footerSource, /#9cff45/);
+  assert.match(footerSource, /#f2f1e9/);
+  assert.match(footerSource, /#9da4a8/);
+  assert.doesNotMatch(footerSource, /FloatingInfo/);
 });
 
 test("global pixel typography defines Pixellari and overrides the UI font token", () => {
