@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
+import { ArcaneFooterField } from "@/components/ArcaneFooterField";
 import { ArcaneLoader } from "@/components/ArcaneLoader";
 import { AsciiWordmark } from "@/components/AsciiWordmark";
 import { IdentityConstellation } from "@/components/IdentityConstellation";
@@ -287,58 +288,7 @@ function Index() {
             <AsciiWordmark text="ARCANE LABS" cell={8} />
           </div>
 
-          <div className="grid gap-8 px-5 pb-12 md:grid-cols-4 md:px-8">
-            <div>
-              <p className="label-mono mb-2">■ Arcane Labs GmbH</p>
-              <p className="text-sm text-muted-foreground">
-                Chausseestrasse 12
-                <br />
-                10115 Berlin
-              </p>
-            </div>
-            <div>
-              <p className="label-mono mb-2">■ Get in touch</p>
-              <a
-                href="mailto:hello@arcanelabs.mov"
-                className="text-sm underline-offset-4 hover:underline"
-              >
-                hello@arcanelabs.mov
-              </a>
-              <p className="mt-1 text-sm text-muted-foreground">Instagram</p>
-            </div>
-            <div>
-              <p className="label-mono mb-2">■ Index</p>
-              <ul className="space-y-1">
-                {[
-                  ["Works", "#works"],
-                  ["Studio", "#studio"],
-                  ["FAQ", "#faq"],
-                ].map(([label, href]) => (
-                  <li key={label}>
-                    <a href={href}>
-                      <ScrambleText
-                        text={String(label).toUpperCase()}
-                        className="text-[11px] tracking-[0.22em] text-muted-foreground hover:text-foreground"
-                      />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="md:text-right">
-              <p className="label-mono mb-2">■ Legals</p>
-              <p className="text-sm text-muted-foreground">
-                © {new Date().getFullYear()} — Imprint / Privacy
-              </p>
-            </div>
-          </div>
-
-          <a
-            href="#top"
-            className="line-top block bg-secondary/40 py-3 text-center transition-colors hover:bg-secondary"
-          >
-            <ScrambleText text=":/ BACK TO TOP" className="label-mono text-foreground" />
-          </a>
+          <ArcaneFooterField />
         </footer>
       </div>
     </div>
