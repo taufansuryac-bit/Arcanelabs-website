@@ -1,7 +1,7 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import type { MotionValue } from "motion/react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   isDocumentVisible,
@@ -15,7 +15,6 @@ import {
   VOXEL_RESOLUTION,
   VOXEL_SIZE,
   getPortalVisualState,
-  getResponsiveCameraDistance,
 } from "@/lib/voxel-scene-model";
 
 type VoxelChaosLogoSceneProps = {
@@ -27,11 +26,18 @@ type VoxelChaosLogoSceneProps = {
   interactive?: boolean;
 };
 
+type Voxel = {
+  base: THREE.Vector3;
+  seed: THREE.Vector3;
+  rand: number;
+  size: number;
+};
+
 type VoxelData = {
-  base: Float32Array;
-  seed: Float32Array;
-  rand: Float32Array;
-  count: number;
+  voxels: Voxel[];
+  measuredWidth: number;
+  measuredHeight: number;
+  measuredRadius: number;
 };
 
 type SceneState = {
@@ -50,8 +56,32 @@ function seeded(value: number) {
   return n - Math.floor(n);
 }
 
+function recenterVoxelGeometry(voxels: Voxel[]): VoxelData {
+  const boundsMin = new THREE.Vector3(Infinity, Infinity, Infinity);
+  const boundsMax = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+
+  for (const voxel of voxels) {
+    boundsMin.min(voxel.base);
+    boundsMax.max(voxel.base);
+  }
+
+  const center = boundsMin.clone().add(boundsMax).multiplyScalar(0.5);
+  let measuredRadius = 0;
+  for (const voxel of voxels) {
+    voxel.base.sub(center);
+    measuredRadius = Math.max(measuredRadius, voxel.base.length());
+  }
+
+  return {
+    voxels,
+    measuredWidth: boundsMax.x - boundsMin.x + VOXEL_SIZE,
+    measuredHeight: boundsMax.y - boundsMin.y + VOXEL_SIZE,
+    measuredRadius: measuredRadius + VOXEL_SIZE * 0.5,
+  };
+}
+
 function useVoxels(url: string) {
-  const [voxels, setVoxels] = useState<VoxelData | null>(null);
+  const [data, setData] = useState<VoxelData | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,52 +89,50 @@ function useVoxels(url: string) {
     image.decoding = "async";
     image.src = url;
     image.onload = () => {
-      const width = VOXEL_RESOLUTION;
-      const height = Math.max(1, Math.round(VOXEL_RESOLUTION * (1153 / 1600)));
       const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = VOXEL_RESOLUTION;
+      canvas.height = VOXEL_RESOLUTION;
       const context = canvas.getContext("2d", { willReadFrequently: true });
       if (!context) return;
 
-      context.clearRect(0, 0, width, height);
-      context.drawImage(image, 0, 0, width, height);
-      const pixels = context.getImageData(0, 0, width, height).data;
-      const bases: number[] = [];
-      const seeds: number[] = [];
-      const randoms: number[] = [];
+      context.clearRect(0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION);
+      context.drawImage(image, 0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION);
+      const pixels = context.getImageData(0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION).data;
+      const voxels: Voxel[] = [];
       let voxelIndex = 0;
 
-      for (let y = 0; y < height; y += 1) {
-        for (let x = 0; x < width; x += 1) {
-          const pixelIndex = (y * width + x) * 4;
+      for (let y = 0; y < VOXEL_RESOLUTION; y += 1) {
+        for (let x = 0; x < VOXEL_RESOLUTION; x += 1) {
+          const pixelIndex = (y * VOXEL_RESOLUTION + x) * 4;
           const alpha = (pixels[pixelIndex + 3] ?? 0) / 255;
-          if (alpha < 0.52) continue;
+          const luminance =
+            (0.299 * (pixels[pixelIndex] ?? 0) +
+              0.587 * (pixels[pixelIndex + 1] ?? 0) +
+              0.114 * (pixels[pixelIndex + 2] ?? 0)) /
+            255;
+          const ink = alpha * (1 - luminance);
+          if (ink < 0.5) continue;
 
-          const px = (x - width / 2 + 0.5) * VOXEL_GAP;
-          const py = (height / 2 - y - 0.5) * VOXEL_GAP;
+          const px = (x - VOXEL_RESOLUTION / 2 + 0.5) * VOXEL_GAP;
+          const py = (VOXEL_RESOLUTION / 2 - y - 0.5) * VOXEL_GAP;
           for (let z = 0; z < VOXEL_DEPTH; z += 1) {
             const pz = (z - (VOXEL_DEPTH - 1) / 2) * VOXEL_GAP;
-            bases.push(px, py, pz);
-            seeds.push(
-              seeded(voxelIndex * 3.17 + 1.1) * 2 - 1,
-              seeded(voxelIndex * 5.31 + 7.2) * 2 - 1,
-              seeded(voxelIndex * 9.73 + 13.4) * 2 - 1,
-            );
-            randoms.push(seeded(voxelIndex * 11.91 + 23.7));
+            voxels.push({
+              base: new THREE.Vector3(px, py, pz),
+              seed: new THREE.Vector3(
+                seeded(voxelIndex * 3.17 + 1.1) * 2 - 1,
+                seeded(voxelIndex * 5.31 + 7.2) * 2 - 1,
+                seeded(voxelIndex * 9.73 + 13.4) * 2 - 1,
+              ),
+              rand: seeded(voxelIndex * 11.91 + 23.7),
+              size: VOXEL_SIZE,
+            });
             voxelIndex += 1;
           }
         }
       }
 
-      if (!cancelled) {
-        setVoxels({
-          base: new Float32Array(bases),
-          seed: new Float32Array(seeds),
-          rand: new Float32Array(randoms),
-          count: randoms.length,
-        });
-      }
+      if (!cancelled && voxels.length > 0) setData(recenterVoxelGeometry(voxels));
     };
 
     return () => {
@@ -113,7 +141,7 @@ function useVoxels(url: string) {
     };
   }, [url]);
 
-  return voxels;
+  return data;
 }
 
 function SceneController({
@@ -141,9 +169,9 @@ function SceneController({
     if (mode === "loader") {
       elapsedMs.current += Math.min(delta, 0.05) * 1000;
       const p = clamp01(elapsedMs.current / durationMs);
-      const settle = smooth(p / 0.42);
-      const exit = smooth((p - 0.86) / 0.14);
-      sceneState.current.globalChaos = (1 - settle) * 1.28;
+      const settle = smooth(p / 0.5);
+      const exit = smooth((p - 0.88) / 0.12);
+      sceneState.current.globalChaos = (1 - settle) * 1.08;
       sceneState.current.opacity = 1 - exit;
 
       if (p >= 1 && !completeRef.current) {
@@ -153,231 +181,146 @@ function SceneController({
       return;
     }
 
-    const p = clamp01(progressRef.current);
-    const visual = getPortalVisualState(p);
-    const middleFade = smooth((p - 0.38) / 0.18) * (1 - smooth((p - 0.8) / 0.1));
+    const visual = getPortalVisualState(clamp01(progressRef.current));
     sceneState.current.globalChaos = visual.chaos;
-    sceneState.current.opacity = 1 - middleFade * 0.96;
+    sceneState.current.opacity = 1;
   });
 
   return null;
 }
 
-const VERTEX_SHADER = `
-precision highp float;
-attribute vec3 aSeed;
-attribute float aRand;
-uniform float uTime;
-uniform float uGlobalChaos;
-uniform float uLocalChaos;
-uniform vec2 uPointer;
-varying vec3 vNormal;
-varying float vRand;
-
-mat3 rotX(float a) {
-  float c = cos(a), s = sin(a);
-  return mat3(1., 0., 0., 0., c, -s, 0., s, c);
-}
-mat3 rotY(float a) {
-  float c = cos(a), s = sin(a);
-  return mat3(c, 0., s, 0., 1., 0., -s, 0., c);
-}
-mat3 rotZ(float a) {
-  float c = cos(a), s = sin(a);
-  return mat3(c, -s, 0., s, c, 0., 0., 0., 1.);
-}
-
-void main() {
-  vec3 base = instanceMatrix[3].xyz;
-  vec2 pointerDelta = base.xy - uPointer;
-  float distanceToPointer = length(pointerDelta);
-  float influence = exp(-(distanceToPointer * distanceToPointer) / (2.0 * 6.0 * 6.0));
-  float localChaos = influence * uLocalChaos;
-  float chaos = clamp(max(uGlobalChaos, localChaos), 0.0, 1.35);
-  float chaosSquared = chaos * chaos;
-  vec2 radial = distanceToPointer > 0.001 ? pointerDelta / distanceToPointer : vec2(0.0);
-  float push = chaosSquared * 4.5;
-  float scatterDistance = mix(2.0, 18.0, step(0.01, uGlobalChaos));
-  float scatter = chaosSquared * scatterDistance;
-  float wobble = sin(uTime * 2.0 + aRand * 30.0);
-
-  vec3 world = base;
-  world.xy += radial * push;
-  world += aSeed * scatter;
-  world.z += aSeed.z * scatter * 0.6 + wobble * 2.5 * chaos;
-
-  mat3 cubeRotation = rotX(aSeed.x * (chaos * 6.0 + uTime * 0.08 * chaos))
-                    * rotY(aSeed.y * (chaos * 6.0 + uTime * 0.08 * chaos))
-                    * rotZ(aSeed.z * chaos * 6.0 + uTime * 0.4 * chaos);
-  vec3 localPosition = cubeRotation * (position * (1.0 - min(chaos, 1.0) * 0.3));
-  vec3 transformed = world + localPosition;
-
-  vNormal = normalize(normalMatrix * cubeRotation * normal);
-  vRand = aRand;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
-}
-`;
-
-const FRAGMENT_SHADER = `
-precision highp float;
-uniform float uDark;
-uniform float uOpacity;
-varying vec3 vNormal;
-varying float vRand;
-
-void main() {
-  vec3 normalDirection = normalize(vNormal);
-  vec3 lightDirection = normalize(vec3(0.55, 0.78, 0.92));
-  float diffuse = max(dot(normalDirection, lightDirection), 0.0);
-  float rim = pow(1.0 - max(abs(normalDirection.z), 0.0), 2.0);
-  float specular = pow(max(dot(reflect(-lightDirection, normalDirection), vec3(0.0, 0.0, 1.0)), 0.0), 18.0);
-  vec3 base = mix(vec3(0.055, 0.062, 0.052), vec3(0.90, 0.92, 0.89), uDark);
-  vec3 accent = mix(vec3(0.29, 0.52, 0.08), vec3(0.62, 0.93, 0.24), uDark);
-  float isAccent = step(0.935, vRand);
-  vec3 materialColor = mix(base, accent, isAccent);
-  float shade = 0.58 + diffuse * 0.48 + rim * 0.1 + specular * 0.2;
-  gl_FragColor = vec4(materialColor * shade, uOpacity);
-}
-`;
-
-function ResponsiveCamera() {
-  const { camera, size } = useThree();
-
-  useLayoutEffect(() => {
-    if (!(camera instanceof THREE.PerspectiveCamera)) return;
-    const distance = getResponsiveCameraDistance(size.width, size.height, camera.fov, 1.18);
-    const direction =
-      camera.position.lengthSq() > 0
-        ? camera.position.clone().normalize()
-        : new THREE.Vector3(0, 0, 1);
-    camera.position.copy(direction.multiplyScalar(distance));
-    camera.far = Math.max(600, distance * 4);
-    camera.updateProjectionMatrix();
-  }, [camera, size.height, size.width]);
-
-  return null;
-}
-
-function VoxelShaderMesh({
-  voxels,
+function VoxelMesh({
+  data,
   hoverChaos,
   hovering,
   sceneState,
-  dark,
 }: {
-  voxels: VoxelData;
+  data: VoxelData;
   hoverChaos: React.MutableRefObject<number>;
   hovering: React.MutableRefObject<boolean>;
   sceneState: React.MutableRefObject<SceneState>;
-  dark: boolean;
 }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
-  const material = useRef<THREE.ShaderMaterial>(null);
-  const pointer = useRef(new THREE.Vector2(999, 999));
+  const material = useRef<THREE.MeshStandardMaterial>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const pointer = useRef(new THREE.Vector3(999, 999, 0));
   const pointerHit = useMemo(() => new THREE.Vector3(), []);
   const ray = useMemo(() => new THREE.Raycaster(), []);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), []);
-  const elapsed = useRef(0);
   const { camera } = useThree();
 
-  const geometry = useMemo(() => {
-    const next = new THREE.BoxGeometry(VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE);
-    next.setAttribute("aSeed", new THREE.InstancedBufferAttribute(voxels.seed, 3));
-    next.setAttribute("aRand", new THREE.InstancedBufferAttribute(voxels.rand, 1));
-    return next;
-  }, [voxels]);
-
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-      uGlobalChaos: { value: 0 },
-      uLocalChaos: { value: 0 },
-      uPointer: { value: new THREE.Vector2(999, 999) },
-      uDark: { value: 0 },
-      uOpacity: { value: 1 },
-    }),
-    [],
-  );
-
-  useEffect(() => {
+  useFrame((state, delta) => {
     const current = mesh.current;
     if (!current) return;
-    const matrix = new THREE.Matrix4();
-    for (let index = 0; index < voxels.count; index += 1) {
-      const offset = index * 3;
-      matrix.makeTranslation(
-        voxels.base[offset] ?? 0,
-        voxels.base[offset + 1] ?? 0,
-        voxels.base[offset + 2] ?? 0,
-      );
-      current.setMatrixAt(index, matrix);
-    }
-    current.instanceMatrix.setUsage(THREE.StaticDrawUsage);
-    current.instanceMatrix.needsUpdate = true;
-  }, [voxels]);
 
-  useEffect(() => () => geometry.dispose(), [geometry]);
-
-  useFrame((state, delta) => {
-    const currentMaterial = material.current;
-    if (!currentMaterial) return;
-
-    elapsed.current += Math.min(delta, 0.05);
     const damping = 1 - Math.exp(-3 * delta);
     hoverChaos.current += ((hovering.current ? 1 : 0) - hoverChaos.current) * damping;
 
     if (hovering.current || hoverChaos.current > 0.001) {
       ray.setFromCamera(state.pointer, camera);
-      if (ray.ray.intersectPlane(plane, pointerHit))
-        pointer.current.set(pointerHit.x, pointerHit.y);
+      if (ray.ray.intersectPlane(plane, pointerHit)) pointer.current.copy(pointerHit);
     } else {
-      pointer.current.set(999, 999);
+      pointer.current.set(999, 999, 0);
     }
 
-    currentMaterial.uniforms["uTime"]!.value = elapsed.current;
-    currentMaterial.uniforms["uGlobalChaos"]!.value = sceneState.current.globalChaos;
-    currentMaterial.uniforms["uLocalChaos"]!.value = hoverChaos.current;
-    currentMaterial.uniforms["uPointer"]!.value.copy(pointer.current);
-    currentMaterial.uniforms["uDark"]!.value = dark ? 1 : 0;
-    currentMaterial.uniforms["uOpacity"]!.value = sceneState.current.opacity;
+    const globalChaos = sceneState.current.globalChaos;
+    const time = state.clock.elapsedTime;
+
+    for (let index = 0; index < data.voxels.length; index += 1) {
+      const voxel = data.voxels[index];
+      if (!voxel) continue;
+
+      const dx = voxel.base.x - pointer.current.x;
+      const dy = voxel.base.y - pointer.current.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const influence = Math.exp(-(distance * distance) / (2 * 6 * 6));
+      const localChaos = influence * hoverChaos.current;
+      const chaos = Math.max(globalChaos, localChaos);
+      const chaosSquared = chaos * chaos;
+      const push = localChaos * localChaos * 4.5;
+      const localScatter = localChaos * localChaos * 2;
+      const globalScatter = globalChaos * globalChaos * 15;
+      const wobble = Math.sin(time * 2 + voxel.rand * 30);
+
+      dummy.position.set(
+        voxel.base.x + (dx / (distance || 1)) * push + voxel.seed.x * (localScatter + globalScatter),
+        voxel.base.y + (dy / (distance || 1)) * push + voxel.seed.y * (localScatter + globalScatter),
+        voxel.base.z +
+          voxel.seed.z * (localScatter * 1.6 + globalScatter * 0.8) +
+          wobble * 2.5 * chaos,
+      );
+      dummy.rotation.set(
+        voxel.seed.x * (chaos * 6 + time * 0.08 * chaos),
+        voxel.seed.y * (chaos * 6 + time * 0.08 * chaos),
+        voxel.seed.z * chaos * 6 + time * 0.4 * chaos,
+      );
+      dummy.scale.setScalar(voxel.size * (1 - Math.min(chaos, 1) * 0.35));
+      dummy.updateMatrix();
+      current.setMatrixAt(index, dummy.matrix);
+    }
+
+    current.instanceMatrix.needsUpdate = true;
+    if (material.current) material.current.opacity = sceneState.current.opacity;
   });
 
   return (
-    <instancedMesh ref={mesh} args={[geometry, undefined, voxels.count]} frustumCulled={false}>
-      <shaderMaterial
+    <instancedMesh ref={mesh} args={[undefined, undefined, data.voxels.length]} frustumCulled={false}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial
         ref={material}
-        uniforms={uniforms}
-        vertexShader={VERTEX_SHADER}
-        fragmentShader={FRAGMENT_SHADER}
+        color="#f4f4f5"
+        metalness={0.35}
+        roughness={0.25}
+        emissive="#9aa0ff"
+        emissiveIntensity={0.08}
         transparent
-        depthTest
-        depthWrite
       />
     </instancedMesh>
   );
 }
 
+function ResponsiveCamera({ data }: { data: VoxelData }) {
+  const { camera, size } = useThree();
+
+  useEffect(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    const aspect = Math.max(0.1, size.width / Math.max(1, size.height));
+    const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+    const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * aspect);
+    const verticalDistance = data.measuredHeight / (2 * Math.tan(verticalFov / 2));
+    const horizontalDistance = data.measuredWidth / (2 * Math.tan(horizontalFov / 2));
+    const radiusDistance = data.measuredRadius / Math.sin(Math.min(verticalFov, horizontalFov) / 2);
+    const distance = Math.max(verticalDistance, horizontalDistance, radiusDistance) * 1.08;
+    camera.position.set(0, 0, distance);
+    camera.near = Math.max(0.1, distance / 200);
+    camera.far = Math.max(600, distance * 4);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+  }, [camera, data, size.height, size.width]);
+
+  return null;
+}
+
 function ResponsiveControls({
   mode,
   interactive,
+  measuredRadius,
 }: {
   mode: "loader" | "portal";
   interactive: boolean;
+  measuredRadius: number;
 }) {
-  const { size } = useThree();
-  const fittedDistance = getResponsiveCameraDistance(size.width, size.height, 40, 1.18);
-
   return (
     <OrbitControls
       enablePan={false}
       enableRotate={interactive}
       enableZoom={interactive && mode === "loader"}
-      autoRotate={mode === "loader"}
-      autoRotateSpeed={mode === "loader" ? 1.1 : 0.65}
+      autoRotate
+      autoRotateSpeed={mode === "loader" ? 0.8 : 0.5}
       enableDamping
       dampingFactor={0.065}
-      minDistance={fittedDistance * 0.78}
-      maxDistance={fittedDistance * 2.4}
+      minDistance={Math.max(24, measuredRadius * 1.35)}
+      maxDistance={Math.max(160, measuredRadius * 5)}
       minPolarAngle={0}
       maxPolarAngle={Math.PI}
     />
@@ -398,10 +341,9 @@ export function VoxelChaosLogoScene({
   const onCompleteRef = useRef(onComplete);
   const hoverChaos = useRef(0);
   const hovering = useRef(false);
-  const sceneState = useRef<SceneState>({ globalChaos: mode === "loader" ? 1.28 : 0, opacity: 1 });
+  const sceneState = useRef<SceneState>({ globalChaos: mode === "loader" ? 1.08 : 0, opacity: 1 });
   const [active, setActive] = useState(true);
-  const [dark, setDark] = useState(false);
-  const voxels = useVoxels("/arcane-logo-black.svg");
+  const data = useVoxels("/arcane-logo-black.svg");
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -421,14 +363,10 @@ export function VoxelChaosLogoScene({
     let pageVisible = isDocumentVisible();
     let inViewport = true;
     const sync = () => setActive(shouldAnimate(pageVisible, inViewport));
-    const disconnectViewport = observeElementVisibility(
-      container,
-      (visible) => {
-        inViewport = visible;
-        sync();
-      },
-      { rootMargin: mode === "portal" ? "420px 0px" : "0px" },
-    );
+    const disconnectViewport = observeElementVisibility(container, (visible) => {
+      inViewport = visible;
+      sync();
+    }, { rootMargin: mode === "portal" ? "420px 0px" : "0px" });
     const disconnectDocument = observeDocumentVisibility((visible) => {
       pageVisible = visible;
       sync();
@@ -439,20 +377,12 @@ export function VoxelChaosLogoScene({
     };
   }, [mode]);
 
-  useEffect(() => {
-    const syncTheme = () => setDark(document.documentElement.classList.contains("dark"));
-    syncTheme();
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <div
       ref={containerRef}
       className={className}
       role="img"
-      aria-label="Interactive Arcane Labs 3D voxel logo. Drag to rotate and move the cursor for chaos."
+      aria-label="Interactive Arcane Labs 3D voxel logo"
       style={{ touchAction: mode === "loader" ? "none" : "pan-y" }}
       onPointerEnter={() => {
         if (interactive) hovering.current = true;
@@ -465,14 +395,16 @@ export function VoxelChaosLogoScene({
       }}
     >
       <Canvas
-        camera={{ position: [0, 0, 80], fov: 40, near: 0.1, far: 600 }}
-        dpr={[1, 1.5]}
+        camera={{ position: [0, 0, 90], fov: 45, near: 0.1, far: 600 }}
+        dpr={[1, 2]}
         frameloop={active ? "always" : "never"}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       >
-        <ResponsiveCamera />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[30, 40, 50]} intensity={2.2} />
+        <directionalLight position={[-40, -20, -30]} intensity={0.8} color="#6b7cff" />
         <SceneController
-          ready={Boolean(voxels)}
+          ready={Boolean(data)}
           mode={mode}
           durationMs={durationMs}
           progressRef={progressRef}
@@ -480,16 +412,13 @@ export function VoxelChaosLogoScene({
           completeRef={completeRef}
           onCompleteRef={onCompleteRef}
         />
-        {voxels && (
-          <VoxelShaderMesh
-            voxels={voxels}
-            hoverChaos={hoverChaos}
-            hovering={hovering}
-            sceneState={sceneState}
-            dark={dark}
-          />
+        {data && (
+          <>
+            <ResponsiveCamera data={data} />
+            <VoxelMesh data={data} hoverChaos={hoverChaos} hovering={hovering} sceneState={sceneState} />
+            <ResponsiveControls mode={mode} interactive={interactive} measuredRadius={data.measuredRadius} />
+          </>
         )}
-        <ResponsiveControls mode={mode} interactive={interactive} />
       </Canvas>
     </div>
   );
