@@ -8,24 +8,35 @@ const carouselSource = await readFile(
   "utf8",
 );
 
-test("carousel lives inside the Projects section, below the project list", () => {
-  const worksStart = routeSource.indexOf('id="works"');
-  const worksEnd = routeSource.indexOf("</section>", worksStart);
-  const carousel = routeSource.indexOf("<EnchantedProjectCarousel", worksStart);
+test("carousel sits immediately after the real PROJECTS grid component", () => {
+  const selectedWorks = routeSource.indexOf('id="works"');
+  const projects = routeSource.indexOf("<ProjectConverge />");
+  const carousel = routeSource.indexOf("<EnchantedProjectCarousel />");
+  const faq = routeSource.indexOf('id="faq"');
 
-  assert.ok(worksStart >= 0);
-  assert.ok(worksEnd > worksStart);
-  assert.ok(carousel > worksStart);
-  assert.ok(carousel < worksEnd);
+  assert.ok(selectedWorks >= 0);
+  assert.ok(projects > selectedWorks);
+  assert.ok(carousel > projects);
+  assert.ok(faq > carousel);
+  assert.equal(
+    routeSource.indexOf("<EnchantedProjectCarousel />"),
+    routeSource.lastIndexOf("<EnchantedProjectCarousel />"),
+  );
 });
 
 test("V10 uses the exact Lovable ring transform composition", () => {
   assert.match(carouselSource, /const RADIUS = 620/);
   assert.match(carouselSource, /const STEP = 360 \/ items\.length/);
   assert.match(carouselSource, /perspective:\s*["']1400px["']/);
-  assert.match(carouselSource, /translate\(-50%, -50%\) translateZ\(-700px\) rotateX\(-8deg\) rotateY\(\$\{angle\}deg\)/);
+  assert.match(
+    carouselSource,
+    /translate\(-50%, -50%\) translateZ\(-700px\) rotateX\(-8deg\) rotateY\(\$\{angle\}deg\)/,
+  );
   assert.match(carouselSource, /-translate-x-1\/2 -translate-y-1\/2 rounded-2xl/);
-  assert.match(carouselSource, /transform:\s*`rotateY\(\$\{i \* STEP\}deg\) translateZ\(\$\{RADIUS\}px\)`/);
+  assert.match(
+    carouselSource,
+    /transform:\s*`rotateY\(\$\{i \* STEP\}deg\) translateZ\(\$\{RADIUS\}px\)`/,
+  );
   assert.doesNotMatch(carouselSource, /backfaceVisibility/);
 });
 
