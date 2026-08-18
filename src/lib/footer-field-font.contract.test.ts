@@ -51,23 +51,34 @@ test("dark-mode residual cubes remain white-silver and do not use blue material 
   assert.doesNotMatch(footerSource, /#9aa0ff/i);
 });
 
-test("footer has one centered composition without a blocking panel", () => {
+test("footer logo composition sits slightly lower than v5 without a blocking panel", () => {
   assert.match(footerSource, /data-footer-content/);
+  assert.match(footerSource, /top-\[17%\]/);
+  assert.match(footerSource, /md:top-\[16%\]/);
+  assert.doesNotMatch(footerSource, /top-\[13%\]/);
   assert.doesNotMatch(footerSource, /data-footer-frame/);
   assert.doesNotMatch(footerSource, /backdrop-blur-md/);
   assert.match(footerSource, /data-footer-logo/);
   assert.match(footerSource, /AsciiWordmark text="ARCANE LABS" cell=\{8\} chaosStrength=\{1\.65\}/);
+});
+
+test("footer navigation uses a conventional left-aligned multi-column footer layout", () => {
+  assert.match(footerSource, /data-footer-nav/);
+  assert.match(footerSource, /md:grid-cols-\[1\.4fr_1fr_1fr_1fr\]/);
+  assert.match(footerSource, /text-left/);
+  assert.doesNotMatch(footerSource, /md:grid-cols-6/);
   assert.match(footerSource, /CONTACT/);
   assert.match(footerSource, /hello@arcanelabs\.mov/);
+  assert.match(footerSource, /INDEX/);
   assert.match(footerSource, /WORKS/);
   assert.match(footerSource, /STUDIO/);
   assert.match(footerSource, /FAQ/);
-  assert.match(footerSource, /LEGALS/);
   assert.match(footerSource, /CREATED BY/);
+  assert.match(footerSource, /LEGALS/);
   assert.match(footerSource, /drop-shadow/);
 });
 
-test("small continuous creator ticker is the final in-frame footer element", () => {
+test("small continuous creator ticker has a forty-percent black readability strip", () => {
   assert.match(footerSource, /data-footer-ticker/);
   assert.match(footerSource, /marquee-track/);
   assert.match(
@@ -75,10 +86,11 @@ test("small continuous creator ticker is the final in-frame footer element", () 
     /\[c\] ARCANE LABS CREATED BY TAUFAN SURC 2026 — THE BEGININNG OF DEVELOPER ERA/,
   );
   assert.match(footerSource, /bottom-\[2%\]/);
+  assert.match(footerSource, /bg-black\/40/);
   assert.doesNotMatch(footerSource, /Let&apos;s build something arcane/);
 });
 
-test("ASCII cursor chaos is stronger by default while footer can opt into a stronger local value", () => {
+test("ASCII cursor chaos remains stronger by default while footer keeps its local value", () => {
   assert.match(asciiSource, /chaosStrength\s*=\s*1\.3/);
   assert.match(asciiSource, /const wob = chaos \* 3\.8/);
   assert.match(asciiSource, /\* chaos \* 2\.65/);
