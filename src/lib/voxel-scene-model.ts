@@ -1,9 +1,9 @@
 export const VOXEL_RESOLUTION = 104;
 export const VOXEL_DEPTH = 7;
 export const VOXEL_GAP = 0.54;
-export const VOXEL_SIZE = VOXEL_GAP * 1.015;
+export const VOXEL_SIZE = VOXEL_GAP * 0.9;
 export const LOGO_SCENE_WIDTH = VOXEL_RESOLUTION * VOXEL_GAP;
-export const LOGO_SCENE_HEIGHT = Math.round(VOXEL_RESOLUTION * (1153 / 1600)) * VOXEL_GAP;
+export const LOGO_SCENE_HEIGHT = VOXEL_RESOLUTION * VOXEL_GAP;
 export const PORTAL_SCALE_INPUT = [0, 0.12, 0.24, 0.4, 0.76, 1];
 export const PORTAL_SCALE_OUTPUT = [0.66, 0.76, 0.9, 1.02, 0.94, 0.76];
 
