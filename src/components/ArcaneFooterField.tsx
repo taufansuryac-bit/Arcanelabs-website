@@ -38,19 +38,19 @@ function Terrain({ dark }: { dark: boolean }) {
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uLow: { value: new THREE.Color(dark ? "#d7dddd" : "#414748") },
-      uHigh: { value: new THREE.Color(dark ? "#ffffff" : "#090a0b") },
+      uLow: { value: new THREE.Color(dark ? "#d7dddd" : "#2d3132") },
+      uHigh: { value: new THREE.Color(dark ? "#ffffff" : "#070809") },
     }),
     [],
   );
 
   useEffect(() => {
-    uniforms.uLow.value.set(dark ? "#d7dddd" : "#414748");
-    uniforms.uHigh.value.set(dark ? "#ffffff" : "#090a0b");
+    uniforms.uLow.value.set(dark ? "#d7dddd" : "#2d3132");
+    uniforms.uHigh.value.set(dark ? "#ffffff" : "#070809");
   }, [dark, uniforms]);
 
   useFrame((state) => {
-    uniforms.uTime.value = state.clock.elapsedTime;
+    uniforms.uTime.value = state.clock.elapsedTime * 1.45;
   });
 
   return (
@@ -61,7 +61,7 @@ function Terrain({ dark }: { dark: boolean }) {
         wireframe
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={dark ? THREE.AdditiveBlending : THREE.NormalBlending}
         vertexShader={/* glsl */ `
           uniform float uTime;
           varying float vDepth;
@@ -69,28 +69,28 @@ function Terrain({ dark }: { dark: boolean }) {
 
           float terrainWave(vec2 p) {
             float ocean = 0.0;
-            ocean += sin(p.x * 0.038 + uTime * 0.34) * 2.75;
-            ocean += sin(p.y * 0.032 - uTime * 0.27) * 2.20;
-            ocean += sin((p.x + p.y) * 0.025 + uTime * 0.21) * 1.55;
-            ocean += sin((p.x - p.y) * 0.022 - uTime * 0.16) * 0.95;
+            ocean += sin(p.x * 0.036 + uTime * 0.58) * 3.05;
+            ocean += sin(p.y * 0.030 - uTime * 0.46) * 2.55;
+            ocean += sin((p.x + p.y) * 0.024 + uTime * 0.37) * 1.75;
+            ocean += sin((p.x - p.y) * 0.021 - uTime * 0.31) * 1.10;
 
             float ripples = 0.0;
-            ripples += sin((p.x + p.y) * 0.078 - uTime * 0.23) * 0.62;
-            ripples += sin((p.x - p.y) * 0.064 + uTime * 0.17) * 0.48;
+            ripples += sin((p.x + p.y) * 0.076 - uTime * 0.52) * 0.72;
+            ripples += sin((p.x - p.y) * 0.062 + uTime * 0.43) * 0.56;
 
             float trough = pow(
-              abs(sin(p.x * 0.036 + uTime * 0.065) * sin(p.y * 0.034 - uTime * 0.055)),
+              abs(sin(p.x * 0.034 + uTime * 0.12) * sin(p.y * 0.032 - uTime * 0.10)),
               0.72
-            ) * 0.62;
+            ) * 0.68;
 
             return ocean + ripples - trough;
           }
 
           void main() {
             vec3 pos = position;
-            float breathe = 0.98 + 0.18 * sin(uTime * 0.22);
+            float breathe = 0.90 + 0.30 * sin(uTime * 0.55);
             float h = terrainWave(pos.xy) * breathe;
-            pos.z += h * 1.24;
+            pos.z += h * 1.38;
             vec4 mv = modelViewMatrix * vec4(pos, 1.0);
             vDepth = -mv.z;
             vHeight = h;
@@ -104,10 +104,10 @@ function Terrain({ dark }: { dark: boolean }) {
           varying float vHeight;
 
           void main() {
-            float crest = smoothstep(-1.8, 3.0, vHeight);
+            float crest = smoothstep(-2.2, 3.4, vHeight);
             vec3 color = mix(uLow, uHigh, crest);
             float depthFade = 1.0 - smoothstep(54.0, 176.0, vDepth);
-            float horizonFade = 0.48 + crest * 0.52;
+            float horizonFade = 0.50 + crest * 0.50;
             gl_FragColor = vec4(color, depthFade * horizonFade);
           }
         `}
@@ -260,37 +260,42 @@ export function ArcaneFooterField() {
     <section
       ref={containerRef}
       aria-label="Arcane field footer epilogue"
-      className="relative h-[100svh] min-h-[760px] overflow-hidden border-t border-border bg-background"
+      className="relative h-[100svh] min-h-[760px] overflow-hidden bg-transparent"
     >
-      <Canvas
-        camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
-        dpr={[1, 1.6]}
-        frameloop={active ? "always" : "never"}
-        gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }}
+      <div
+        data-footer-scene
+        className="absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_18%,black_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_18%,black_100%)]"
       >
-        <color attach="background" args={[background]} />
-        <ambientLight intensity={dark ? 1.7 : 1.0} />
-        <hemisphereLight
-          args={[
-            "#ffffff",
-            dark ? "#111113" : "#9da1a0",
-            dark ? 1.35 : 0.72,
-          ]}
-        />
-        <directionalLight
-          position={[28, 36, 42]}
-          intensity={dark ? 2.45 : 1.45}
-          color="#ffffff"
-        />
-        <directionalLight
-          position={[-34, 8, 6]}
-          intensity={dark ? 1.15 : 0.45}
-          color="#ffffff"
-        />
-        <Terrain dark={dark} />
-        <ResidueVoxels dark={dark} />
-        <CameraRig />
-      </Canvas>
+        <Canvas
+          camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
+          dpr={[1, 1.6]}
+          frameloop={active ? "always" : "never"}
+          gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }}
+        >
+          <color attach="background" args={[background]} />
+          <ambientLight intensity={dark ? 1.7 : 1.0} />
+          <hemisphereLight
+            args={[
+              "#ffffff",
+              dark ? "#111113" : "#9da1a0",
+              dark ? 1.35 : 0.72,
+            ]}
+          />
+          <directionalLight
+            position={[28, 36, 42]}
+            intensity={dark ? 2.45 : 1.45}
+            color="#ffffff"
+          />
+          <directionalLight
+            position={[-34, 8, 6]}
+            intensity={dark ? 1.15 : 0.45}
+            color="#ffffff"
+          />
+          <Terrain dark={dark} />
+          <ResidueVoxels dark={dark} />
+          <CameraRig />
+        </Canvas>
+      </div>
 
       <motion.div
         data-footer-content
