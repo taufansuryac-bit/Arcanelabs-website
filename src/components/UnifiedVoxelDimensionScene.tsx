@@ -150,8 +150,8 @@ function useLogoVoxels(url: string) {
               size: VOXEL_SIZE,
               orbitPhase: seeded(voxelIndex * 17.13 + 5.2) * Math.PI * 2,
               orbitRadius:
-                rand < 0.03
-                  ? 0.55 + seeded(voxelIndex * 19.7 + 2.8) * 0.9
+                rand < 0.08
+                  ? 0.6 + seeded(voxelIndex * 19.7 + 2.8) * 1.25
                   : 0,
             });
             voxelIndex += 1;
@@ -192,16 +192,29 @@ function computeFitDistance(
 function UnifiedScene({
   data,
   targetProgress,
+  pointerInside,
 }: {
   data: VoxelData;
   targetProgress: React.MutableRefObject<number>;
+  pointerInside: React.MutableRefObject<boolean>;
 }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const actualProgress = useRef(targetProgress.current);
+  const pointerHit = useMemo(() => new THREE.Vector3(999, 999, 0), []);
+  const ray = useMemo(() => new THREE.Raycaster(), []);
+  const interactionPlane = useMemo(
+    () => new THREE.Plane(new THREE.Vector3(0, 0, 1), 0),
+    [],
+  );
+  const logoTiltX = useRef(0);
+  const logoTiltY = useRef(0);
+  const cameraParallaxX = useRef(0);
+  const cameraParallaxY = useRef(0);
   const { camera, size } = useThree();
   const fitDistance = useRef(90);
   const origin = useMemo(() => new THREE.Vector3(0, 0, 0), []);
+  const lookTarget = useMemo(() => new THREE.Vector3(0, 0, 0), []);
 
   useEffect(() => {
     if (!(camera instanceof THREE.PerspectiveCamera)) return;
@@ -227,6 +240,38 @@ function UnifiedScene({
     const settle = phase(p, 0.94, 1);
     const fieldAmount = fracture * (1 - reassemble);
 
+    const stableInteraction = 1 - phase(p, 0.14, 0.34);
+    const rebuiltInteraction = phase(p, 0.88, 0.985);
+    const fieldInteraction = phase(p, 0.32, 0.52) * (1 - phase(p, 0.78, 0.94));
+    const interactionBlend = clamp01(stableInteraction + rebuiltInteraction);
+    const pointerFracture = interactionBlend * (pointerInside.current ? 1 : 0);
+
+    ray.setFromCamera(state.pointer, camera);
+    if (
+      pointerInside.current &&
+      interactionBlend > 0.001 &&
+      ray.ray.intersectPlane(interactionPlane, pointerHit)
+    ) {
+      // pointerHit is continuously refreshed while the logo is interactive.
+    } else {
+      pointerHit.set(999, 999, 0);
+    }
+
+    const pointerResponse = 1 - Math.exp(-Math.min(delta, 0.05) * 7.2);
+    const tiltTargetX = -state.pointer.y * 0.095 * interactionBlend;
+    const tiltTargetY = state.pointer.x * 0.15 * interactionBlend;
+    logoTiltX.current += (tiltTargetX - logoTiltX.current) * pointerResponse;
+    logoTiltY.current += (tiltTargetY - logoTiltY.current) * pointerResponse;
+    current.rotation.x = logoTiltX.current;
+    current.rotation.y = logoTiltY.current;
+
+    const cameraTargetX = state.pointer.x * 3.4 * fieldInteraction;
+    const cameraTargetY = state.pointer.y * 2.15 * fieldInteraction;
+    cameraParallaxX.current +=
+      (cameraTargetX - cameraParallaxX.current) * pointerResponse;
+    cameraParallaxY.current +=
+      (cameraTargetY - cameraParallaxY.current) * pointerResponse;
+
     const fit = fitDistance.current;
     const approachZ = THREE.MathUtils.lerp(fit * 1.08, fit * 0.7, approach);
     const travelZ = THREE.MathUtils.lerp(
@@ -235,13 +280,19 @@ function UnifiedScene({
       travel * (1 - reassemble),
     );
     const cameraZ = THREE.MathUtils.lerp(travelZ, fit * 0.96, reassemble);
-    const cameraDrift = fieldAmount * 0.7;
+    const ambientDrift = fieldAmount * 0.42;
     camera.position.set(
-      Math.sin(state.clock.elapsedTime * 0.22) * cameraDrift,
-      Math.cos(state.clock.elapsedTime * 0.19) * cameraDrift * 0.55,
+      cameraParallaxX.current + Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
+      cameraParallaxY.current +
+        Math.cos(state.clock.elapsedTime * 0.19) * ambientDrift * 0.55,
       cameraZ,
     );
-    camera.lookAt(origin);
+    lookTarget.set(
+      cameraParallaxX.current * 0.18,
+      cameraParallaxY.current * 0.14,
+      0,
+    );
+    camera.lookAt(fieldInteraction > 0.001 ? lookTarget : origin);
 
     const time = state.clock.elapsedTime;
     const travelDistance = travel * 125;
@@ -249,11 +300,29 @@ function UnifiedScene({
       const voxel = data.voxels[index];
       if (!voxel) continue;
 
-      const orbit = voxel.orbitRadius * (1 - fracture);
-      const orbitAngle = time * (0.32 + voxel.rand * 0.22) + voxel.orbitPhase;
-      const orbitX = Math.cos(orbitAngle) * orbit;
-      const orbitY = Math.sin(orbitAngle) * orbit * 0.72;
-      const orbitZ = Math.sin(orbitAngle * 0.63) * orbit * 0.45;
+      const looseOrbit =
+        voxel.orbitRadius *
+        (0.72 + fracture * 1.15) *
+        (1 - fieldAmount) *
+        Math.max(interactionBlend, 0.35 * (1 - reassemble));
+      const orbitAngle = time * (0.34 + voxel.rand * 0.28) + voxel.orbitPhase;
+      const orbitX = Math.cos(orbitAngle) * looseOrbit;
+      const orbitY = Math.sin(orbitAngle) * looseOrbit * 0.72;
+      const orbitZ = Math.sin(orbitAngle * 0.63) * looseOrbit * 0.46;
+
+      const pointerDx = voxel.base.x - pointerHit.x;
+      const pointerDy = voxel.base.y - pointerHit.y;
+      const distance = Math.sqrt(pointerDx * pointerDx + pointerDy * pointerDy);
+      const localInfluence =
+        Math.exp(-(distance * distance) / (2 * 5.2 * 5.2)) * pointerFracture;
+      const localPush = localInfluence * localInfluence * 6.2;
+      const localScatter = Math.pow(localInfluence, 1.35) * 2.75;
+      const inverseDistance = 1 / Math.max(distance, 0.001);
+      const localX =
+        pointerDx * inverseDistance * localPush + voxel.seed.x * localScatter;
+      const localY =
+        pointerDy * inverseDistance * localPush + voxel.seed.y * localScatter;
+      const localZ = voxel.seed.z * localScatter * 1.75 + localInfluence * 1.1;
 
       const swirl = travel * 0.42 + voxel.rand * 0.16;
       const cosSwirl = Math.cos(swirl);
@@ -264,11 +333,11 @@ function UnifiedScene({
         voxel.field.z + travelDistance * (0.72 + voxel.rand * 0.5);
 
       const unstableX =
-        voxel.base.x + orbitX + voxel.seed.x * fracture * 0.8;
+        voxel.base.x + orbitX + localX + voxel.seed.x * fracture * 0.8;
       const unstableY =
-        voxel.base.y + orbitY + voxel.seed.y * fracture * 0.8;
+        voxel.base.y + orbitY + localY + voxel.seed.y * fracture * 0.8;
       const unstableZ =
-        voxel.base.z + orbitZ + voxel.seed.z * fracture * 1.15;
+        voxel.base.z + orbitZ + localZ + voxel.seed.z * fracture * 1.15;
 
       const dimensionalX = THREE.MathUtils.lerp(
         unstableX,
@@ -291,7 +360,7 @@ function UnifiedScene({
       const z = THREE.MathUtils.lerp(dimensionalZ, voxel.base.z, reassemble);
 
       dummy.position.set(x, y, z);
-      const spin = fieldAmount * (1.2 + voxel.rand * 3.6);
+      const spin = fieldAmount * (1.2 + voxel.rand * 3.6) + localInfluence * 3.2;
       dummy.rotation.set(
         voxel.seed.x * spin,
         voxel.seed.y * spin + travel * voxel.seed.z * 1.2,
@@ -304,7 +373,8 @@ function UnifiedScene({
         voxel.size * dimensionalScale,
         fieldAmount,
       );
-      const settledScale = THREE.MathUtils.lerp(scale, voxel.size, settle);
+      const fracturedScale = scale * (1 - localInfluence * 0.16);
+      const settledScale = THREE.MathUtils.lerp(fracturedScale, voxel.size, settle);
       const cameraClearance = cameraZ - z;
       const cameraVisibility = smoother((cameraClearance - 0.45) / 4.5);
       dummy.scale.setScalar(settledScale * cameraVisibility);
@@ -339,6 +409,7 @@ export function UnifiedVoxelDimensionScene({
 }: UnifiedVoxelDimensionSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const targetProgress = useRef(progress.get());
+  const pointerInside = useRef(false);
   const [active, setActive] = useState(true);
   const data = useLogoVoxels("/arcane-logo-black.svg");
 
@@ -378,6 +449,12 @@ export function UnifiedVoxelDimensionScene({
       ref={containerRef}
       className={className}
       aria-label="Arcane Labs unified voxel dimension"
+      onPointerEnter={() => {
+        pointerInside.current = true;
+      }}
+      onPointerLeave={() => {
+        pointerInside.current = false;
+      }}
     >
       <Canvas
         camera={{ position: [0, 0, 90], fov: 45, near: 0.1, far: 700 }}
@@ -396,7 +473,13 @@ export function UnifiedVoxelDimensionScene({
           intensity={0.8}
           color="#6b7cff"
         />
-        {data && <UnifiedScene data={data} targetProgress={targetProgress} />}
+        {data && (
+          <UnifiedScene
+            data={data}
+            targetProgress={targetProgress}
+            pointerInside={pointerInside}
+          />
+        )}
       </Canvas>
     </div>
   );
