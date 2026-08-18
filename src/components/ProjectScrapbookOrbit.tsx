@@ -221,9 +221,9 @@ export function ProjectScrapbookOrbit() {
                   if (movedRef.current) return;
                   setSelected(isSelected ? null : index);
                 }}
-                className="group absolute left-1/2 top-1/2 aspect-video w-[clamp(250px,31vw,440px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-border bg-card text-left outline-none transition-[opacity,filter] duration-500 hover:brightness-110 focus-visible:ring-1 focus-visible:ring-neon"
+                className="group absolute left-1/2 top-1/2 aspect-video w-[clamp(250px,31vw,440px)] overflow-hidden border border-border bg-card text-left outline-none transition-[opacity,filter] duration-500 hover:brightness-110 focus-visible:ring-1 focus-visible:ring-neon"
                 style={{
-                  transform: `rotateY(${index * STEP}deg) translateZ(var(--carousel-radius))`,
+                  transform: `translate(-50%, -50%) rotateY(${index * STEP}deg) translateZ(var(--carousel-radius))`,
                   backfaceVisibility: "hidden",
                   opacity: selected !== null && !isSelected ? 0.16 : 1,
                   boxShadow: "8px 8px 0 color-mix(in oklab,var(--foreground) 6%,transparent)",
