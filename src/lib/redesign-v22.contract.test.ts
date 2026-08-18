@@ -15,8 +15,6 @@ test("voxel logo engine ports the voxel-chaos-logo density and depth model", asy
   assert.match(source, /instancedMesh/);
   assert.match(source, /setMatrixAt/);
   assert.match(source, /for \(let z = 0; z < VOXEL_DEPTH; z \+= 1\)/);
-  assert.match(source, /shaderMaterial/);
-  assert.match(source, /uGlobalChaos/);
 });
 
 test("voxel logo uses the source repo camera controls for genuine 360 degree inspection", async () => {
@@ -50,12 +48,13 @@ test("loader countdown waits until voxel geometry is ready", async () => {
   assert.match(source, /ready=\{Boolean\(voxels\)\}/);
 });
 
-test("voxel logo fits the camera responsively and shades voxels on the GPU", async () => {
+test("voxel logo fits measured geometry responsively and uses the original standard material lighting", async () => {
   const source = await readSource("../components/VoxelChaosLogoScene.tsx");
   assert.match(source, /ResponsiveCamera/);
-  assert.match(source, /getResponsiveCameraDistance/);
-  assert.match(source, /VERTEX_SHADER/);
-  assert.match(source, /FRAGMENT_SHADER/);
+  assert.match(source, /measuredRadius/);
+  assert.match(source, /meshStandardMaterial/);
+  assert.match(source, /ambientLight/);
+  assert.match(source, /directionalLight/);
 });
 
 test("portal uses square depth particles without comet trails", async () => {
