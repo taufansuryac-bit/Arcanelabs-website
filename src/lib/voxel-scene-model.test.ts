@@ -29,8 +29,9 @@ test("responsive camera keeps the complete voxel logo inside wide and portrait v
   }
 });
 
-test("settled voxels overlap their grid cell enough to avoid visible seam lines", () => {
-  assert.ok(VOXEL_SIZE >= VOXEL_GAP);
+test("settled voxels preserve the original breathing gap between cubes", () => {
+  assert.equal(VOXEL_SIZE, VOXEL_GAP * 0.9);
+  assert.ok(VOXEL_SIZE < VOXEL_GAP);
 });
 
 test("portal grows the intact logo before the fracture begins", () => {
