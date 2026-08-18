@@ -96,7 +96,15 @@ function useVoxels(url: string) {
       if (!context) return;
 
       context.clearRect(0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION);
-      context.drawImage(image, 0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION);
+      const sourceAspect = image.naturalWidth / Math.max(1, image.naturalHeight);
+      let drawWidth = VOXEL_RESOLUTION;
+      let drawHeight = VOXEL_RESOLUTION;
+      if (sourceAspect >= 1) drawHeight = VOXEL_RESOLUTION / sourceAspect;
+      else drawWidth = VOXEL_RESOLUTION * sourceAspect;
+      const drawOffsetX = (VOXEL_RESOLUTION - drawWidth) / 2;
+      const drawOffsetY = (VOXEL_RESOLUTION - drawHeight) / 2;
+      context.drawImage(image, drawOffsetX, drawOffsetY, drawWidth, drawHeight);
+
       const pixels = context.getImageData(0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION).data;
       const voxels: Voxel[] = [];
       let voxelIndex = 0;
@@ -173,7 +181,6 @@ function SceneController({
       const exit = smooth((p - 0.88) / 0.12);
       sceneState.current.globalChaos = (1 - settle) * 1.08;
       sceneState.current.opacity = 1 - exit;
-
       if (p >= 1 && !completeRef.current) {
         completeRef.current = true;
         queueMicrotask(() => onCompleteRef.current?.());
@@ -215,7 +222,6 @@ function VoxelMesh({
 
     const damping = 1 - Math.exp(-3 * delta);
     hoverChaos.current += ((hovering.current ? 1 : 0) - hoverChaos.current) * damping;
-
     if (hovering.current || hoverChaos.current > 0.001) {
       ray.setFromCamera(state.pointer, camera);
       if (ray.ray.intersectPlane(plane, pointerHit)) pointer.current.copy(pointerHit);
@@ -225,7 +231,6 @@ function VoxelMesh({
 
     const globalChaos = sceneState.current.globalChaos;
     const time = state.clock.elapsedTime;
-
     for (let index = 0; index < data.voxels.length; index += 1) {
       const voxel = data.voxels[index];
       if (!voxel) continue;
@@ -236,7 +241,6 @@ function VoxelMesh({
       const influence = Math.exp(-(distance * distance) / (2 * 6 * 6));
       const localChaos = influence * hoverChaos.current;
       const chaos = Math.max(globalChaos, localChaos);
-      const chaosSquared = chaos * chaos;
       const push = localChaos * localChaos * 4.5;
       const localScatter = localChaos * localChaos * 2;
       const globalScatter = globalChaos * globalChaos * 15;
@@ -245,9 +249,7 @@ function VoxelMesh({
       dummy.position.set(
         voxel.base.x + (dx / (distance || 1)) * push + voxel.seed.x * (localScatter + globalScatter),
         voxel.base.y + (dy / (distance || 1)) * push + voxel.seed.y * (localScatter + globalScatter),
-        voxel.base.z +
-          voxel.seed.z * (localScatter * 1.6 + globalScatter * 0.8) +
-          wobble * 2.5 * chaos,
+        voxel.base.z + voxel.seed.z * (localScatter * 1.6 + globalScatter * 0.8) + wobble * 2.5 * chaos,
       );
       dummy.rotation.set(
         voxel.seed.x * (chaos * 6 + time * 0.08 * chaos),
@@ -363,10 +365,14 @@ export function VoxelChaosLogoScene({
     let pageVisible = isDocumentVisible();
     let inViewport = true;
     const sync = () => setActive(shouldAnimate(pageVisible, inViewport));
-    const disconnectViewport = observeElementVisibility(container, (visible) => {
-      inViewport = visible;
-      sync();
-    }, { rootMargin: mode === "portal" ? "420px 0px" : "0px" });
+    const disconnectViewport = observeElementVisibility(
+      container,
+      (visible) => {
+        inViewport = visible;
+        sync();
+      },
+      { rootMargin: mode === "portal" ? "420px 0px" : "0px" },
+    );
     const disconnectDocument = observeDocumentVisibility((visible) => {
       pageVisible = visible;
       sync();
