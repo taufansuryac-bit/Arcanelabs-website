@@ -8,7 +8,7 @@ const footerSource = await readFile(
 );
 
 test("footer camera follows pointer smoothly across the full footer surface", () => {
-  assert.match(footerSource, /eventSource=\{containerRef\}/);
+  assert.match(footerSource, /eventSource=\{containerRef\.current \?\? undefined\}/);
   assert.match(
     footerSource,
     /const pointerResponse = 1 - Math\.exp\(-Math\.min\(delta, 0\.05\) \* 7\.2\)/,
