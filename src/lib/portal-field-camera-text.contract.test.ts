@@ -7,16 +7,16 @@ const source = await readFile(
   "utf8",
 );
 
-test("portal field uses the approved premium ENTER THE FIELD composition", () => {
-  assert.match(source, /ENTER THE FIELD/);
-  assert.match(source, /ARCANE \/\/ SIGNAL/);
+test("portal field keeps premium layered typography across the three branded sessions", () => {
+  assert.match(source, /WE BUILD WEBSITES/);
+  assert.match(source, /WE CRAFT APPS/);
+  assert.match(source, /STEP INTO THE DIGITAL DIMENSION/);
   assert.match(source, /ghostText/);
   assert.match(source, /#b7e36d/i);
   assert.match(source, /#171a1f/i);
   assert.match(source, /#f2f4f7/i);
+  assert.doesNotMatch(source, /text: "ENTER THE FIELD"/);
   assert.doesNotMatch(source, /ENTER THE ARCANE FIELD/);
-  assert.doesNotMatch(source, /PIXELS BECOME SPACE/);
-  assert.doesNotMatch(source, /BUILD BEYOND THE FRAME/);
 });
 
 test("voxel field camera follows pointer with footer-like damped look parallax", () => {
