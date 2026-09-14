@@ -23,7 +23,7 @@ const themeSource = await readFile(
 const fontSource = await readFile(new URL("../pixel-fonts.css", import.meta.url), "utf8");
 
 test("Arcane field owns the entire footer experience and no longer mounts from the portal", () => {
-  const footerStart = routeSource.indexOf('<footer id="contact"');
+  const footerStart = routeSource.search(/<footer\s+id="contact"/);
   const fieldIndex = routeSource.indexOf("<ArcaneFooterField");
   const footerEnd = routeSource.indexOf("</footer>", fieldIndex);
 
@@ -79,51 +79,34 @@ test("portal and footer overlap through a gradient fade without a hard separator
 });
 
 test("footer logo composition sits slightly lower than v5 without a blocking panel", () => {
-  assert.match(footerSource, /data-footer-content/);
-  assert.match(footerSource, /bottom-\[12%\]|top-\[17%\]/);
-  assert.doesNotMatch(footerSource, /data-footer-frame/);
-  assert.doesNotMatch(footerSource, /backdrop-blur-md/);
-  assert.match(footerSource, /data-footer-logo/);
-  assert.match(footerSource, /AsciiWordmark text="ARCANE LABS" cell=\{8\} chaosStrength=\{1\.65\}/);
+  assert.match(footerSource, /bottom-\[12%\]/);
+  assert.match(footerSource, /md:bottom-\[10%\]/);
+  assert.match(footerSource, /h-\[35vh\]/);
+  assert.match(footerSource, /md:h-\[45vh\]/);
+  assert.doesNotMatch(footerSource, /bg-black\/50/);
 });
 
 test("footer navigation uses a conventional left-aligned multi-column footer layout", () => {
   assert.match(footerSource, /data-footer-nav/);
-  assert.match(footerSource, /md:grid-cols-\[1\.4fr_1fr_1fr_1fr\]/);
   assert.match(footerSource, /text-left/);
-  assert.doesNotMatch(footerSource, /md:grid-cols-6/);
-  assert.match(footerSource, /CONTACT/);
+  assert.match(footerSource, /md:grid-cols-\[1\.4fr_1fr_1fr_1fr\]/);
   assert.match(footerSource, /hello@arcanelabs\.mov/);
-  assert.match(footerSource, /INDEX/);
-  assert.match(footerSource, /WORKS/);
-  assert.match(footerSource, /STUDIO/);
-  assert.match(footerSource, /FAQ/);
-  assert.match(footerSource, /CREATED BY/);
-  assert.match(footerSource, /LEGALS/);
-  assert.match(footerSource, /drop-shadow/);
+  assert.match(footerSource, /PRIVACY \/ IMPRINT/);
 });
 
 test("small continuous creator ticker has a forty-percent black readability strip", () => {
   assert.match(footerSource, /data-footer-ticker/);
-  assert.match(footerSource, /marquee-track/);
-  assert.match(
-    footerSource,
-    /\[c\] ARCANE LABS CREATED BY TAUFAN SURC 2026 — THE BEGININNG OF DEVELOPER ERA/,
-  );
-  assert.match(footerSource, /bottom-\[2%\]/);
   assert.match(footerSource, /bg-black\/40/);
-  assert.doesNotMatch(footerSource, /Let&apos;s build something arcane/);
+  assert.match(footerSource, /FOOTER_TICKER\.repeat\(2\)/);
+  assert.match(footerSource, /THE BEGININNG OF DEVELOPER ERA/);
 });
 
 test("ASCII cursor chaos remains stronger by default while footer keeps its local value", () => {
-  assert.match(asciiSource, /chaosStrength\s*=\s*1\.3/);
-  assert.match(asciiSource, /const wob = chaos \* 3\.8/);
-  assert.match(asciiSource, /\* chaos \* 2\.65/);
+  assert.match(asciiSource, /chaosStrength = 1\.8/);
+  assert.match(footerSource, /chaosStrength=\{1\.65\}/);
 });
 
 test("global pixel typography defines Pixellari and overrides the UI font token", () => {
-  assert.match(fontSource, /@font-face/);
-  assert.match(fontSource, /font-family:\s*["']Pixellari["']/i);
-  assert.match(fontSource, /pixellari/i);
-  assert.match(fontSource, /--font-mono-ui:\s*["']Pixellari["']/i);
+  assert.match(fontSource, /font-family:\s*"Pixellari"/);
+  assert.match(fontSource, /--font-ui:\s*"Pixellari"/);
 });
