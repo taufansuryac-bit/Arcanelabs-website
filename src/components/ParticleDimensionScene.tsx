@@ -28,6 +28,10 @@ function seeded(value: number) {
   return n - Math.floor(n);
 }
 
+function valueAt(values: Float32Array, index: number) {
+  return values[index] ?? 0;
+}
+
 function useDarkMode() {
   const [dark, setDark] = useState(false);
 
@@ -241,9 +245,9 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
         debrisTunnel[base + 2] = -tunnelSpan + c * (tunnelSpan - 6);
         debrisPhase[index] = seeded(index * 12.3 + 31.7) * tau;
 
-        debrisPositions[base] = debrisLogo[base];
-        debrisPositions[base + 1] = debrisLogo[base + 1];
-        debrisPositions[base + 2] = debrisLogo[base + 2];
+        debrisPositions[base] = valueAt(debrisLogo, base);
+        debrisPositions[base + 1] = valueAt(debrisLogo, base + 1);
+        debrisPositions[base + 2] = valueAt(debrisLogo, base + 2);
       }
 
       debrisGeometry = new THREE.BufferGeometry();
@@ -319,17 +323,22 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       if (coreMesh && coreMaterial) {
         for (let index = 0; index < coreCount; index += 1) {
           const base = index * 3;
-          let tunnelZ = coreTunnel[base + 2] + travelDistance;
+          let tunnelZ = valueAt(coreTunnel, base + 2) + travelDistance;
           while (tunnelZ > 6.4) tunnelZ -= tunnelSpan;
 
-          const flow = reducedMotion ? 0 : Math.sin(time * 0.82 + corePhase[index]) * 0.11;
-          let x = THREE.MathUtils.lerp(coreLogo[base], coreTunnel[base], morph);
-          let y = THREE.MathUtils.lerp(coreLogo[base + 1], coreTunnel[base + 1], morph);
-          let z = THREE.MathUtils.lerp(coreLogo[base + 2], tunnelZ, morph);
+          const phase = valueAt(corePhase, index);
+          const flow = reducedMotion ? 0 : Math.sin(time * 0.82 + phase) * 0.11;
+          let x = THREE.MathUtils.lerp(valueAt(coreLogo, base), valueAt(coreTunnel, base), morph);
+          let y = THREE.MathUtils.lerp(
+            valueAt(coreLogo, base + 1),
+            valueAt(coreTunnel, base + 1),
+            morph,
+          );
+          let z = THREE.MathUtils.lerp(valueAt(coreLogo, base + 2), tunnelZ, morph);
 
           x += flow * morph;
-          y += Math.cos(time * 0.69 + corePhase[index] * 1.17) * 0.08 * morph;
-          z += Math.sin(time * 0.53 + corePhase[index] * 0.71) * 0.14 * morph;
+          y += Math.cos(time * 0.69 + phase * 1.17) * 0.08 * morph;
+          z += Math.sin(time * 0.53 + phase * 0.71) * 0.14 * morph;
 
           const dx = x - mouseWorld.x;
           const dy = y - mouseWorld.y;
@@ -349,12 +358,12 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
           z += exitProgress * 5.5;
 
           const nearBoost = 1 + Math.max(0, (z + 10) / 18) * 0.48 * morph;
-          const scale = coreScale[index] * nearBoost;
+          const scale = valueAt(coreScale, index) * nearBoost;
           dummy.position.set(x, y, z);
           dummy.rotation.set(
-            coreSpin[base] * morph + time * 0.09 * morph,
-            coreSpin[base + 1] * morph + time * 0.11 * morph,
-            coreSpin[base + 2] * morph + time * 0.07 * morph,
+            valueAt(coreSpin, base) * morph + time * 0.09 * morph,
+            valueAt(coreSpin, base + 1) * morph + time * 0.11 * morph,
+            valueAt(coreSpin, base + 2) * morph + time * 0.07 * morph,
           );
           dummy.scale.set(scale * 1.08, scale * 0.9, scale * 1.22);
           dummy.updateMatrix();
@@ -369,19 +378,27 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
         const positions = attribute.array as Float32Array;
         for (let index = 0; index < debrisCount; index += 1) {
           const base = index * 3;
-          let tunnelZ = debrisTunnel[base + 2] + travelDistance * 1.05;
+          let tunnelZ = valueAt(debrisTunnel, base + 2) + travelDistance * 1.05;
           while (tunnelZ > 6.2) tunnelZ -= tunnelSpan;
 
-          const drift = reducedMotion ? 0 : Math.sin(time * 0.95 + debrisPhase[index]) * 0.08;
-          positions[base] = THREE.MathUtils.lerp(debrisLogo[base], debrisTunnel[base], morph) + drift * morph;
+          const phase = valueAt(debrisPhase, index);
+          const drift = reducedMotion ? 0 : Math.sin(time * 0.95 + phase) * 0.08;
+          positions[base] =
+            THREE.MathUtils.lerp(valueAt(debrisLogo, base), valueAt(debrisTunnel, base), morph) +
+            drift * morph;
           positions[base + 1] =
-            THREE.MathUtils.lerp(debrisLogo[base + 1], debrisTunnel[base + 1], morph) +
-            Math.cos(time * 0.77 + debrisPhase[index]) * 0.055 * morph;
+            THREE.MathUtils.lerp(
+              valueAt(debrisLogo, base + 1),
+              valueAt(debrisTunnel, base + 1),
+              morph,
+            ) + Math.cos(time * 0.77 + phase) * 0.055 * morph;
           positions[base + 2] =
-            THREE.MathUtils.lerp(debrisLogo[base + 2], tunnelZ, morph) + exitProgress * 5.8;
+            THREE.MathUtils.lerp(valueAt(debrisLogo, base + 2), tunnelZ, morph) +
+            exitProgress * 5.8;
         }
         attribute.needsUpdate = true;
-        debrisMaterial.opacity = (dark ? 0.48 : 0.34) * (1 - smoothstep01((p - 0.88) / 0.12));
+        debrisMaterial.opacity =
+          (dark ? 0.48 : 0.34) * (1 - smoothstep01((p - 0.88) / 0.12));
       }
 
       const pointerMagnitude = Math.min(1, pointer.length());
