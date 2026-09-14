@@ -660,12 +660,10 @@ export function UnifiedVoxelDimensionScene({
   }, [appReady]);
 
   useEffect(() => {
-    if (appReady && active) {
-      const timer = window.setTimeout(() => setHasMounted(true), 100);
-      return () => window.clearTimeout(timer);
-    }
-    return undefined;
-  }, [appReady, active]);
+    if (!appReady) return undefined;
+    const timer = window.setTimeout(() => setHasMounted(true), 120);
+    return () => window.clearTimeout(timer);
+  }, [appReady]);
 
   return (
     <div
