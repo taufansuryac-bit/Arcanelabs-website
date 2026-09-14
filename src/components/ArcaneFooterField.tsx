@@ -13,7 +13,7 @@ import {
   shouldAnimate,
 } from "@/lib/animation-runtime";
 
-const RESIDUE_COUNT = 560;
+const RESIDUE_COUNT = 760;
 const FOOTER_TICKER =
   "[c] ARCANE LABS CREATED BY TAUFAN SURC 2026 — THE BEGININNG OF DEVELOPER ERA ";
 
@@ -49,7 +49,7 @@ function Terrain({ dark: _dark }: { dark: boolean }) {
   });
 
   return (
-    <mesh position={[0, -6.2, -62]}>
+    <mesh position={[0, -3.2, -62]}>
       <planeGeometry args={[256, 256, 256, 256]} />
       <shaderMaterial
         ref={materialRef}
@@ -211,8 +211,8 @@ function ResidueVoxels({ dark }: { dark: boolean }) {
       const depth = seeded(index * 7.71 + 8.2);
       return {
         x: (seeded(index * 3.17 + 1.1) - 0.5) * 152,
-        y: 2 + seeded(index * 5.31 + 4.7) * 66,
-        z: -202 + depth * 214,
+        y: -4 + seeded(index * 5.31 + 4.7) * 58,
+        z: -192 + depth * 204,
         size: 0.12 + Math.pow(seeded(index * 11.3 + 2.4), 1.62) * 0.62,
         speed: 0.42 + seeded(index * 13.9 + 6.8) * 1.08,
         phase: seeded(index * 17.4 + 7.1) * Math.PI * 2,
@@ -345,12 +345,10 @@ export function ArcaneFooterField() {
   }, [appReady]);
 
   useEffect(() => {
-    if (appReady && active) {
-      const timer = setTimeout(() => setHasMounted(true), 800);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [appReady, active]);
+    if (!appReady) return undefined;
+    const timer = window.setTimeout(() => setHasMounted(true), 700);
+    return () => window.clearTimeout(timer);
+  }, [appReady]);
 
   const background = dark ? "#020203" : "#f3f3ee";
   const primaryText = dark ? "text-[#f4f3ed]" : "text-[#101214]";
@@ -371,7 +369,7 @@ export function ArcaneFooterField() {
     >
       <div
         data-footer-scene
-        className="absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_18%,black_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_18%,black_100%)]"
+        className="absolute inset-0 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.45)_0%,black_12%,black_100%)] [-webkit-mask-image:linear-gradient(to_bottom,rgba(0,0,0,0.45)_0%,black_12%,black_100%)]"
       >
         {hasMounted && (
           <Canvas
