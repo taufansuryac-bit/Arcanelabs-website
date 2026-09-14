@@ -396,7 +396,7 @@ function Index() {
         `}</style>
         <footer
           id="contact"
-          className="mobile-footer-shell relative z-20 -mt-[6vh] overflow-visible md:-mt-[14vh]"
+          className="mobile-footer-shell relative z-10 -mt-[44vh] overflow-visible md:-mt-[40vh]"
         >
           <ArcaneFooterField />
         </footer>
