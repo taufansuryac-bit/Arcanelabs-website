@@ -35,7 +35,7 @@ export function PartnerFlipGrid() {
       aria-label="Partners"
       className="relative z-20 bg-background px-5 py-8 md:px-8 md:py-12"
     >
-      <div className="grid grid-cols-2 gap-1 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-px border border-foreground/10 bg-foreground/10 md:grid-cols-4">
         {partners.map((partner, index) => {
           const backPartner = partners[(index + 4) % partners.length] ?? partner;
           const direction = index % 2 === 0 ? 180 : -180;
@@ -43,7 +43,10 @@ export function PartnerFlipGrid() {
           const shouldFlip = inView && !prefersReducedMotion;
 
           return (
-            <div key={partner.name} className="relative [perspective:1400px]">
+            <div
+              key={partner.name}
+              className="relative bg-background [perspective:1400px]"
+            >
               <motion.div
                 initial={false}
                 animate={
@@ -60,9 +63,9 @@ export function PartnerFlipGrid() {
                   repeat: shouldFlip ? Number.POSITIVE_INFINITY : 0,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="relative min-h-32 bg-background px-4 md:min-h-40 [transform-style:preserve-3d]"
+                className="relative min-h-32 bg-foreground/[0.02] px-4 md:min-h-40 [transform-style:preserve-3d]"
               >
-                <div className="absolute inset-0 flex items-center justify-center bg-background [backface-visibility:hidden]">
+                <div className="absolute inset-0 flex items-center justify-center bg-background/95 [backface-visibility:hidden]">
                   <span className="sr-only">{partner.name}</span>
                   <span
                     aria-hidden
@@ -72,7 +75,7 @@ export function PartnerFlipGrid() {
                   </span>
                 </div>
 
-                <div className="absolute inset-0 flex items-center justify-center bg-background [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                <div className="absolute inset-0 flex items-center justify-center bg-background/95 [backface-visibility:hidden] [transform:rotateY(180deg)]">
                   <span className="sr-only">{backPartner.name}</span>
                   <span
                     aria-hidden
@@ -113,11 +116,6 @@ export function PartnerFlipGrid() {
           );
         })}
       </div>
-
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -bottom-px h-[2px] bg-background"
-      />
     </section>
   );
 }
