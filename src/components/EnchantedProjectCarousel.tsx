@@ -27,67 +27,53 @@ type CardItem =
     };
 
 const items: CardItem[] = [
-  { kind: "image", id: 0, srcIndex: 0, title: "PASSION", caption: "Editorial / 01" },
+  { kind: "image", id: 0, srcIndex: 0, title: "CUSTOM APPS", caption: "APPLICATION / 01" },
   {
     kind: "quote",
     id: 1,
     quote:
-      "This incredible tool has been a true game-changer for our business, helping us scale operations and automate our most complex workflows effortlessly.",
-    name: "James Walker",
-    role: "UI/UX Designer",
+      "Purpose-built applications for internal workflows, customer experiences, and operational tools.",
+    name: "APPLICATION DEVELOPMENT",
+    role: "CUSTOM SYSTEMS",
     tone: "dark",
   },
-  { kind: "image", id: 2, srcIndex: 1, title: "NIGHT MODE", caption: "Portrait / 02" },
+  { kind: "image", id: 2, srcIndex: 1, title: "FINANCE DATA", caption: "ANALYTICS / 02" },
   {
     kind: "quote",
     id: 3,
     quote:
-      "Everything got lighter. The team ships twice as fast and the interface still feels calm and deliberate.",
-    name: "Lucas Thompson",
-    role: "SEO Specialist",
+      "Turn financial data into dashboards, reporting flows, and decision-ready views for your business.",
+    name: "FINANCE ANALYTICS",
+    role: "BUSINESS INTELLIGENCE",
     tone: "light",
   },
-  { kind: "image", id: 4, srcIndex: 2, title: "RED STROKE", caption: "Art Direction / 03" },
+  { kind: "image", id: 4, srcIndex: 2, title: "PRODUCT DATA", caption: "ANALYTICS / 03" },
   {
     kind: "quote",
     id: 5,
-    quote: "Data control without the noise. We finally trust what we see, and so do our clients.",
-    name: "Amelia Ross",
-    role: "Product Lead",
+    quote:
+      "Connect product signals, user behavior, and business metrics so teams can see what to improve next.",
+    name: "PRODUCT ANALYTICS",
+    role: "PRODUCT INTELLIGENCE",
     tone: "dark",
   },
-  { kind: "image", id: 6, srcIndex: 3, title: "STREET", caption: "Lookbook / 04" },
+  { kind: "image", id: 6, srcIndex: 3, title: "WEB SYSTEMS", caption: "WEB / 04" },
   {
     kind: "quote",
     id: 7,
     quote:
-      "The motion, the detail, the restraint — it reads like a studio piece rather than a template.",
-    name: "Noah Bennett",
-    role: "Creative Director",
-    tone: "light",
-  },
-  { kind: "image", id: 8, srcIndex: 1, title: "SILHOUETTE", caption: "Series / 05" },
-  {
-    kind: "quote",
-    id: 9,
-    quote:
-      "We use AI to control data. We specialize in this format and it finally feels effortless.",
-    name: "Isla Foreman",
-    role: "Data Lead",
-    tone: "dark",
-  },
-  { kind: "image", id: 10, srcIndex: 3, title: "CONTRAST", caption: "Studio / 06" },
-  {
-    kind: "quote",
-    id: 11,
-    quote: "Every frame lands. It feels like a physical object spinning in front of you.",
-    name: "Mia Carter",
-    role: "Art Buyer",
+      "Fast, responsive websites and connected web systems designed around real business goals.",
+    name: "WEB DEVELOPMENT",
+    role: "DIGITAL PLATFORMS",
     tone: "light",
   },
 ];
 
 const STEP = 360 / items.length;
+
+function normalizeAngle(value: number) {
+  return (((value + 180) % 360) + 360) % 360 - 180;
+}
 
 export function EnchantedProjectCarousel() {
   const [angle, setAngle] = useState(0);
@@ -247,8 +233,8 @@ export function EnchantedProjectCarousel() {
         }
         @media (min-width: 768px) {
           .enchanted-carousel-stage {
-            --carousel-card-w: clamp(380px, 22vw, 430px);
-            --carousel-card-h: clamp(238px, 14vw, 270px);
+            --carousel-card-w: clamp(460px, 27vw, 540px);
+            --carousel-card-h: clamp(288px, 17vw, 340px);
             --carousel-radius: clamp(800px, 52vw, 1050px);
             --carousel-camera-z: clamp(-980px, -48vw, -820px);
             --carousel-perspective: clamp(1900px, 110vw, 2300px);
@@ -261,9 +247,8 @@ export function EnchantedProjectCarousel() {
         }
         .enchanted-ring-card {
           transform-style: preserve-3d;
-          transition: filter 400ms ease;
+          will-change: filter, opacity;
         }
-        .enchanted-ring-card:hover { filter: brightness(1.12); }
         @keyframes enchanted-pixel-in {
           0% { opacity: 0; filter: blur(10px) contrast(220%) saturate(160%); transform: scale(1.06); }
           60% { opacity: 1; filter: blur(3px) contrast(150%) saturate(120%); }
@@ -315,6 +300,12 @@ export function EnchantedProjectCarousel() {
         >
           {items.map((item, index) => {
             const isSelected = selected === item.id;
+            const relativeAngle = normalizeAngle(angle + index * STEP);
+            const focusDepth = Math.min(1, Math.abs(relativeAngle) / 150);
+            const focusBlur = focusDepth * 8;
+            const focusOpacity = Math.max(0.34, 1 - focusDepth * 0.62);
+            const focusBrightness = 1 - focusDepth * 0.08;
+
             return (
               <button
                 key={item.id}
@@ -330,8 +321,10 @@ export function EnchantedProjectCarousel() {
                   width: "var(--carousel-card-w)",
                   height: "var(--carousel-card-h)",
                   transform: `rotateY(${index * STEP}deg) translateZ(var(--carousel-radius))`,
-                  opacity: selected !== null && !isSelected ? 0.18 : 1,
-                  transition: "opacity 600ms ease",
+                  filter: `blur(${focusBlur.toFixed(2)}px) brightness(${focusBrightness.toFixed(3)})`,
+                  opacity: selected !== null && !isSelected ? 0.18 : focusOpacity,
+                  zIndex: Math.round((1 - focusDepth) * 100),
+                  transition: dragging ? "none" : "filter 220ms linear, opacity 220ms linear",
                 }}
                 aria-label={item.kind === "image" ? item.title : item.name}
               >
@@ -350,7 +343,7 @@ export function EnchantedProjectCarousel() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Project preview"
+          aria-label="Capability preview"
           className="fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-background/80 px-5 py-6 backdrop-blur-xl"
           onClick={() => setSelected(null)}
         >
