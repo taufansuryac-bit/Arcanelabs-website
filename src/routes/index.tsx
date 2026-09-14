@@ -109,7 +109,7 @@ function Index() {
       <div
         className={`relative z-10 transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
       >
-        <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-transparent bg-background/65 px-5 py-4 text-foreground backdrop-blur-md md:border-none md:bg-transparent md:px-8 md:py-5 md:backdrop-blur-none">
+        <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-transparent bg-transparent px-5 py-4 text-foreground backdrop-blur-none md:border-none md:px-8 md:py-5">
           <a href="#top" className="group" onClick={() => setMobileMenuOpen(false)}>
             <ScrambleText
               text="ARCANE LABS"
@@ -132,7 +132,7 @@ function Index() {
 
           <button
             type="button"
-            className="relative flex h-10 w-10 items-center justify-center border border-border bg-background/70 md:hidden"
+            className="relative flex h-10 w-10 items-center justify-center border border-border bg-transparent md:hidden"
             aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-navigation"
@@ -189,25 +189,18 @@ function Index() {
           id="top"
           className="relative z-10 flex min-h-[100svh] flex-col justify-between overflow-hidden px-5 pb-7 pt-24 md:min-h-screen md:px-8 md:pb-8"
         >
-          <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="pointer-events-none absolute inset-0 z-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_50%,black_28%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_90%_80%_at_50%_50%,black_28%,transparent_100%)]">
             <GalaxyHeroBackground className="h-full w-full" />
           </div>
-          <div
-            className="pointer-events-none absolute inset-0 z-[1]"
-            style={{
-              background:
-                "radial-gradient(ellipse 90% 80% at 50% 50%, transparent 30%, oklch(0.06 0 0 / 0.65) 100%)",
-            }}
-          />
 
           <div className="relative z-[2] flex items-start justify-between gap-6">
-            <h1 className="label-mono max-w-[9rem] leading-relaxed text-white/70 md:max-w-[10rem]">
+            <h1 className="label-mono max-w-[9rem] leading-relaxed text-foreground/70 md:max-w-[10rem]">
               <span className="sr-only">Arcane Labs — </span>
               Film production.
               <br aria-hidden="true" />
               Reimagined.
             </h1>
-            <p className="label-mono max-w-[8rem] text-right text-white/70 md:max-w-none">
+            <p className="label-mono max-w-[8rem] text-right text-foreground/70 md:max-w-none">
               Berlin — Worldwide
             </p>
           </div>
@@ -218,12 +211,12 @@ function Index() {
 
           <div className="relative z-[2] flex items-end justify-between gap-6 md:items-end">
             <PixelReveal>
-              <p className="max-w-[19rem] text-[13px] leading-relaxed text-white/60 md:max-w-xl md:text-base">
+              <p className="max-w-[19rem] text-[13px] leading-relaxed text-foreground/60 md:max-w-xl md:text-base">
                 Arcane Labs is a hybrid production company fusing high-end commercial work with a
                 drive to explore the unconventional.
               </p>
             </PixelReveal>
-            <span className="label-mono shrink-0 text-white/50">Scroll ↓</span>
+            <span className="label-mono shrink-0 text-foreground/50">Scroll ↓</span>
           </div>
         </section>
 
