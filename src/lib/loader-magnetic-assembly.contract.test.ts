@@ -6,7 +6,10 @@ const sceneSource = await readFile(
   new URL("../components/MagneticLoaderScene.tsx", import.meta.url),
   "utf8",
 );
-const loaderSource = await readFile(new URL("../components/ArcaneLoader.tsx", import.meta.url), "utf8");
+const loaderSource = await readFile(
+  new URL("../components/ArcaneLoader.tsx", import.meta.url),
+  "utf8",
+);
 
 test("loader uses a magnetic snap phase and keeps a living final logo", () => {
   assert.match(sceneSource, /magneticPulse/);
