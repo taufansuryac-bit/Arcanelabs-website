@@ -419,7 +419,7 @@ function UnifiedScene({
 
     const sessionOneZoom = phase(p, 0.18, 0.23) * (1 - phase(p, 0.31, 0.35));
     const sessionTwoZoom = phase(p, 0.42, 0.47) * (1 - phase(p, 0.55, 0.59));
-    const finalDrive = phase(p, 0.66, 0.82);
+    const finalDrive = phase(p, 0.66, 1);
     const sessionZoom = Math.max(
       sessionOneZoom * 0.035,
       sessionTwoZoom * 0.055,
@@ -427,7 +427,7 @@ function UnifiedScene({
     );
 
     const stableInteraction = 1 - phase(p, 0.1, 0.28);
-    const fieldInteraction = phase(p, 0.18, 0.3) * (1 - exitDissolve);
+    const fieldInteraction = phase(p, 0.18, 0.3) * (1 - phase(p, 0.74, 0.86));
     const interactionBlend = clamp01(stableInteraction + fieldInteraction * 0.28);
     const pointerFracture = interactionBlend * (pointerInside.current ? 1 : 0);
 
@@ -456,11 +456,11 @@ function UnifiedScene({
       : 0;
     pointerPresence.current += (pointerMagnitude - pointerPresence.current) * cameraResponse;
 
-    const cameraTargetX = state.pointer.x * 2.6 * fieldInteraction;
-    const cameraTargetY = state.pointer.y * 1.8 * fieldInteraction;
-    const lookTargetX = state.pointer.x * 3.2 * fieldInteraction;
-    const lookTargetY = state.pointer.y * 2.1 * fieldInteraction;
-    const rollTarget = -state.pointer.x * 0.006 * fieldInteraction;
+    const cameraTargetX = state.pointer.x * 2.0 * fieldInteraction;
+    const cameraTargetY = state.pointer.y * 1.3 * fieldInteraction;
+    const lookTargetX = state.pointer.x * 2.4 * fieldInteraction;
+    const lookTargetY = state.pointer.y * 1.6 * fieldInteraction;
+    const rollTarget = -state.pointer.x * 0.004 * fieldInteraction;
     cameraParallaxX.current += (cameraTargetX - cameraParallaxX.current) * cameraResponse;
     cameraParallaxY.current += (cameraTargetY - cameraParallaxY.current) * cameraResponse;
     cameraLookX.current += (lookTargetX - cameraLookX.current) * cameraResponse;
@@ -477,7 +477,7 @@ function UnifiedScene({
     camera.position.set(
       cameraParallaxX.current + Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
       cameraParallaxY.current + Math.cos(state.clock.elapsedTime * 0.19) * ambientDrift * 0.55,
-      cameraZ + state.pointer.y * 0.32 * fieldInteraction,
+      cameraZ + state.pointer.y * 0.18 * fieldInteraction,
     );
     lookTarget.set(
       cameraLookX.current + Math.sin(state.clock.elapsedTime * 0.17) * ambientDrift * 0.2,
