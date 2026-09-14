@@ -250,7 +250,11 @@ function DimensionalPhrase({
     const pointerY = state.pointer.y * 0.36 * phraseOpacity;
 
     groupObject.visible = phraseOpacity > 0.002;
-    groupObject.position.set(pointerX, THREE.MathUtils.lerp(0.65, -0.15, travel) + pointerY, phraseDepth);
+    groupObject.position.set(
+      pointerX,
+      THREE.MathUtils.lerp(0.65, -0.15, travel) + pointerY,
+      phraseDepth,
+    );
     groupObject.rotation.x = -state.pointer.y * 0.012 * phraseOpacity;
     groupObject.rotation.y = state.pointer.x * 0.018 * phraseOpacity;
     groupObject.scale.setScalar(phraseScale);
@@ -416,8 +420,7 @@ function UnifiedScene({
     const pointerMagnitude = pointerInside.current
       ? clamp01(Math.hypot(state.pointer.x, state.pointer.y) * 1.15 + 0.12)
       : 0;
-    pointerPresence.current +=
-      (pointerMagnitude - pointerPresence.current) * cameraResponse;
+    pointerPresence.current += (pointerMagnitude - pointerPresence.current) * cameraResponse;
 
     const cameraTargetX = state.pointer.x * 7.2 * fieldInteraction;
     const cameraTargetY = state.pointer.y * 4.6 * fieldInteraction;
