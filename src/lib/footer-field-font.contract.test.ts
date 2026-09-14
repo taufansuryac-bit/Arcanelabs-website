@@ -62,10 +62,7 @@ test("footer uses source-like GLSL hills with real 3D residue cubes", () => {
 test("terrain keeps the reference neutral-gray transparent material", () => {
   assert.match(footerSource, /blending=\{THREE\.NormalBlending\}/);
   assert.match(footerSource, /vec3 color = vec3\(0\.6\)/);
-  assert.match(
-    footerSource,
-    /float opacity = \(96\.0 - length\(vPosition\)\) \/ 256\.0 \* 0\.6/,
-  );
+  assert.match(footerSource, /float opacity = \(96\.0 - length\(vPosition\)\) \/ 256\.0 \* 0\.6/);
   assert.doesNotMatch(footerSource, /THREE\.AdditiveBlending/);
 });
 
