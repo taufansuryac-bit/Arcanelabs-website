@@ -44,20 +44,20 @@ test("partner cards keep continuous alternating flips inside a visible near-back
   assert.doesNotMatch(source, /-bottom-px h-\[2px\]/);
 });
 
-test("our vision uses the reference project names and scroll-driven character morphing", async () => {
+test("our vision uses Arcane developer capabilities and scroll-driven character morphing", async () => {
   assert.match(homeSource, /VisionTextSequence/);
-  const visionToScreen = homeSource.indexOf("From vision to screen");
+  const problemToSystem = homeSource.indexOf("From problem to system");
   const sequence = homeSource.indexOf("<VisionTextSequence");
   const projects = homeSource.indexOf("<ProjectConverge");
-  assert.ok(visionToScreen >= 0 && sequence > visionToScreen && sequence < projects);
+  assert.ok(problemToSystem >= 0 && sequence > problemToSystem && sequence < projects);
 
   const source = await readComponent("VisionTextSequence");
-  assert.match(source, /FUTURE STARS/);
-  assert.match(source, /NIGHTOGRAPHY/);
-  assert.match(source, /KÄSY/);
-  assert.match(source, /MIRAGE/);
-  assert.match(source, /OVERTIME/);
-  assert.match(source, /HUF X BONKERS/);
+  assert.match(source, /CUSTOM APPS/);
+  assert.match(source, /WEB SYSTEMS/);
+  assert.match(source, /FINANCE DATA/);
+  assert.match(source, /PRODUCT DATA/);
+  assert.match(source, /AI WORKFLOWS/);
+  assert.match(source, /BUSINESS TOOLS/);
   assert.match(source, /morphStatement/);
   assert.match(source, /GLITCH_GLYPHS/);
   assert.match(source, /useMotionValueEvent/);

@@ -1,47 +1,47 @@
 import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 
-/** Placeholder imagery — swap these URLs for the real project stills later. */
+/** Placeholder imagery — swap these URLs for real Arcane Labs product captures later. */
 const projects = [
   {
-    title: "Future Stars",
-    client: "EA x FC Bayern",
+    title: "Finance Analytics",
+    client: "Business Intelligence",
     year: "2026",
     image:
       "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1000&q=75",
   },
   {
-    title: "Nightography",
-    client: "Samsung",
+    title: "Product Analytics",
+    client: "Product Intelligence",
     year: "2026",
     image:
       "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=1000&q=75",
   },
   {
-    title: "Käsy",
-    client: "McDonald's",
+    title: "Operations Hub",
+    client: "Internal Operations",
     year: "2026",
     image:
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1000&q=75",
   },
   {
-    title: "Mirage",
-    client: "Arcane Lab",
+    title: "Commerce Console",
+    client: "E-commerce",
     year: "2026",
     image:
       "https://images.unsplash.com/photo-1533107862482-0e6974b06ec4?auto=format&fit=crop&w=1000&q=75",
   },
   {
-    title: "Overtime",
-    client: "Arcane Lab",
-    year: "2025",
+    title: "AI Workspace",
+    client: "Automation",
+    year: "2026",
     image:
       "https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?auto=format&fit=crop&w=1000&q=75",
   },
   {
-    title: "HUF x Bonkers",
-    client: "HUF",
-    year: "2025",
+    title: "Customer CRM",
+    client: "Customer Operations",
+    year: "2026",
     image:
       "https://images.unsplash.com/photo-1516575334481-f85287c2c82d?auto=format&fit=crop&w=1000&q=75",
   },

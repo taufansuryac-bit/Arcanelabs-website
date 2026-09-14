@@ -32,15 +32,16 @@ test("carousel remains a full 3D circular interaction without hiding rear cards"
   assert.doesNotMatch(carouselSource, /backfaceVisibility/);
 });
 
-test("carousel keeps the complete 12-card mixed ring and original interactions", () => {
-  assert.match(carouselSource, /PASSION/);
-  assert.match(carouselSource, /NIGHT MODE/);
-  assert.match(carouselSource, /RED STROKE/);
-  assert.match(carouselSource, /STREET/);
-  assert.match(carouselSource, /SILHOUETTE/);
-  assert.match(carouselSource, /CONTRAST/);
-  assert.match(carouselSource, /Mia Carter/);
-  assert.match(carouselSource, /James Walker/);
+test("carousel keeps the requested eight-card mixed ring and original interactions", () => {
+  assert.match(carouselSource, /CUSTOM APPS/);
+  assert.match(carouselSource, /APPLICATION DEVELOPMENT/);
+  assert.match(carouselSource, /FINANCE DATA/);
+  assert.match(carouselSource, /FINANCE ANALYTICS/);
+  assert.match(carouselSource, /PRODUCT DATA/);
+  assert.match(carouselSource, /PRODUCT ANALYTICS/);
+  assert.match(carouselSource, /WEB SYSTEMS/);
+  assert.match(carouselSource, /WEB DEVELOPMENT/);
+  assert.doesNotMatch(carouselSource, /id:\s*(?:8|9|10|11)/);
   assert.match(carouselSource, /requestAnimationFrame/);
   assert.match(carouselSource, /onPointerDown/);
   assert.match(carouselSource, /onPointerMove/);

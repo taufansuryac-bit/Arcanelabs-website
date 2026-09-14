@@ -2,24 +2,24 @@ import { useState } from "react";
 
 const faqs = [
   {
-    q: "What kind of projects do you take on?",
-    a: "Commercials, brand films, music videos and experimental formats. If it moves and it needs a point of view, we are interested.",
+    q: "What can Arcane Labs build?",
+    a: "We build applications, websites, internal tools, finance and product analytics dashboards, business systems, and AI-assisted automation around a real operational need.",
   },
   {
-    q: "Do you work internationally?",
-    a: "Yes. We produce out of Berlin with a vetted crew network across Europe, the US and Asia, including full cross-border legal and rights handling.",
+    q: "Where is Arcane Labs based?",
+    a: "Arcane Labs is based in Bandung, Indonesia. We can work remotely with teams anywhere while keeping product communication and delivery structured online.",
   },
   {
-    q: "How does the hybrid AI workflow work?",
-    a: "We treat generative tooling as another department. Plates are shot, generated or blended, then finished in a conventional online pipeline so delivery stays broadcast safe.",
+    q: "Can you work with our existing systems and data?",
+    a: "Yes. A project can connect to existing APIs, databases, spreadsheets, marketplace exports, analytics sources, or other business services when the access and data model support it.",
   },
   {
-    q: "What is a typical timeline?",
-    a: "Two to six weeks from brief to master for most commercial work. Fast-turnaround social builds can land in days.",
+    q: "How does a project usually start?",
+    a: "We first map the business problem, users, current workflow, required data, and success criteria. From there we define the smallest useful system before expanding the scope.",
   },
   {
-    q: "How do we start?",
-    a: "Send a brief, a deck or even a reference reel to hello@arcanelabs.mov. You get a treatment direction and a rough budget band within 48 hours.",
+    q: "How do we contact you?",
+    a: "Send the problem you want to solve, the current workflow, and any useful references to hello@arcanelabs.mov. We can use that as the starting point for scope and technical direction.",
   },
 ];
 

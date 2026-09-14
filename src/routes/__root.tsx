@@ -68,24 +68,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+const siteDescription =
+  "Arcane Labs is a Developer Studio in Bandung, Indonesia building applications, websites, analytics dashboards, AI automation, and custom business systems.";
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Arcane Labs — Hybrid Film Production" },
-      {
-        name: "description",
-        content:
-          "Arcane Labs is a hybrid production studio fusing high-end commercial craft with experimental, code-driven filmmaking.",
-      },
+      { title: "Arcane Labs — Developer Studio" },
+      { name: "description", content: siteDescription },
       { name: "author", content: "Arcane Labs" },
-      { property: "og:title", content: "Arcane Labs — Hybrid Film Production" },
-      {
-        property: "og:description",
-        content:
-          "Arcane Labs is a hybrid production studio fusing high-end commercial craft with experimental, code-driven filmmaking.",
-      },
+      { property: "og:title", content: "Arcane Labs — Developer Studio" },
+      { property: "og:description", content: siteDescription },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://arcanelabs.mov/" },
       { property: "og:image", content: "https://arcanelabs.mov/og-image.jpg" },
@@ -137,8 +132,13 @@ function RootShell({ children }: { children: ReactNode }) {
               name: "Arcane Labs",
               url: "https://arcanelabs.mov",
               logo: "https://arcanelabs.mov/arcane-logo-black.svg",
-              description:
-                "Arcane Labs is a hybrid production studio fusing high-end commercial craft with experimental, code-driven filmmaking.",
+              description: siteDescription,
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Bandung",
+                addressRegion: "West Java",
+                addressCountry: "ID",
+              },
             }),
           }}
         />

@@ -2,14 +2,14 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 
 const partners = [
-  { name: "SAMSUNG", mark: "SAMSUNG" },
-  { name: "EA × FC BAYERN", mark: "EA × FCB" },
-  { name: "McDONALD'S", mark: "McD" },
-  { name: "HUF", mark: "HUF" },
-  { name: "NINA CHUBA", mark: "NINA CHUBA" },
-  { name: "ARCANE LAB", mark: "ARCANE" },
-  { name: "FUTURE STARS", mark: "FUTURE / STARS" },
-  { name: "NIGHTOGRAPHY", mark: "NIGHT / GRAPHY" },
+  { name: "TYPESCRIPT", mark: "TYPESCRIPT" },
+  { name: "PYTHON", mark: "PYTHON" },
+  { name: "REACT", mark: "REACT" },
+  { name: "TANSTACK", mark: "TANSTACK" },
+  { name: "NODE.JS", mark: "NODE.JS" },
+  { name: "POSTGRESQL", mark: "POSTGRESQL" },
+  { name: "TAILWIND CSS", mark: "TAILWIND CSS" },
+  { name: "AI AUTOMATION", mark: "AI / AUTOMATION" },
 ] as const;
 
 const particleOffsets = [
@@ -32,7 +32,7 @@ export function PartnerFlipGrid() {
   return (
     <section
       ref={sectionRef}
-      aria-label="Partners"
+      aria-label="Technology stack"
       className="relative z-20 bg-background px-5 py-8 md:px-8 md:py-12"
     >
       <div className="grid grid-cols-2 gap-px border border-foreground/10 bg-foreground/10 md:grid-cols-4">
