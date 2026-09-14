@@ -10,16 +10,8 @@ export function MetaversePortalV2() {
     offset: ["start start", "end end"],
   });
 
-  const phraseOneOpacity = useTransform(
-    scrollYProgress,
-    [0.16, 0.2, 0.3, 0.34],
-    [0, 1, 1, 0],
-  );
-  const phraseTwoOpacity = useTransform(
-    scrollYProgress,
-    [0.38, 0.42, 0.54, 0.58],
-    [0, 1, 1, 0],
-  );
+  const phraseOneOpacity = useTransform(scrollYProgress, [0.16, 0.2, 0.3, 0.34], [0, 1, 1, 0]);
+  const phraseTwoOpacity = useTransform(scrollYProgress, [0.38, 0.42, 0.54, 0.58], [0, 1, 1, 0]);
   const phraseThreeOpacity = useTransform(
     scrollYProgress,
     [0.62, 0.66, 0.79, 0.84],
