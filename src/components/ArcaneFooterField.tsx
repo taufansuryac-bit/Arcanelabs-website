@@ -261,29 +261,38 @@ function ResidueVoxels({ dark }: { dark: boolean }) {
 }
 
 function CameraRig() {
-  const smooth = useRef({ x: 0, y: 0 });
+  const cameraOffset = useRef({ x: 0, y: 0 });
+  const roll = useRef(0);
   const lookTarget = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((state, delta) => {
     const time = state.clock.elapsedTime;
-    const response = 1 - Math.exp(-Math.min(delta, 0.05) * 4.6);
-    smooth.current.x += (state.pointer.x - smooth.current.x) * response;
-    smooth.current.y += (state.pointer.y - smooth.current.y) * response;
+    const pointerResponse = 1 - Math.exp(-Math.min(delta, 0.05) * 7.2);
+    const cameraTargetX = state.pointer.x * 4.6;
+    const cameraTargetY = state.pointer.y * 2.8;
+    cameraOffset.current.x += (cameraTargetX - cameraOffset.current.x) * pointerResponse;
+    cameraOffset.current.y += (cameraTargetY - cameraOffset.current.y) * pointerResponse;
 
-    const ambientX = Math.sin(time * 0.14) * 0.52;
-    const ambientY = Math.sin(time * 0.11 + 1.3) * 0.28;
-    const ambientLook = Math.sin(time * 0.09 + 0.6) * 0.8;
+    const pointerMagnitude = Math.min(1, Math.hypot(state.pointer.x, state.pointer.y));
+    const idleWeight = 1 - pointerMagnitude;
+    const ambientX = Math.sin(time * 0.14) * 0.22 * idleWeight;
+    const ambientY = Math.sin(time * 0.11 + 1.3) * 0.14 * idleWeight;
+    const ambientLook = Math.sin(time * 0.09 + 0.6) * 0.32 * idleWeight;
 
-    state.camera.position.x = smooth.current.x * 3.8 + ambientX;
-    state.camera.position.y = 8.0 - smooth.current.y * 2.2 + ambientY;
+    state.camera.position.x = cameraOffset.current.x + ambientX;
+    state.camera.position.y = 8.0 + cameraOffset.current.y + ambientY;
     state.camera.position.z = 26;
-    state.camera.rotation.z = -smooth.current.x * 0.022 + Math.sin(time * 0.08) * 0.004;
+
     lookTarget.set(
-      smooth.current.x * 6.5 + ambientLook,
-      3.8 - smooth.current.y * 3.1 + ambientY,
+      cameraOffset.current.x * 1.55 + ambientLook,
+      3.8 + cameraOffset.current.y * 1.35 + ambientY,
       -62,
     );
     state.camera.lookAt(lookTarget);
+
+    const rollTarget = -state.pointer.x * 0.012 + Math.sin(time * 0.08) * 0.002 * idleWeight;
+    roll.current += (rollTarget - roll.current) * pointerResponse;
+    state.camera.rotateZ(roll.current);
   });
 
   return null;
@@ -366,6 +375,8 @@ export function ArcaneFooterField() {
       >
         {hasMounted && (
           <Canvas
+            eventSource={containerRef.current!}
+            eventPrefix="client"
             camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
             dpr={[1, 1.6]}
             frameloop={active && !reducedMotion ? "always" : "never"}
