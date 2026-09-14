@@ -45,14 +45,14 @@ test("portal exits forward through the tunnel instead of rebuilding the logo", (
   assert.doesNotMatch(scene, /rebuiltInteraction/);
 });
 
-test("portal and footer crossfade with a shorter overlap and no dead-scroll tail", () => {
+test("portal and footer crossfade with a tighter overlap and no dead-scroll tail", () => {
   assert.match(portal, /useTransform/);
   assert.match(portal, /portalOpacity/);
-  assert.match(portal, /\[0\.9, 0\.99, 1\]/);
-  assert.match(portal, /-mb-\[24vh\]/);
-  assert.match(portal, /md:-mb-\[32vh\]/);
-  assert.match(portal, /h-\[200vh\]/);
-  assert.match(portal, /md:h-\[430vh\]/);
+  assert.match(portal, /\[0\.82, 0\.96, 1\]/);
+  assert.match(portal, /-mb-\[26vh\]/);
+  assert.match(portal, /md:-mb-\[38vh\]/);
+  assert.match(portal, /h-\[180vh\]/);
+  assert.match(portal, /md:h-\[320vh\]/);
   assert.match(index, /md:-mt-\[14vh\]/);
   assert.match(footer, /transparent_0%,black_18%,black_100%/);
 });
