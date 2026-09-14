@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { VoxelChaosLogoScene } from "./VoxelChaosLogoScene";
+import { MagneticLoaderScene } from "./MagneticLoaderScene";
 
 type ArcaneLoaderProps = {
   onComplete: () => void;
@@ -9,7 +9,7 @@ type ArcaneLoaderProps = {
  *  Covers WebGL context-loss, slow machines, and asset fetch failures. */
 const WATCHDOG_MS = 5_000;
 
-/** V2.3 loader: watchdog-guarded voxel-chaos-logo scatter → convergence → crossfade. */
+/** Watchdog-guarded magnetic voxel assembly → living mark → crossfade. */
 export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
@@ -70,7 +70,7 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
     const previousOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
 
-    // Respect reduced motion: skip 3D scatter if preferred
+    // Respect reduced motion: skip 3D assembly if preferred.
     let wantsReducedMotion = false;
     import("@/lib/animation-runtime").then((mod) => {
       wantsReducedMotion = mod.prefersReducedMotion();
@@ -93,7 +93,7 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
     };
   }, [onComplete, finish]);
 
-  /** Called by VoxelChaosLogoScene when WebGL context cannot be acquired. */
+  /** Called by MagneticLoaderScene when WebGL context cannot be acquired. */
   const handleWebGLFail = useCallback(() => {
     setWebglFailed(true);
     // Give user a brief "flash" of the fallback then dismiss.
@@ -105,11 +105,10 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
   return (
     <div
       className={`fixed inset-0 z-[100] overflow-hidden bg-background transition-opacity duration-[420ms] ease-out ${
-        exiting ? "pointer-events-none opacity-0" : "opacity-100"
+        exiting ? "opacity-0" : "opacity-100"
       }`}
       aria-label="Loading Arcane Labs"
       aria-hidden={exiting ? true : undefined}
-      inert={exiting ? true : undefined}
     >
       <div className="absolute inset-0 bg-grid opacity-25" aria-hidden />
       <div className="absolute inset-0">
@@ -124,18 +123,16 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
             </span>
           </div>
         ) : (
-          <VoxelChaosLogoScene
-            mode="loader"
+          <MagneticLoaderScene
             durationMs={3200}
             onComplete={() => finish("scene-complete")}
             onError={handleWebGLFail}
-            interactive
             className="h-full w-full"
           />
         )}
       </div>
       <div className="pointer-events-none absolute bottom-6 left-6 font-mono text-[9px] uppercase tracking-[0.32em] text-muted-foreground/55">
-        Arcane Labs / assembling field
+        Arcane Labs / magnetic assembly field
       </div>
     </div>
   );
