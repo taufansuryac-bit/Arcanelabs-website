@@ -84,11 +84,11 @@ test("SectionPixelReveal is one-shot and disposes its pixel veil", async () => {
 
 test("InteractiveTicker contains the approved Arcane capability language", async () => {
   const source = await readSource("../components/InteractiveTicker.tsx");
-  assert.match(source, /BRANDING/);
-  assert.match(source, /UI\/UX/);
+  assert.match(source, /APPLICATION DEVELOPMENT/);
   assert.match(source, /WEB DEVELOPMENT/);
-  assert.match(source, /MOTION/);
-  assert.match(source, /CREATIVE TECHNOLOGY/);
+  assert.match(source, /FINANCE ANALYTICS/);
+  assert.match(source, /PRODUCT ANALYTICS/);
+  assert.match(source, /AI AUTOMATION/);
   assert.match(source, /ticker-v2-track/);
 });
 
