@@ -345,7 +345,9 @@ function CardFace({
         <span className="text-neon">&ldquo;</span>
         <p
           className={`mt-2 leading-relaxed ${
-            expanded ? "text-base md:text-lg" : "text-[9px] leading-[1.5] md:text-[11px] md:leading-[1.6]"
+            expanded
+              ? "text-base md:text-lg"
+              : "text-[9px] leading-[1.5] md:text-[11px] md:leading-[1.6]"
           }`}
         >
           {item.quote}
@@ -358,7 +360,11 @@ function CardFace({
       >
         <div className="h-7 w-7 rounded-full bg-neon/20 md:h-8 md:w-8" />
         <div>
-          <p className={expanded ? "text-sm font-semibold" : "text-[9px] font-semibold md:text-[11px]"}>
+          <p
+            className={
+              expanded ? "text-sm font-semibold" : "text-[9px] font-semibold md:text-[11px]"
+            }
+          >
             {item.name}
           </p>
           <p className="text-[8px] uppercase tracking-[0.16em] text-muted-foreground md:text-[10px] md:tracking-[0.18em]">
