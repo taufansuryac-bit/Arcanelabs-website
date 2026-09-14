@@ -37,48 +37,44 @@ function useDarkMode() {
   return dark;
 }
 
-function Terrain({ dark }: { dark: boolean }) {
+function Terrain({ dark: _dark }: { dark: boolean }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uLow: { value: new THREE.Color(dark ? "#d7dddd" : "#2d3132") },
-      uHigh: { value: new THREE.Color(dark ? "#ffffff" : "#070809") },
     }),
     [],
   );
 
-  useEffect(() => {
-    const mat = materialRef.current;
-    if (mat?.uniforms?.["uLow"] && mat?.uniforms?.["uHigh"]) {
-      mat.uniforms["uLow"].value.set(dark ? "#d7dddd" : "#2d3132");
-      mat.uniforms["uHigh"].value.set(dark ? "#ffffff" : "#070809");
-    }
-  }, [dark]);
-
   useFrame((state) => {
     const mat = materialRef.current;
     if (mat?.uniforms?.["uTime"]) {
-      mat.uniforms["uTime"].value = state.clock.elapsedTime * 1.45;
+      mat.uniforms["uTime"].value = state.clock.elapsedTime * 0.5;
     }
   });
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4.8, -62]}>
-      <planeGeometry args={[320, 320, 160, 160]} />
+    <mesh position={[0, -6.2, -62]}>
+      <planeGeometry args={[256, 256, 256, 256]} />
       <shaderMaterial
         ref={materialRef}
         uniforms={uniforms}
         transparent
         depthWrite={false}
-        side={THREE.DoubleSide}
-        blending={dark ? THREE.AdditiveBlending : THREE.NormalBlending}
+        blending={THREE.NormalBlending}
         vertexShader={
           /* glsl */ `
           uniform float uTime;
-          varying float vDepth;
-          varying float vHeight;
-          varying vec2 vPos;
+          varying vec3 vPosition;
+
+          mat4 rotateMatrixX(float radian) {
+            return mat4(
+              1.0, 0.0, 0.0, 0.0,
+              0.0, cos(radian), -sin(radian), 0.0,
+              0.0, sin(radian), cos(radian), 0.0,
+              0.0, 0.0, 0.0, 1.0
+            );
+          }
 
           vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
           vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -164,48 +160,35 @@ function Terrain({ dark }: { dark: boolean }) {
             return 2.2 * n_xyz;
           }
 
-          float terrainWave(vec2 p) {
-            float sin1 = sin(radians(p.x / 128.0 * 90.0));
-            vec3 noisePosition = vec3(p.x, p.y, uTime * -30.0);
+          void main() {
+            vec3 updatePosition = (rotateMatrixX(radians(90.0)) * vec4(position, 1.0)).xyz;
+            float sin1 = sin(radians(updatePosition.x / 128.0 * 90.0));
+            vec3 noisePosition = updatePosition + vec3(0.0, 0.0, uTime * -30.0);
             float noise1 = cnoise(noisePosition * 0.08);
             float noise2 = cnoise(noisePosition * 0.06);
             float noise3 = cnoise(noisePosition * 0.4);
+            vec3 lastPosition = updatePosition + vec3(
+              0.0,
+              noise1 * sin1 * 8.0
+                + noise2 * sin1 * 8.0
+                + noise3 * (abs(sin1) * 2.0 + 0.5)
+                + pow(sin1, 2.0) * 40.0,
+              0.0
+            );
 
-            return noise1 * sin1 * 8.0
-              + noise2 * sin1 * 8.0
-              + noise3 * (abs(sin1) * 2.0 + 0.5)
-              + pow(sin1, 2.0) * 40.0;
-          }
-
-          void main() {
-            vec3 pos = position;
-            float breathe = 0.90 + 0.10 * sin(uTime * 0.15);
-            float h = terrainWave(pos.xy) * breathe;
-            pos.z += h * 0.34;
-            vec4 mv = modelViewMatrix * vec4(pos, 1.0);
-            vDepth = -mv.z;
-            vHeight = h;
-            vPos = pos.xy;
-            gl_Position = projectionMatrix * mv;
+            vPosition = lastPosition;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(lastPosition, 1.0);
           }
         `
         }
         fragmentShader={
           /* glsl */ `
-          uniform vec3 uLow;
-          uniform vec3 uHigh;
-          varying float vDepth;
-          varying float vHeight;
-          varying vec2 vPos;
+          precision highp float;
+          varying vec3 vPosition;
 
           void main() {
-            float crest = smoothstep(-4.0, 28.0, vHeight);
-            vec3 color = mix(uLow, uHigh, crest);
-            float depthFade = 1.0 - smoothstep(58.0, 188.0, vDepth);
-            float sideFade = 1.0 - smoothstep(112.0, 160.0, abs(vPos.x));
-            float backFade = 1.0 - smoothstep(104.0, 160.0, abs(vPos.y));
-            float valleyFade = 0.10 + crest * 0.16;
-            float opacity = depthFade * sideFade * backFade * valleyFade;
+            float opacity = (96.0 - length(vPosition)) / 256.0 * 0.6;
+            vec3 color = vec3(0.6);
             gl_FragColor = vec4(color, opacity);
           }
         `
