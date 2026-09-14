@@ -52,3 +52,11 @@ test("section markers follow the visual order after Identity", () => {
   assert.match(projectsSource, />04<\/span>/);
   assert.match(indexSource, /Frequently asked[\s\S]{0,250}<span className="label-mono">05<\/span>/);
 });
+
+test("mobile 3D carousel option B uses smaller cards and a tighter stage", () => {
+  assert.match(carouselSource, /--carousel-card-w:\s*clamp\(96px,\s*28vw,\s*118px\)/);
+  assert.match(carouselSource, /--carousel-card-h:\s*clamp\(66px,\s*18vw,\s*82px\)/);
+  assert.match(carouselSource, /--carousel-radius:\s*clamp\(188px,\s*54vw,\s*225px\)/);
+  assert.match(carouselSource, /h-\[42svh\]\s+min-h-\[260px\]\s+max-h-\[320px\]/);
+  assert.match(carouselSource, /top-\[47%\]\s+md:top-\[46%\]/);
+});
