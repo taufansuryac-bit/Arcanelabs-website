@@ -357,7 +357,7 @@ function Index() {
                   Frequently asked
                 </h2>
               </PixelReveal>
-              <span className="label-mono">04</span>
+              <span className="label-mono">05</span>
             </div>
             <PixelReveal>
               <PixelFaq />
