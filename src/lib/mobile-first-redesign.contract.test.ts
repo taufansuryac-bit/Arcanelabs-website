@@ -59,7 +59,7 @@ test("hero galaxy remains star-only so its black background blends into the next
 });
 
 test("portal and footer use shorter mobile compositions while retaining desktop scenes", () => {
-  assert.match(portalSource, /h-\[240vh\][^\n]*md:h-\[700vh\]/);
+  assert.match(portalSource, /h-\[220vh\][^\n]*md:h-\[520vh\]/);
   assert.match(indexSource, /mobile-footer-shell/);
   assert.match(indexSource, /min-height:\s*900px/);
   assert.match(indexSource, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
