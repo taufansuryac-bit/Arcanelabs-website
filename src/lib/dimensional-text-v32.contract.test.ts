@@ -30,16 +30,18 @@ test("each phrase moves through scene depth and the camera gets three tunnel zoo
   assert.doesNotMatch(source, /PortalPhrase/);
 });
 
-test("final phase pulls back and fully reassembles the original voxel logo", () => {
-  assert.match(source, /const reassemble = phase\(p, 0\.84, 0\.985\)/);
-  assert.match(source, /THREE\.MathUtils\.lerp\(dimensionalX, voxel\.base\.x, reassemble\)/);
-  assert.match(source, /THREE\.MathUtils\.lerp\(dimensionalY, voxel\.base\.y, reassemble\)/);
-  assert.match(source, /THREE\.MathUtils\.lerp\(dimensionalZ, voxel\.base\.z, reassemble\)/);
-  assert.match(source, /fit \* 0\.98/);
+test("final phase continues through the tunnel and dissolves into the footer handoff", () => {
+  assert.match(source, /const exitDissolve = phase\(p, 0\.84, 1\)/);
+  assert.match(source, /material\.opacity = 1 - exitDissolve/);
+  assert.match(source, /travelDistance = travel \* 135 \+ exitDissolve \* 72/);
+  assert.match(source, /cameraZ = tunnelZ - fit \* 0\.14 \* exitDissolve/);
+  assert.doesNotMatch(source, /reassemble/);
 });
 
-test("voxel material is graphite in light mode and silver in dark mode", () => {
-  assert.match(source, /dark \? "#f4f4f5" : "#171a1f"/);
-  assert.match(source, /dark \? "#9aa0ff" : "#000000"/);
-  assert.match(source, /emissiveIntensity=\{dark \? 0\.08 : 0\}/);
+test("voxel material is readable graphite in light mode and silver in dark mode", () => {
+  assert.match(source, /dark \? "#f4f4f5" : "#2b3035"/);
+  assert.match(source, /dark \? "#9aa0ff" : "#080a0c"/);
+  assert.match(source, /emissiveIntensity=\{dark \? 0\.08 : 0\.02\}/);
+  assert.match(source, /metalness=\{dark \? 0\.35 : 0\.18\}/);
+  assert.match(source, /roughness=\{dark \? 0\.25 : 0\.42\}/);
 });
