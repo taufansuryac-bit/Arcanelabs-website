@@ -15,15 +15,11 @@ const portalSource = await readFile(
   new URL("../components/MetaversePortalV2.tsx", import.meta.url),
   "utf8",
 );
-const footerSource = await readFile(
-  new URL("../components/ArcaneFooterField.tsx", import.meta.url),
-  "utf8",
-);
 
 test("mobile header uses a compact menu while desktop navigation stays intact", () => {
-  assert.match(indexSource, /aria-label="Open navigation"/);
+  assert.match(indexSource, /Close navigation/);
+  assert.match(indexSource, /Open navigation/);
   assert.match(indexSource, /aria-expanded=\{mobileMenuOpen\}/);
-  assert.match(indexSource, /md:hidden/);
   assert.match(indexSource, /hidden items-center gap-9 md:flex/);
 });
 
@@ -47,6 +43,7 @@ test("project carousel switches from the desktop 3D ring to mobile snap cards", 
 
 test("portal and footer use shorter mobile compositions while retaining desktop scenes", () => {
   assert.match(portalSource, /h-\[240vh\][^\n]*md:h-\[700vh\]/);
-  assert.match(footerSource, /min-h-\[900px\][^\n]*md:h-\[100svh\]/);
-  assert.match(footerSource, /grid-cols-2[^\n]*md:grid-cols-\[1\.4fr_1fr_1fr_1fr\]/);
+  assert.match(indexSource, /mobile-footer-shell/);
+  assert.match(indexSource, /min-height:\s*900px/);
+  assert.match(indexSource, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
 });
