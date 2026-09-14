@@ -20,10 +20,7 @@ test("footer terrain follows the reference GLSL hills profile", () => {
   assert.match(footerSource, /pow\(sin1, 2\.0\) \* 40\.0/);
   assert.match(footerSource, /elapsedTime \* 0\.5/);
   assert.match(footerSource, /<planeGeometry args=\{\[256, 256, 256, 256\]\} \/>/);
-  assert.match(
-    footerSource,
-    /float opacity = \(96\.0 - length\(vPosition\)\) \/ 256\.0 \* 0\.6/,
-  );
+  assert.match(footerSource, /float opacity = \(96\.0 - length\(vPosition\)\) \/ 256\.0 \* 0\.6/);
   assert.match(footerSource, /blending=\{THREE\.NormalBlending\}/);
 
   assert.doesNotMatch(footerSource, /\bwireframe\b/);
