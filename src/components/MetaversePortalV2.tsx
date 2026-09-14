@@ -12,11 +12,7 @@ export function MetaversePortalV2() {
 
   const phraseOneOpacity = useTransform(scrollYProgress, [0.16, 0.2, 0.3, 0.34], [0, 1, 1, 0]);
   const phraseTwoOpacity = useTransform(scrollYProgress, [0.38, 0.42, 0.54, 0.58], [0, 1, 1, 0]);
-  const phraseThreeOpacity = useTransform(
-    scrollYProgress,
-    [0.62, 0.66, 0.79, 0.84],
-    [0, 1, 1, 0],
-  );
+  const phraseThreeOpacity = useTransform(scrollYProgress, [0.62, 0.66, 0.79, 0.84], [0, 1, 1, 0]);
   const portalOpacity = useTransform(scrollYProgress, [0.9, 0.97, 1], [1, 0.62, 0]);
 
   return (
