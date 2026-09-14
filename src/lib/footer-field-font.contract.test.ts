@@ -75,11 +75,11 @@ test("dark-mode residual cubes remain white-silver and light-mode cubes become g
 });
 
 test("portal and footer overlap through a gradient fade without a hard separator", () => {
-  assert.match(routeSource, /-mt-\[6vh\]/);
-  assert.match(routeSource, /md:-mt-\[14vh\]/);
+  assert.match(routeSource, /-mt-\[44vh\]/);
+  assert.match(routeSource, /md:-mt-\[40vh\]/);
   assert.doesNotMatch(footerSource, /border-t border-border/);
   assert.match(footerSource, /data-footer-scene/);
-  assert.match(footerSource, /mask-image:linear-gradient/);
+  assert.match(footerSource, /rgba\(0,0,0,0\.45\)_0%,black_12%,black_100%/);
 });
 
 test("footer logo composition sits slightly lower than v5 without a blocking panel", () => {
