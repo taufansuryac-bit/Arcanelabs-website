@@ -7,7 +7,7 @@ const footerSource = await readFile(
   "utf8",
 );
 
-test("footer terrain follows the reference GLSL hills geometry instead of the softened ocean-like adaptation", () => {
+test("footer terrain follows the reference GLSL hills profile", () => {
   assert.match(footerSource, /float cnoise\(vec3 P\)/);
   assert.match(footerSource, /rotateMatrixX\(radians\(90\.0\)\)/);
   assert.match(
@@ -33,7 +33,7 @@ test("footer terrain follows the reference GLSL hills geometry instead of the so
   assert.doesNotMatch(footerSource, /float crest =/);
 });
 
-test("footer keeps the floating residue cubes and existing scene composition", () => {
+test("footer keeps floating residue cubes and scene composition", () => {
   assert.match(footerSource, /<Terrain dark=\{dark\} \/>/);
   assert.match(footerSource, /<ResidueVoxels dark=\{dark\} \/>/);
   assert.match(footerSource, /const RESIDUE_COUNT = 560/);
