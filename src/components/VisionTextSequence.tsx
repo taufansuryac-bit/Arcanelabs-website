@@ -108,11 +108,11 @@ export function VisionTextSequence() {
             <AnimatePresence initial={false} mode="sync">
               <motion.p
                 key={`${activeIndex}-${activeStatement}`}
-                initial={prefersReducedMotion ? false : { opacity: 0, y: 18, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={prefersReducedMotion ? {} : { opacity: 0, y: -14, filter: "blur(6px)" }}
+                initial={prefersReducedMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={prefersReducedMotion ? {} : { opacity: 0 }}
                 transition={{
-                  duration: prefersReducedMotion ? 0 : 0.46,
+                  duration: prefersReducedMotion ? 0 : 0.52,
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 className="absolute inset-0 flex items-center justify-center text-center font-sans text-[clamp(2.5rem,7vw,7.5rem)] font-normal leading-[0.95] tracking-[-0.055em]"
