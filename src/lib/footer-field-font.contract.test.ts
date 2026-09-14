@@ -47,20 +47,26 @@ test("navbar uses semantic theme colors instead of blend-mode inversion", () => 
   assert.match(routeSource, /text-foreground/);
 });
 
-test("footer uses the animated terrain and real 3D residue cubes strictly as the scene background", () => {
+test("footer uses source-like GLSL hills and real 3D residue cubes strictly as the scene background", () => {
   assert.match(footerSource, /planeGeometry/i);
   assert.match(footerSource, /instancedMesh/i);
-  assert.match(footerSource, /terrainWave/);
-  assert.match(footerSource, /state\.clock\.elapsedTime \* 1\.45/);
-  assert.match(footerSource, /0\.90\s*\+\s*0\.\d+\s*\*\s*sin\(uTime \* 0\.\d+\)/);
+  assert.match(footerSource, /rotateMatrixX\(radians\(90\.0\)\)/);
+  assert.match(footerSource, /state\.clock\.elapsedTime \* 0\.5/);
+  assert.match(footerSource, /pow\(sin1, 2\.0\) \* 40\.0/);
+  assert.doesNotMatch(footerSource, /terrainWave/);
+  assert.doesNotMatch(footerSource, /\bbreathe\b/);
   assert.match(footerSource, /useFrame/);
   assert.match(footerSource, /state\.pointer/);
 });
 
-test("light mode terrain renders graphite with normal blending while dark mode remains additive", () => {
-  assert.match(footerSource, /dark \? THREE\.AdditiveBlending : THREE\.NormalBlending/);
-  assert.match(footerSource, /dark \? "#d7dddd" : "#2d3132"/);
-  assert.match(footerSource, /dark \? "#ffffff" : "#070809"/);
+test("terrain keeps the reference neutral-gray transparent material in both themes", () => {
+  assert.match(footerSource, /blending=\{THREE\.NormalBlending\}/);
+  assert.match(footerSource, /vec3 color = vec3\(0\.6\)/);
+  assert.match(
+    footerSource,
+    /float opacity = \(96\.0 - length\(vPosition\)\) \/ 256\.0 \* 0\.6/,
+  );
+  assert.doesNotMatch(footerSource, /THREE\.AdditiveBlending/);
 });
 
 test("dark-mode residual cubes remain white-silver and light-mode cubes become graphite", () => {
