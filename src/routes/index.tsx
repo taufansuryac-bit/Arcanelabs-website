@@ -23,56 +23,55 @@ export const Route = createFileRoute("/")({
 });
 
 const works = [
-  { title: "Future Stars", client: "EA x FC Bayern", type: "Commercial", year: "2026" },
-  { title: "Nightography", client: "Samsung", type: "Commercial", year: "2026" },
-  { title: "Käsy", client: "McDonald's", type: "Commercial", year: "2026" },
-  { title: "Mirage", client: "Arcane Lab", type: "Fashion Film", year: "2026" },
-  { title: "Wenn das Liebe ist", client: "Nina Chuba", type: "Music Video", year: "2026" },
-  { title: "Overtime", client: "Arcane Lab", type: "Experimental", year: "2025" },
-  { title: "HUF x Bonkers", client: "HUF", type: "Commercial", year: "2025" },
+  { title: "Finance Intelligence", client: "Business Operations", type: "Finance Analytics", year: "2026" },
+  { title: "Product Intelligence", client: "Product Teams", type: "Product Analytics", year: "2026" },
+  { title: "Operations Hub", client: "Internal Operations", type: "Business Application", year: "2026" },
+  { title: "Commerce Console", client: "E-commerce", type: "Web Application", year: "2026" },
+  { title: "AI Workflow", client: "Business Process", type: "AI Automation", year: "2026" },
+  { title: "Custom CRM", client: "Customer Operations", type: "Application", year: "2026" },
+  { title: "Decision Dashboard", client: "Management", type: "Business Intelligence", year: "2026" },
 ];
 
 const expertise = [
   {
     id: "(01)",
-    title: "Creative Direction",
+    title: "Application Development",
     items: [
-      "Concept Development",
-      "Creative Consulting & Oversight",
-      "Talent Curation",
-      "Visual Direction",
+      "Custom Business Applications",
+      "Internal Tools & Dashboards",
+      "Workflow Systems",
+      "API & Service Integration",
     ],
   },
   {
     id: "(02)",
-    title: "Production",
+    title: "Web Engineering",
     items: [
-      "International Production Network",
-      "Cross-Border Production",
-      "Scalable Production Frameworks",
-      "Risk & Legal Oversight",
-      "End-to-End Production Management",
+      "Business & Company Websites",
+      "Product Platforms",
+      "Responsive Frontends",
+      "Performance & Technical SEO",
     ],
   },
   {
     id: "(03)",
-    title: "Post",
+    title: "Business Intelligence",
     items: [
-      "Editorial & Offline",
-      "Color & Online",
-      "VFX & Compositing",
-      "AI-Enhanced Post Workflows",
-      "Mastering & Delivery",
+      "Finance Analytics",
+      "Product Analytics",
+      "Data Visualization",
+      "Decision Dashboards",
+      "Operational Reporting",
     ],
   },
   {
     id: "(04)",
-    title: "Hybrid Approach",
+    title: "AI & Automation",
     items: [
-      "Full AI & Hybrid Production Models",
-      "Continuous AI Workflow Optimization",
+      "AI-Assisted Workflows",
+      "Process Automation",
+      "Data Extraction & Processing",
       "AI Integration Strategy",
-      "AI & Rights Advisory",
     ],
   },
 ];
@@ -181,7 +180,7 @@ function Index() {
               ))}
             </nav>
             <div className="flex items-end justify-between pt-8 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              <span>Berlin — Worldwide</span>
+              <span>Bandung — Indonesia</span>
               <span>Arcane Labs / 2026</span>
             </div>
           </div>
@@ -198,12 +197,12 @@ function Index() {
           <div className="relative z-[2] flex items-start justify-between gap-6">
             <h1 className="label-mono max-w-[9rem] leading-relaxed text-foreground/70 md:max-w-[10rem]">
               <span className="sr-only">Arcane Labs — </span>
-              Film production.
+              Digital systems.
               <br aria-hidden="true" />
-              Reimagined.
+              Built for business.
             </h1>
             <p className="label-mono max-w-[8rem] text-right text-foreground/70 md:max-w-none">
-              Berlin — Worldwide
+              Bandung — Indonesia
             </p>
           </div>
 
@@ -214,8 +213,9 @@ function Index() {
           <div className="relative z-[2] flex items-end justify-between gap-6 md:items-end">
             <PixelReveal>
               <p className="max-w-[19rem] text-[13px] leading-relaxed text-foreground/60 md:max-w-xl md:text-base">
-                Arcane Labs is a hybrid production company fusing high-end commercial work with a
-                drive to explore the unconventional.
+                Arcane Labs is a Bandung-based developer studio building applications, websites,
+                finance analytics, product analytics, and custom digital systems for real business
+                needs.
               </p>
             </PixelReveal>
             <span className="label-mono shrink-0 text-foreground/50">Scroll ↓</span>
@@ -229,7 +229,7 @@ function Index() {
             <div className="mb-8 flex items-baseline justify-between md:mb-12">
               <PixelReveal>
                 <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">
-                  Selected works
+                  Selected systems
                 </h2>
               </PixelReveal>
               <span className="label-mono">01</span>
@@ -275,7 +275,7 @@ function Index() {
                   </div>
                   <dl className="space-y-3 text-xs md:text-sm">
                     <div className="flex justify-between gap-6">
-                      <dt className="label-mono">Clients</dt>
+                      <dt className="label-mono">Use case</dt>
                       <dd className="text-right">{works[activeWork]?.client}</dd>
                     </div>
                     <div className="flex justify-between gap-6">
@@ -293,10 +293,6 @@ function Index() {
           </section>
         </SectionPixelReveal>
 
-        <SectionPixelReveal threshold={0.05}>
-          <InteractiveTicker />
-        </SectionPixelReveal>
-
         <SectionPixelReveal threshold={0.06}>
           <IdentityConstellation />
         </SectionPixelReveal>
@@ -306,7 +302,7 @@ function Index() {
             <div className="mb-10 flex items-baseline justify-between md:mb-12">
               <PixelReveal>
                 <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">
-                  From vision to screen
+                  From problem to system
                 </h2>
               </PixelReveal>
               <span className="label-mono">03</span>
@@ -314,7 +310,7 @@ function Index() {
 
             <PixelReveal>
               <p className="mb-12 font-display text-[2rem] uppercase leading-[1.02] md:mb-16 md:text-6xl">
-                We shoot. We produce. We finish. Commercials made from passion.
+                We design. We build. We analyze. Digital systems made for real business decisions.
               </p>
             </PixelReveal>
 
@@ -347,6 +343,9 @@ function Index() {
         </SectionPixelReveal>
 
         <EnchantedProjectCarousel />
+        <SectionPixelReveal threshold={0.05}>
+          <InteractiveTicker />
+        </SectionPixelReveal>
 
         <SectionPixelReveal>
           <section id="faq" className="relative z-10 line-top px-5 py-16 md:px-8 md:py-28">
