@@ -52,16 +52,24 @@ test("portal WebGL is pre-mounted after app ready instead of mounting at first v
   assert.doesNotMatch(scene, /if \(appReady && active\)/);
 });
 
-test("portal and footer crossfade as one continuous voxel field with a full-viewport overlap", () => {
+test("portal entry synchronizes dormant scene progress before the first visible frame", () => {
+  assert.match(scene, /const activeRef = useRef\(false\)/);
+  assert.match(scene, /if \(!activeRef\.current\) sceneProgress\.current = value/);
+  assert.match(scene, /activeRef\.current = nextActive/);
+  assert.match(scene, /sceneProgress\.current = currentProgress/);
+});
+
+test("portal and footer crossfade slightly past one viewport so the tunnel lands inside the footer", () => {
   assert.match(portal, /z-20/);
-  assert.match(portal, /-mb-\[56vh\]/);
-  assert.match(portal, /md:-mb-\[60vh\]/);
+  assert.match(portal, /-mb-\[60vh\]/);
+  assert.match(portal, /md:-mb-\[64vh\]/);
   assert.match(portal, /h-\[180vh\]/);
   assert.match(portal, /md:h-\[320vh\]/);
-  assert.match(portal, /\[0\.86, 0\.98, 1\]/);
-  assert.match(index, /z-10 -mt-\[44vh\]/);
-  assert.match(index, /md:-mt-\[40vh\]/);
-  assert.match(footer, /rgba\(0,0,0,0\.45\)_0%,black_12%,black_100%/);
+  assert.match(portal, /\[0\.9, 0\.965, 0\.995, 1\]/);
+  assert.match(portal, /\[1, 0\.82, 0\.32, 0\]/);
+  assert.match(index, /z-10 -mt-\[48vh\]/);
+  assert.match(index, /md:-mt-\[44vh\]/);
+  assert.match(footer, /rgba\(0,0,0,0\.72\)_0%,black_8%,black_100%/);
   assert.match(footer, /const RESIDUE_COUNT = 760/);
   assert.match(footer, /position=\{\[0, -3\.2, -62\]\}/);
 });
