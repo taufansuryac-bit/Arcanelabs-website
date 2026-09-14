@@ -25,7 +25,10 @@ export function ScrambleText({ text, className, auto = false, speed = 28 }: Prop
 
   const run = useCallback(() => {
     // Skip scramble animation if user prefers reduced motion.
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setOutput(text);
       return;
     }

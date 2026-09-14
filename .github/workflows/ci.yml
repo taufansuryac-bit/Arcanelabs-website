@@ -23,7 +23,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      # Use npm ci so the lockfile is always respected — no Bun, no drift.
+      # Use npm install to prevent node 22/24 lockfile strictness mismatches.
+      # Ideally we will revert this to `npm ci` once the lockfile version settles.
       - name: Install dependencies
         run: npm install
 

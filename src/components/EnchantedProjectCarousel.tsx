@@ -43,8 +43,7 @@ const items: CardItem[] = [
   {
     kind: "quote",
     id: 5,
-    quote:
-      "Data control without the noise. We finally trust what we see, and so do our clients.",
+    quote: "Data control without the noise. We finally trust what we see, and so do our clients.",
     name: "Amelia Ross",
     role: "Product Lead",
     tone: "dark",
@@ -216,8 +215,7 @@ export function EnchantedProjectCarousel() {
         <div
           className="enchanted-ring-stage absolute left-1/2 top-[46%]"
           style={{
-            transform:
-              `translate(-50%, -50%) translateZ(var(--carousel-camera-z)) rotateX(var(--carousel-tilt)) rotateY(${angle}deg)`,
+            transform: `translate(-50%, -50%) translateZ(var(--carousel-camera-z)) rotateX(var(--carousel-tilt)) rotateY(${angle}deg)`,
           }}
         >
           {items.map((item, i) => {

@@ -424,11 +424,9 @@ export function VoxelChaosLogoScene({
         frameloop={active ? "always" : "never"}
         gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
-          gl.domElement.addEventListener(
-            "webglcontextlost",
-            () => onErrorRef.current?.(),
-            { once: true },
-          );
+          gl.domElement.addEventListener("webglcontextlost", () => onErrorRef.current?.(), {
+            once: true,
+          });
         }}
       >
         <ambientLight intensity={0.5} />

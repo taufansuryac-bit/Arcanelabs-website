@@ -3,6 +3,7 @@
 Official website for **Arcane Labs** featuring 3D voxel interactions, dynamic portals, pixel typography, and high-performance interactive WebGL experiences.
 
 ## Tech Stack
+
 - **Framework**: TanStack Start / React 19 / Vite
 - **3D & Graphics**: Three.js / React Three Fiber / Drei
 - **Styling**: Tailwind CSS / Vanilla CSS / Custom Shaders

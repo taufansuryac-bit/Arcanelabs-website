@@ -25,7 +25,9 @@ export class WebGLCrashBoundary extends Component<Props, State> {
 
   override render() {
     if (this.state.hasError) {
-      return this.props.fallback || <div className="h-full w-full bg-transparent" aria-hidden="true" />;
+      return (
+        this.props.fallback || <div className="h-full w-full bg-transparent" aria-hidden="true" />
+      );
     }
 
     return this.props.children;

@@ -412,8 +412,9 @@ export function ArcaneFooterField() {
           {[0, 1, 2, 3].map((key) => (
             <div
               key={key}
-              className={`flex items-center px-4 font-mono text-[10px] uppercase tracking-[0.2em] md:px-8 md:text-xs ${key % 2 === 0 ? accentText : primaryText
-                }`}
+              className={`flex items-center px-4 font-mono text-[10px] uppercase tracking-[0.2em] md:px-8 md:text-xs ${
+                key % 2 === 0 ? accentText : primaryText
+              }`}
             >
               {FOOTER_TICKER.repeat(2)}
             </div>

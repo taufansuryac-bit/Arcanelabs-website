@@ -31,10 +31,6 @@ export default defineConfig(({ command }) => ({
       server: { entry: "server" },
     }),
     viteReact(),
-    command === "build"
-      ? nitroPreset
-        ? nitro({ preset: nitroPreset })
-        : nitro()
-      : null,
+    command === "build" ? (nitroPreset ? nitro({ preset: nitroPreset }) : nitro()) : null,
   ].filter(Boolean),
 }));

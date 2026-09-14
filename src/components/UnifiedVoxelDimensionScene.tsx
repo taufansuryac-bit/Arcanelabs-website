@@ -210,14 +210,14 @@ function computeFitDistance(
 }
 
 /** Filter devtools data-* props that break R3F's property-path parser. */
-function SafeText(props: any) {
-  const cleanProps: Record<string, any> = {};
+function SafeText(props: React.ComponentProps<typeof Text>) {
+  const cleanProps: Record<string, unknown> = {};
   for (const key of Object.keys(props)) {
     if (!key.startsWith("data-")) {
-      cleanProps[key] = props[key];
+      cleanProps[key] = (props as Record<string, unknown>)[key];
     }
   }
-  return <Text {...(cleanProps as any)} />;
+  return <Text {...(cleanProps as React.ComponentProps<typeof Text>)} />;
 }
 
 /** Pixelate-futuristic galaxy phrase card rendered inside the 3D canvas. */
@@ -229,7 +229,7 @@ function DimensionalPhrase({
   sceneProgress: React.MutableRefObject<number>;
 }) {
   const group = useRef<THREE.Group>(null);
-  const textMesh = useRef<any>(null);
+  const textMesh = useRef<THREE.Mesh>(null);
 
   useFrame(() => {
     const groupObject = group.current;
@@ -274,7 +274,6 @@ function DimensionalPhrase({
     </group>
   );
 }
-
 
 function DimensionalPhrases({ sceneProgress }: { sceneProgress: React.MutableRefObject<number> }) {
   return (

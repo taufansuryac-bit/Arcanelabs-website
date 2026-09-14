@@ -106,7 +106,10 @@ export function GalaxyHeroBackground({ className }: { className?: string }) {
         const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
         const alpha = neb.alpha + 0.012 * Math.sin(t * 0.3 + neb.hue);
         grad.addColorStop(0, `hsla(${neb.hue}, ${neb.sat}%, 55%, ${alpha.toFixed(3)})`);
-        grad.addColorStop(0.45, `hsla(${neb.hue + 20}, ${neb.sat - 10}%, 40%, ${(alpha * 0.4).toFixed(3)})`);
+        grad.addColorStop(
+          0.45,
+          `hsla(${neb.hue + 20}, ${neb.sat - 10}%, 40%, ${(alpha * 0.4).toFixed(3)})`,
+        );
         grad.addColorStop(1, "transparent");
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, w, h);
@@ -129,7 +132,9 @@ export function GalaxyHeroBackground({ className }: { className?: string }) {
         star.px = px;
         star.py = py;
 
-        const twinkle = reducedMotion ? 0.85 : 0.55 + 0.45 * Math.sin(t * star.twinkleSpeed + star.twinklePhase);
+        const twinkle = reducedMotion
+          ? 0.85
+          : 0.55 + 0.45 * Math.sin(t * star.twinkleSpeed + star.twinklePhase);
         const nearness = 0.3 + star.z * 0.7;
         const alpha = twinkle * nearness;
         const size = Math.max(1, Math.floor(star.size * (0.6 + star.z * 0.6)));
@@ -178,13 +183,29 @@ export function GalaxyHeroBackground({ className }: { className?: string }) {
     resize();
     window.addEventListener("resize", resize);
 
-    const dcVP = observeElementVisibility(canvas, (v) => { inViewport = v; sync(); }, { rootMargin: "200px" });
-    const dcDoc = observeDocumentVisibility((v) => { pageVisible = v; sync(); });
+    const dcVP = observeElementVisibility(
+      canvas,
+      (v) => {
+        inViewport = v;
+        sync();
+      },
+      { rootMargin: "200px" },
+    );
+    const dcDoc = observeDocumentVisibility((v) => {
+      pageVisible = v;
+      sync();
+    });
     const dcRM = observeReducedMotion((reduced) => {
       reducedMotion = reduced;
       sync();
       // Draw a single static frame so stars remain visible
-      if (reduced) { running = true; requestAnimationFrame((ts) => { draw(ts); running = false; }); }
+      if (reduced) {
+        running = true;
+        requestAnimationFrame((ts) => {
+          draw(ts);
+          running = false;
+        });
+      }
     });
 
     start();
