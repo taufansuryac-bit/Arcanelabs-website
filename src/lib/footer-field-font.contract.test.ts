@@ -47,7 +47,7 @@ test("navbar uses semantic theme colors instead of blend-mode inversion", () => 
   assert.match(routeSource, /text-foreground/);
 });
 
-test("footer uses source-like GLSL hills and real 3D residue cubes strictly as the scene background", () => {
+test("footer uses source-like GLSL hills with real 3D residue cubes", () => {
   assert.match(footerSource, /planeGeometry/i);
   assert.match(footerSource, /instancedMesh/i);
   assert.match(footerSource, /rotateMatrixX\(radians\(90\.0\)\)/);
@@ -59,7 +59,7 @@ test("footer uses source-like GLSL hills and real 3D residue cubes strictly as t
   assert.match(footerSource, /state\.pointer/);
 });
 
-test("terrain keeps the reference neutral-gray transparent material in both themes", () => {
+test("terrain keeps the reference neutral-gray transparent material", () => {
   assert.match(footerSource, /blending=\{THREE\.NormalBlending\}/);
   assert.match(footerSource, /vec3 color = vec3\(0\.6\)/);
   assert.match(
