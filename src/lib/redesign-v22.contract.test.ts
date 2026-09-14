@@ -29,23 +29,24 @@ test("voxel logo uses the source repo camera controls for genuine 360 degree ins
   assert.match(source, /maxDistance/);
 });
 
-test("voxel logo keeps cursor-local chaos in the loader while portal uses the unified scene", async () => {
-  const scene = await readSource("../components/VoxelChaosLogoScene.tsx");
+test("loader keeps cursor-local chaos while portal uses the unified scene", async () => {
+  const loaderScene = await readSource("../components/MagneticLoaderScene.tsx");
   const loader = await readSource("../components/ArcaneLoader.tsx");
   const portal = await readSource("../components/MetaversePortalV2.tsx");
-  assert.match(scene, /onPointerEnter/);
-  assert.match(scene, /onPointerLeave/);
-  assert.match(scene, /Raycaster/);
-  assert.match(scene, /intersectPlane/);
-  assert.match(loader, /interactive/);
+  assert.match(loaderScene, /onPointerEnter/);
+  assert.match(loaderScene, /onPointerLeave/);
+  assert.match(loaderScene, /Raycaster/);
+  assert.match(loaderScene, /intersectPlane/);
+  assert.match(loader, /MagneticLoaderScene/);
   assert.match(portal, /UnifiedVoxelDimensionScene/);
 });
 
-test("loader countdown waits until voxel geometry is ready", async () => {
-  const source = await readSource("../components/VoxelChaosLogoScene.tsx");
-  assert.match(source, /ready:\s*boolean/);
-  assert.match(source, /if \(!ready\) return/);
-  assert.match(source, /data=\{data\}/);
+test("loader countdown begins only after voxel geometry is ready", async () => {
+  const source = await readSource("../components/MagneticLoaderScene.tsx");
+  assert.match(source, /const data = useLogoVoxels/);
+  assert.match(source, /\{data && \(/);
+  assert.match(source, /<MagneticAssembly/);
+  assert.match(source, /elapsedMs\.current \+=/);
 });
 
 test("voxel logo fits measured geometry responsively and uses the original standard material lighting", async () => {
@@ -70,8 +71,11 @@ test("portal morphs the same voxel instances through depth and back into the mar
   assert.doesNotMatch(scene, /fillRect/);
 });
 
-test("loader uses voxel chaos scene instead of custom canvas pixel renderer", async () => {
-  const source = await readSource("../components/ArcaneLoader.tsx");
-  assert.match(source, /VoxelChaosLogoScene/);
-  assert.doesNotMatch(source, /getContext\("2d"/);
+test("loader uses a real instanced WebGL magnetic scene instead of a custom canvas pixel renderer", async () => {
+  const loader = await readSource("../components/ArcaneLoader.tsx");
+  const scene = await readSource("../components/MagneticLoaderScene.tsx");
+  assert.match(loader, /MagneticLoaderScene/);
+  assert.match(scene, /instancedMesh/);
+  assert.match(scene, /setMatrixAt/);
+  assert.doesNotMatch(loader, /getContext\("2d"/);
 });

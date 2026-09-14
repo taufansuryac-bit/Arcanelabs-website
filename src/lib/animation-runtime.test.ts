@@ -66,9 +66,9 @@ test("PixelLogo uses first-party Arcane assets instead of the Lovable asset gate
   assert.match(source, /\/arcane-logo-white\.svg/);
 });
 
-test("ArcaneLoader uses the voxel-chaos logo scene and exits through a smooth opacity handoff", async () => {
+test("ArcaneLoader uses the magnetic voxel scene and exits through a smooth opacity handoff", async () => {
   const source = await readSource("../components/ArcaneLoader.tsx");
-  assert.match(source, /VoxelChaosLogoScene/);
+  assert.match(source, /MagneticLoaderScene/);
   assert.match(source, /sessionStorage/);
   assert.match(source, /transition-opacity/);
   assert.match(source, /onComplete/);
