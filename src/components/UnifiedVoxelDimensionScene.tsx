@@ -472,7 +472,8 @@ function UnifiedScene({
     const travelZ = THREE.MathUtils.lerp(approachZ, fit * 0.5, travel);
     const tunnelZ = travelZ - fit * sessionZoom;
     const cameraZ = tunnelZ - fit * 0.14 * exitDissolve;
-    const ambientDrift = fieldAmount * 0.62 * (1 - pointerPresence.current * 0.9) * (1 - exitDissolve);
+    const ambientDrift =
+      fieldAmount * 0.62 * (1 - pointerPresence.current * 0.9) * (1 - exitDissolve);
     camera.position.set(
       cameraParallaxX.current + Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
       cameraParallaxY.current + Math.cos(state.clock.elapsedTime * 0.19) * ambientDrift * 0.55,
