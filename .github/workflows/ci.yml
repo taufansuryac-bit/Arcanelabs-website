@@ -25,7 +25,7 @@ jobs:
 
       # Use npm ci so the lockfile is always respected — no Bun, no drift.
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Test
         run: npm run test
