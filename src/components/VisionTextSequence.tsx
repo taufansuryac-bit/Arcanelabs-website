@@ -3,12 +3,12 @@ import { useRef, useState } from "react";
 import { KineticFabric } from "@/components/ui/kinetic-particle-fabric";
 
 const statements = [
-  "FUTURE STARS",
-  "NIGHTOGRAPHY",
-  "KÄSY",
-  "MIRAGE",
-  "OVERTIME",
-  "HUF X BONKERS",
+  "CUSTOM APPS",
+  "WEB SYSTEMS",
+  "FINANCE DATA",
+  "PRODUCT DATA",
+  "AI WORKFLOWS",
+  "BUSINESS TOOLS",
 ] as const;
 
 const GLITCH_GLYPHS = [
@@ -110,11 +110,14 @@ export function VisionTextSequence() {
         <div className="pointer-events-none relative z-10 flex h-full items-center justify-center px-5 md:px-12">
           <div className="relative flex w-full max-w-[1500px] flex-col items-center justify-center">
             <p
-              aria-live="polite"
+              aria-hidden
               className="max-w-full whitespace-pre text-center font-sans text-[clamp(3.1rem,8.6vw,9.8rem)] font-normal leading-[0.9] tracking-[-0.065em] text-white"
             >
               {displayText}
             </p>
+            <span className="sr-only" aria-live="polite">
+              {statements[activeIndex]}
+            </span>
 
             <div
               aria-hidden
