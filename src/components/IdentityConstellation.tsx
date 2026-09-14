@@ -295,6 +295,31 @@ export function IdentityConstellation() {
             width: 7.75rem !important;
           }
         }
+        @media (max-width: 359px) {
+          .identity-constellation-cards .identity-card[data-card-index="0"] {
+            left: -3% !important;
+            top: 11% !important;
+            width: 7.35rem !important;
+          }
+          .identity-constellation-cards .identity-card[data-card-index="1"] {
+            left: 64% !important;
+            top: 17% !important;
+            width: 6.2rem !important;
+          }
+          .identity-constellation-cards .identity-card[data-card-index="2"] {
+            left: 0% !important;
+            top: 66% !important;
+            width: 8rem !important;
+          }
+          .identity-constellation-cards .identity-card[data-card-index="3"] {
+            left: 63% !important;
+            top: 62% !important;
+            width: 6.8rem !important;
+          }
+          .identity-capability {
+            font-size: clamp(1.7rem, 9.1vw, 2rem) !important;
+          }
+        }
       `}</style>
 
       <div className="relative z-30 flex items-baseline justify-between">
@@ -344,7 +369,7 @@ export function IdentityConstellation() {
                   onFocus={() => setActiveId(capability.id)}
                   onClick={() => setActiveId(capability.id)}
                   aria-pressed={selected}
-                  className="relative block w-full py-0.5 text-center font-display text-[clamp(2.25rem,10.8vw,3.1rem)] uppercase leading-[0.86] tracking-[-0.06em] outline-none transition-[color,opacity,transform] duration-300 focus-visible:ring-1 focus-visible:ring-neon md:text-[clamp(3rem,6.2vw,7.5rem)] md:leading-[0.84]"
+                  className="identity-capability relative block w-full py-0.5 text-center font-display text-[clamp(2.25rem,10.8vw,3.1rem)] uppercase leading-[0.86] tracking-[-0.06em] outline-none transition-[color,opacity,transform] duration-300 focus-visible:ring-1 focus-visible:ring-neon md:text-[clamp(3rem,6.2vw,7.5rem)] md:leading-[0.84]"
                   style={{
                     color: selected
                       ? "var(--foreground)"

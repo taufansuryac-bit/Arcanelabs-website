@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { motion, useScroll, useSpring, useTransform } from "motion/react";
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 
 /** Placeholder imagery — swap these URLs for the real project stills later. */
 const projects = [
@@ -50,6 +50,7 @@ const projects = [
 /** One card: appears with a pixel-parallax lift as it scrolls into view. */
 function ProjectCard({ data, index }: { data: (typeof projects)[number]; index: number }) {
   const ref = useRef<HTMLElement | null>(null);
+  const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -68,7 +69,12 @@ function ProjectCard({ data, index }: { data: (typeof projects)[number]; index: 
   return (
     <motion.figure
       ref={ref}
-      style={{ y, opacity, scale, filter: blur }}
+      style={{
+        y: reduced ? 0 : y,
+        opacity: reduced ? 1 : opacity,
+        scale: reduced ? 1 : scale,
+        filter: reduced ? "none" : blur,
+      }}
       className="group border border-border bg-card"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -76,8 +82,10 @@ function ProjectCard({ data, index }: { data: (typeof projects)[number]; index: 
           src={data.image}
           alt={`${data.title} — ${data.client}`}
           loading="lazy"
-          style={{ y: imgY }}
-          className="h-[116%] w-full object-cover saturate-[1.15] transition-transform duration-700 group-hover:scale-[1.04]"
+          style={{ y: reduced ? "0%" : imgY }}
+          className={`h-[116%] w-full object-cover saturate-[1.15] ${
+            reduced ? "" : "transition-transform duration-700 group-hover:scale-[1.04]"
+          }`}
         />
         <div className="pixel-veil pointer-events-none absolute inset-0 opacity-70 transition-opacity duration-500 group-hover:opacity-30" />
         <span className="label-mono absolute left-3 top-3 bg-background/80 px-2 py-1 !text-[10px]">
@@ -103,12 +111,12 @@ export function ProjectConverge() {
     >
       <div className="mb-14 flex items-baseline justify-between">
         <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">Projects</h2>
-        <span className="label-mono">05</span>
+        <span className="label-mono">04</span>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3 md:gap-8">
-        {projects.map((data, i) => (
-          <ProjectCard key={data.title} data={data} index={i} />
+        {projects.map((data, index) => (
+          <ProjectCard key={data.title} data={data} index={index} />
         ))}
       </div>
 

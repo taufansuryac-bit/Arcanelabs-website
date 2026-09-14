@@ -1,4 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  isDocumentVisible,
+  observeDocumentVisibility,
+  observeElementVisibility,
+  observeReducedMotion,
+  prefersReducedMotion,
+  shouldAnimate,
+} from "@/lib/animation-runtime";
 
 const gallery = [
   "https://raw.githubusercontent.com/taufansuryac-bit/enchanted-carousel/main/src/assets/card-1.jpg",
@@ -85,7 +93,11 @@ export function EnchantedProjectCarousel() {
   const [angle, setAngle] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [hovering, setHovering] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [photo, setPhoto] = useState<Record<number, number>>({});
+  const [active, setActive] = useState(true);
+  const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ active: boolean; x: number; start: number; moved: boolean }>({
     active: false,
     x: 0,
@@ -94,61 +106,124 @@ export function EnchantedProjectCarousel() {
   });
   const raf = useRef<number | null>(null);
 
-  const paused = selected !== null || hovering || drag.current.active;
+  const paused = selected !== null || hovering || dragging;
 
   useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    let pageVisible = isDocumentVisible();
+    let inViewport = true;
+    let reduced = prefersReducedMotion();
+
+    const sync = () => setActive(shouldAnimate(pageVisible, inViewport, reduced));
+    const disconnectViewport = observeElementVisibility(
+      stage,
+      (visible) => {
+        inViewport = visible;
+        sync();
+      },
+      { rootMargin: "240px" },
+    );
+    const disconnectDocument = observeDocumentVisibility((visible) => {
+      pageVisible = visible;
+      sync();
+    });
+    const disconnectReducedMotion = observeReducedMotion((nextReduced) => {
+      reduced = nextReduced;
+      setReducedMotion(nextReduced);
+      sync();
+    });
+
+    setReducedMotion(reduced);
+    sync();
+
+    return () => {
+      disconnectViewport();
+      disconnectDocument();
+      disconnectReducedMotion();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!active || reducedMotion || paused) return;
+
     let last = performance.now();
     const tick = (now: number) => {
       const dt = now - last;
       last = now;
-      if (!paused) setAngle((a) => a + dt * 0.004);
+      setAngle((current) => current + dt * 0.004);
       raf.current = requestAnimationFrame(tick);
     };
+
     raf.current = requestAnimationFrame(tick);
     return () => {
-      if (raf.current) cancelAnimationFrame(raf.current);
+      if (raf.current !== null) {
+        cancelAnimationFrame(raf.current);
+        raf.current = null;
+      }
     };
-  }, [paused]);
+  }, [active, paused, reducedMotion]);
 
   useEffect(() => {
-    const imageIds = items.filter((i) => i.kind === "image").map((i) => i.id);
+    if (!active || reducedMotion) return;
+
+    const imageIds = items.filter((item) => item.kind === "image").map((item) => item.id);
     const id = window.setInterval(() => {
       const pick = imageIds[Math.floor(Math.random() * imageIds.length)] ?? 0;
-      setPhoto((p) => {
-        const item = items.find((i) => i.id === pick) as Extract<CardItem, { kind: "image" }>;
-        const current = p[pick] ?? item.srcIndex;
-        return { ...p, [pick]: (current + 1) % gallery.length };
+      setPhoto((currentPhotos) => {
+        const item = items.find((candidate) => candidate.id === pick) as Extract<
+          CardItem,
+          { kind: "image" }
+        >;
+        const current = currentPhotos[pick] ?? item.srcIndex;
+        return { ...currentPhotos, [pick]: (current + 1) % gallery.length };
       });
     }, 2600);
+
     return () => window.clearInterval(id);
-  }, []);
+  }, [active, reducedMotion]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSelected(null);
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setSelected(null);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  useEffect(() => {
+    if (selected === null) return;
+
+    const root = document.documentElement;
+    const previousOverflow = root.style.overflow;
+    root.style.overflow = "hidden";
+
+    return () => {
+      root.style.overflow = previousOverflow;
+    };
+  }, [selected]);
+
   const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      drag.current = { active: true, x: e.clientX, start: angle, moved: false };
-      (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+    (event: React.PointerEvent) => {
+      drag.current = { active: true, x: event.clientX, start: angle, moved: false };
+      setDragging(true);
+      (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
     },
     [angle],
   );
 
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
+  const onPointerMove = useCallback((event: React.PointerEvent) => {
     if (!drag.current.active) return;
-    const dx = e.clientX - drag.current.x;
+    const dx = event.clientX - drag.current.x;
     if (Math.abs(dx) > 4) drag.current.moved = true;
     setAngle(drag.current.start + dx * 0.25);
   }, []);
 
   const onPointerUp = useCallback(() => {
     drag.current.active = false;
+    setDragging(false);
   }, []);
 
-  const selectedItem = selected === null ? null : items.find((i) => i.id === selected)!;
+  const selectedItem = selected === null ? null : items.find((item) => item.id === selected)!;
 
   return (
     <div className="relative isolate w-full overflow-hidden bg-transparent">
@@ -196,9 +271,19 @@ export function EnchantedProjectCarousel() {
           100% { opacity: 1; transform: translateZ(0) scale(1); }
         }
         .card-pop { animation: enchanted-card-pop 620ms cubic-bezier(.22,1,.36,1) both; }
+        @media (prefers-reduced-motion: reduce) {
+          .enchanted-ring-card,
+          .pixel-in,
+          .pixel-out,
+          .card-pop {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
       `}</style>
 
       <div
+        ref={stageRef}
         className="enchanted-carousel-stage relative h-[68svh] min-h-[430px] max-h-[600px] w-full touch-pan-y cursor-grab select-none active:cursor-grabbing md:h-[56svh] md:min-h-[480px] md:max-h-[620px]"
         style={{
           perspective: "var(--carousel-perspective)",
@@ -219,7 +304,7 @@ export function EnchantedProjectCarousel() {
             transform: `translate(-50%, -50%) translateZ(var(--carousel-camera-z)) rotateX(var(--carousel-tilt)) rotateY(${angle}deg)`,
           }}
         >
-          {items.map((item, i) => {
+          {items.map((item, index) => {
             const isSelected = selected === item.id;
             return (
               <button
@@ -235,7 +320,7 @@ export function EnchantedProjectCarousel() {
                 style={{
                   width: "var(--carousel-card-w)",
                   height: "var(--carousel-card-h)",
-                  transform: `rotateY(${i * STEP}deg) translateZ(var(--carousel-radius))`,
+                  transform: `rotateY(${index * STEP}deg) translateZ(var(--carousel-radius))`,
                   opacity: selected !== null && !isSelected ? 0.18 : 1,
                   transition: "opacity 600ms ease",
                 }}
@@ -254,7 +339,10 @@ export function EnchantedProjectCarousel() {
 
       {selectedItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-5 backdrop-blur-xl"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Project preview"
+          className="fixed inset-0 z-50 flex items-center justify-center overscroll-contain bg-background/80 px-5 py-6 backdrop-blur-xl"
           onClick={() => setSelected(null)}
         >
           <div
@@ -302,7 +390,7 @@ function CardFace({
     return (
       <div className={base} style={{ opacity: hidden ? 0 : 1 }}>
         <div className="relative h-full w-full">
-          {gallery.map((src, gi) => (
+          {gallery.map((src, galleryIndex) => (
             <img
               key={src}
               src={src}
@@ -311,7 +399,7 @@ function CardFace({
               width={768}
               height={512}
               className={`absolute inset-0 h-full w-full object-cover ${
-                gi === index ? "pixel-in" : "pixel-out"
+                galleryIndex === index ? "pixel-in" : "pixel-out"
               }`}
             />
           ))}
