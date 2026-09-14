@@ -11,13 +11,13 @@ const projectsSource = await readFile(
   "utf8",
 );
 
-test("V13 carousel opens the ring spacing while making cards larger", () => {
-  assert.match(carouselSource, /--carousel-card-w:\s*clamp\(380px,\s*22vw,\s*430px\)/);
-  assert.match(carouselSource, /--carousel-card-h:\s*clamp\(238px,\s*14vw,\s*270px\)/);
+test("V13 carousel keeps the open ring spacing while using the new larger cards", () => {
+  assert.match(carouselSource, /--carousel-card-w:\s*clamp\(460px,\s*27vw,\s*540px\)/);
+  assert.match(carouselSource, /--carousel-card-h:\s*clamp\(288px,\s*17vw,\s*340px\)/);
   assert.match(carouselSource, /--carousel-radius:\s*clamp\(800px,\s*52vw,\s*1050px\)/);
 });
 
-test("V13 camera brings the larger ring forward without global scale", () => {
+test("V13 camera keeps the larger ring forward without global scale", () => {
   assert.match(carouselSource, /--carousel-camera-z:\s*clamp\(-980px,\s*-48vw,\s*-820px\)/);
   assert.match(carouselSource, /--carousel-perspective:\s*clamp\(1900px,\s*110vw,\s*2300px\)/);
   assert.doesNotMatch(carouselSource, /scale\(var\(--carousel-scale\)\)/);
