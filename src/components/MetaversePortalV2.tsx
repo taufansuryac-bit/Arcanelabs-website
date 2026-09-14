@@ -14,11 +14,7 @@ export function MetaversePortalV2() {
     target: sectionRef,
     offset: ["start start", "end end"],
   });
-  const portalOpacity = useTransform(
-    scrollYProgress,
-    [0.9, 0.965, 0.995, 1],
-    [1, 0.82, 0.32, 0],
-  );
+  const portalOpacity = useTransform(scrollYProgress, [0.9, 0.965, 0.995, 1], [1, 0.82, 0.32, 0]);
 
   return (
     <section
