@@ -58,15 +58,17 @@ test("voxel logo fits measured geometry responsively and uses the original stand
   assert.match(source, /directionalLight/);
 });
 
-test("portal morphs the same voxel instances through depth and back into the mark", async () => {
+test("portal morphs the same voxel instances through depth and dissolves into the footer handoff", async () => {
   const portal = await readSource("../components/MetaversePortalV2.tsx");
   const scene = await readSource("../components/UnifiedVoxelDimensionScene.tsx");
   assert.match(portal, /UnifiedVoxelDimensionScene/);
   assert.doesNotMatch(portal, /SquareDepthField/);
   assert.match(scene, /fieldAmount/);
-  assert.match(scene, /reassemble/);
+  assert.match(scene, /exitDissolve/);
+  assert.match(scene, /material\.opacity = 1 - exitDissolve/);
   assert.match(scene, /current\.setMatrixAt/);
   assert.match(scene, /camera\.lookAt\(/);
+  assert.doesNotMatch(scene, /reassemble/);
   assert.doesNotMatch(scene, /shadowBlur/);
   assert.doesNotMatch(scene, /fillRect/);
 });

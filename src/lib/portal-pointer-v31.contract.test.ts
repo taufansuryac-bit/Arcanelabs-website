@@ -7,7 +7,7 @@ const source = await readFile(
   "utf8",
 );
 
-test("stable and rebuilt logo support pointer-local gaussian fracture", () => {
+test("stable logo supports pointer-local gaussian fracture before entering the field", () => {
   assert.match(source, /Raycaster/);
   assert.match(source, /intersectPlane/);
   assert.match(source, /Math\.exp\(-\(distance \* distance\)/);
@@ -23,10 +23,11 @@ test("logo uses damped pointer tilt while dimensional field uses camera parallax
   assert.match(source, /interactionBlend/);
 });
 
-test("pointer interaction fades during fracture and returns after reassembly", () => {
+test("pointer interaction fades through the dimensional exit instead of returning to a rebuilt logo", () => {
   assert.match(source, /stableInteraction/);
-  assert.match(source, /rebuiltInteraction/);
   assert.match(source, /fieldInteraction/);
+  assert.match(source, /exitDissolve/);
+  assert.doesNotMatch(source, /rebuiltInteraction/);
 });
 
 test("idle logo has a visible loose-orbit population without destroying silhouette", () => {
