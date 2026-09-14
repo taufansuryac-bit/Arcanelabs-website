@@ -16,6 +16,10 @@ async function readComponent(name: string) {
   return readFile(new URL(`../components/${name}.tsx`, import.meta.url), "utf8");
 }
 
+async function readUiComponent(name: string) {
+  return readFile(new URL(`../components/ui/${name}.tsx`, import.meta.url), "utf8");
+}
+
 test("homepage places the partner flip grid immediately after the hero and before works", () => {
   assert.match(homeSource, /PartnerFlipGrid/);
   const heroEnd = homeSource.indexOf("</section>", homeSource.indexOf('id="top"'));
@@ -24,21 +28,23 @@ test("homepage places the partner flip grid immediately after the hero and befor
   assert.ok(heroEnd >= 0 && partners > heroEnd && partners < works);
 });
 
-test("partner cards continuously alternate faces without a section header or closing rule", async () => {
+test("partner cards keep continuous alternating flips inside a visible near-background grid", async () => {
   const source = await readComponent("PartnerFlipGrid");
   assert.match(source, /rotateY/);
   assert.match(source, /perspective/);
   assert.match(source, /particle/i);
   assert.match(source, /Number\.POSITIVE_INFINITY/);
   assert.match(source, /backPartner/);
-  assert.match(source, /bg-background/);
+  assert.match(source, /gap-px/);
+  assert.match(source, /border-foreground\/10/);
+  assert.match(source, /bg-foreground\/\[0\.0[12]\]/);
   assert.match(source, /prefersReducedMotion|useReducedMotion/);
   assert.doesNotMatch(source, /2011-/);
   assert.doesNotMatch(source, /\(Partners\)/);
-  assert.doesNotMatch(source, /border-y/);
+  assert.doesNotMatch(source, /-bottom-px h-\[2px\]/);
 });
 
-test("our vision sequence sits directly after From vision to screen and crossfades only with opacity", async () => {
+test("our vision uses the reference project names and scroll-driven character morphing", async () => {
   assert.match(homeSource, /VisionTextSequence/);
   const visionToScreen = homeSource.indexOf("From vision to screen");
   const sequence = homeSource.indexOf("<VisionTextSequence");
@@ -46,25 +52,41 @@ test("our vision sequence sits directly after From vision to screen and crossfad
   assert.ok(visionToScreen >= 0 && sequence > visionToScreen && sequence < projects);
 
   const source = await readComponent("VisionTextSequence");
-  assert.match(source, /BUILT DIFFERENT/);
-  assert.match(source, /CRAFT WITH PURPOSE/);
-  assert.match(source, /CODE WITH INTENT/);
-  assert.match(source, /CREATE THE UNCONVENTIONAL/);
-  assert.match(source, /initial=\{prefersReducedMotion \? false : \{ opacity: 0 \}\}/);
-  assert.match(source, /animate=\{\{ opacity: 1 \}\}/);
-  assert.match(source, /exit=\{prefersReducedMotion \? \{\} : \{ opacity: 0 \}\}/);
-  assert.doesNotMatch(source, /filter: "blur/);
-  assert.doesNotMatch(source, /opacity: 0, y:/);
+  assert.match(source, /FUTURE STARS/);
+  assert.match(source, /NIGHTOGRAPHY/);
+  assert.match(source, /KÄSY/);
+  assert.match(source, /MIRAGE/);
+  assert.match(source, /OVERTIME/);
+  assert.match(source, /HUF X BONKERS/);
+  assert.match(source, /morphStatement/);
+  assert.match(source, /GLITCH_GLYPHS/);
+  assert.match(source, /useMotionValueEvent/);
+  assert.match(source, /KineticFabric/);
+  assert.doesNotMatch(source, /AnimatePresence/);
+  assert.doesNotMatch(source, /CREATE THE UNCONVENTIONAL/);
 });
 
-test("portal handoff stays animated until the end and reaches the footer with a shorter scroll tail", () => {
-  assert.match(portalSource, /h-\[200vh\]/);
-  assert.match(portalSource, /md:h-\[430vh\]/);
-  assert.match(portalSource, /-mb-\[24vh\]/);
-  assert.match(portalSource, /md:-mb-\[32vh\]/);
-  assert.match(portalSource, /\[0\.9, 0\.99, 1\]/);
-  assert.doesNotMatch(portalSource, /md:h-\[520vh\]/);
-  assert.doesNotMatch(portalSource, /md:h-\[700vh\]/);
+test("kinetic fabric background keeps the supplied mesh and pointer physics without demo chrome", async () => {
+  const source = await readUiComponent("kinetic-particle-fabric");
+  assert.match(source, /interface PhysicsNode/);
+  assert.match(source, /interface StructuralConstraint/);
+  assert.match(source, /buildMesh/);
+  assert.match(source, /shockwaves/);
+  assert.match(source, /requestAnimationFrame/);
+  assert.match(source, /ResizeObserver/);
+  assert.doesNotMatch(source, /PULSE/);
+  assert.doesNotMatch(source, /FREEZE/);
+});
+
+test("portal handoff reaches the footer earlier without a long empty tail", () => {
+  assert.match(portalSource, /h-\[180vh\]/);
+  assert.match(portalSource, /md:h-\[320vh\]/);
+  assert.match(portalSource, /-mb-\[26vh\]/);
+  assert.match(portalSource, /md:-mb-\[38vh\]/);
+  assert.match(portalSource, /\[0\.82, 0\.96, 1\]/);
+  assert.doesNotMatch(portalSource, /md:h-\[430vh\]/);
+  assert.match(homeSource, /-mt-\[10vh\]/);
+  assert.match(homeSource, /md:-mt-\[18vh\]/);
 });
 
 test("final tunnel camera motion remains forward-only and pointer camera influence is restrained", () => {
