@@ -142,7 +142,12 @@ function useLogoVoxels(url: string, onErrorRef: React.MutableRefObject<(() => vo
   return data;
 }
 
-function fitCamera(camera: THREE.PerspectiveCamera, width: number, height: number, data: VoxelData) {
+function fitCamera(
+  camera: THREE.PerspectiveCamera,
+  width: number,
+  height: number,
+  data: VoxelData,
+) {
   const aspect = Math.max(0.1, width / Math.max(1, height));
   const verticalFov = THREE.MathUtils.degToRad(camera.fov);
   const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * aspect);
@@ -283,7 +288,11 @@ function MagneticAssembly({
   });
 
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, data.voxels.length]} frustumCulled={false}>
+    <instancedMesh
+      ref={mesh}
+      args={[undefined, undefined, data.voxels.length]}
+      frustumCulled={false}
+    >
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial
         ref={material}
