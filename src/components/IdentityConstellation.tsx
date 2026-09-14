@@ -198,12 +198,22 @@ const DEFAULT_CAPABILITY = CAPABILITIES[0]!;
 
 function PixelCard({ card, index }: { card: Card; index: number }) {
   const reduced = useReducedMotion();
-  
+
   return (
     <motion.figure
-      initial={{ opacity: 0, scale: reduced ? 1 : 0.76, y: reduced ? 0 : 34 + index * 6, filter: "blur(18px)" }}
+      initial={{
+        opacity: 0,
+        scale: reduced ? 1 : 0.76,
+        y: reduced ? 0 : 34 + index * 6,
+        filter: "blur(18px)",
+      }}
       animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-      exit={{ opacity: 0, scale: reduced ? 1 : 1.08, y: reduced ? 0 : -24 - index * 5, filter: "blur(16px)" }}
+      exit={{
+        opacity: 0,
+        scale: reduced ? 1 : 1.08,
+        y: reduced ? 0 : -24 - index * 5,
+        filter: "blur(16px)",
+      }}
       transition={{
         opacity: { duration: reduced ? 0 : 0.28 },
         filter: { duration: reduced ? 0 : 0.38 },
