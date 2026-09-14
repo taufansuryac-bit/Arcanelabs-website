@@ -419,11 +419,11 @@ function UnifiedScene({
 
     const sessionOneZoom = phase(p, 0.18, 0.23) * (1 - phase(p, 0.31, 0.35));
     const sessionTwoZoom = phase(p, 0.42, 0.47) * (1 - phase(p, 0.55, 0.59));
-    const sessionThreeZoom = phase(p, 0.66, 0.71) * (1 - phase(p, 0.79, 0.83));
+    const finalDrive = phase(p, 0.66, 0.82);
     const sessionZoom = Math.max(
       sessionOneZoom * 0.035,
       sessionTwoZoom * 0.055,
-      sessionThreeZoom * 0.085,
+      finalDrive * 0.085,
     );
 
     const stableInteraction = 1 - phase(p, 0.1, 0.28);
@@ -442,25 +442,25 @@ function UnifiedScene({
       pointerHit.set(999, 999, 0);
     }
 
-    const pointerResponse = 1 - Math.exp(-Math.min(delta, 0.05) * 7.2);
-    const tiltTargetX = -state.pointer.y * 0.08 * interactionBlend;
-    const tiltTargetY = state.pointer.x * 0.13 * interactionBlend;
+    const pointerResponse = 1 - Math.exp(-Math.min(delta, 0.05) * 5.4);
+    const tiltTargetX = -state.pointer.y * 0.045 * interactionBlend;
+    const tiltTargetY = state.pointer.x * 0.07 * interactionBlend;
     logoTiltX.current += (tiltTargetX - logoTiltX.current) * pointerResponse;
     logoTiltY.current += (tiltTargetY - logoTiltY.current) * pointerResponse;
     current.rotation.x = logoTiltX.current;
     current.rotation.y = logoTiltY.current;
 
-    const cameraResponse = 1 - Math.exp(-Math.min(delta, 0.05) * 5.8);
+    const cameraResponse = 1 - Math.exp(-Math.min(delta, 0.05) * 4.2);
     const pointerMagnitude = pointerInside.current
-      ? clamp01(Math.hypot(state.pointer.x, state.pointer.y) * 1.15 + 0.12)
+      ? clamp01(Math.hypot(state.pointer.x, state.pointer.y) * 0.72 + 0.08)
       : 0;
     pointerPresence.current += (pointerMagnitude - pointerPresence.current) * cameraResponse;
 
-    const cameraTargetX = state.pointer.x * 7.2 * fieldInteraction;
-    const cameraTargetY = state.pointer.y * 4.6 * fieldInteraction;
-    const lookTargetX = state.pointer.x * 9.2 * fieldInteraction;
-    const lookTargetY = state.pointer.y * 5.7 * fieldInteraction;
-    const rollTarget = -state.pointer.x * 0.018 * fieldInteraction;
+    const cameraTargetX = state.pointer.x * 2.6 * fieldInteraction;
+    const cameraTargetY = state.pointer.y * 1.8 * fieldInteraction;
+    const lookTargetX = state.pointer.x * 3.2 * fieldInteraction;
+    const lookTargetY = state.pointer.y * 2.1 * fieldInteraction;
+    const rollTarget = -state.pointer.x * 0.006 * fieldInteraction;
     cameraParallaxX.current += (cameraTargetX - cameraParallaxX.current) * cameraResponse;
     cameraParallaxY.current += (cameraTargetY - cameraParallaxY.current) * cameraResponse;
     cameraLookX.current += (lookTargetX - cameraLookX.current) * cameraResponse;
@@ -471,18 +471,18 @@ function UnifiedScene({
     const approachZ = THREE.MathUtils.lerp(fit * 1.08, fit * 0.72, approach);
     const travelZ = THREE.MathUtils.lerp(approachZ, fit * 0.5, travel);
     const tunnelZ = travelZ - fit * sessionZoom;
-    const cameraZ = tunnelZ - fit * 0.14 * exitDissolve;
+    const cameraZ = tunnelZ - fit * 0.16 * exitDissolve;
     const ambientDrift =
-      fieldAmount * 0.62 * (1 - pointerPresence.current * 0.9) * (1 - exitDissolve);
+      fieldAmount * 0.38 * (1 - pointerPresence.current * 0.9) * (1 - exitDissolve);
     camera.position.set(
       cameraParallaxX.current + Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
       cameraParallaxY.current + Math.cos(state.clock.elapsedTime * 0.19) * ambientDrift * 0.55,
-      cameraZ + state.pointer.y * 0.85 * fieldInteraction,
+      cameraZ + state.pointer.y * 0.32 * fieldInteraction,
     );
     lookTarget.set(
       cameraLookX.current + Math.sin(state.clock.elapsedTime * 0.17) * ambientDrift * 0.2,
       cameraLookY.current + Math.cos(state.clock.elapsedTime * 0.15) * ambientDrift * 0.12,
-      -11 * fieldInteraction - exitDissolve * 18,
+      -11 * fieldInteraction - exitDissolve * 20,
     );
     camera.lookAt(fieldInteraction > 0.001 || exitDissolve > 0.001 ? lookTarget : origin);
     camera.rotation.z += cameraRoll.current;
@@ -490,7 +490,7 @@ function UnifiedScene({
     material.opacity = 1 - exitDissolve;
 
     const time = state.clock.elapsedTime;
-    const travelDistance = travel * 135 + exitDissolve * 72;
+    const travelDistance = travel * 135 + exitDissolve * 82;
     const themeScale = dark ? 1 : 0.92;
 
     for (let index = 0; index < data.voxels.length; index += 1) {
