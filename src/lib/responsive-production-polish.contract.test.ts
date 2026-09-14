@@ -43,9 +43,8 @@ test("project parallax keeps its layout but honors reduced motion", () => {
 
 test("Identity keeps four floating cards but adds a narrow-phone geometry guard", () => {
   assert.match(identitySource, /@media \(max-width:\s*359px\)/);
-  for (const index of [0, 1, 2, 3]) {
-    assert.match(identitySource, new RegExp(`data-card-index=\\"${index}\\"`));
-  }
+  assert.match(identitySource, /active\.cards\.map\(\(card, index\)/);
+  assert.match(identitySource, /data-card-index=\{index\}/);
   assert.doesNotMatch(identitySource, /active\.cards\.slice\(0, 2\)/);
 });
 
