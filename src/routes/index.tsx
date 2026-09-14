@@ -4,6 +4,7 @@ import { ArcaneFooterField } from "@/components/ArcaneFooterField";
 import { ArcaneLoader } from "@/components/ArcaneLoader";
 import { AsciiWordmark } from "@/components/AsciiWordmark";
 import { EnchantedProjectCarousel } from "@/components/EnchantedProjectCarousel";
+import { GalaxyHeroBackground } from "@/components/GalaxyHeroBackground";
 import { IdentityConstellation } from "@/components/IdentityConstellation";
 import { InteractiveTicker } from "@/components/InteractiveTicker";
 import { MetaversePortalV2 } from "@/components/MetaversePortalV2";
@@ -110,29 +111,42 @@ function Index() {
 
         <section
           id="top"
-          className="relative z-10 flex min-h-screen flex-col justify-between px-5 pb-8 pt-24 md:px-8"
+          className="relative z-10 flex min-h-screen flex-col justify-between overflow-hidden px-5 pb-8 pt-24 md:px-8"
         >
-          <div className="flex items-start justify-between">
-            <p className="label-mono max-w-[10rem] leading-relaxed">
+          {/* Galaxy starfield background — pixel futuristic aesthetic */}
+          <div className="pointer-events-none absolute inset-0 z-0">
+            <GalaxyHeroBackground className="h-full w-full" />
+          </div>
+          {/* Vignette overlay to blend galaxy into site background */}
+          <div
+            className="pointer-events-none absolute inset-0 z-[1]"
+            style={{
+              background:
+                "radial-gradient(ellipse 90% 80% at 50% 50%, transparent 30%, oklch(0.06 0 0 / 0.65) 100%)",
+            }}
+          />
+
+          <div className="relative z-[2] flex items-start justify-between">
+            <p className="label-mono max-w-[10rem] leading-relaxed text-white/70">
               Film production.
               <br />
               Reimagined.
             </p>
-            <p className="label-mono text-right">Berlin — Worldwide</p>
+            <p className="label-mono text-right text-white/70">Berlin — Worldwide</p>
           </div>
 
-          <div className="flicker-in h-[38vh] w-full md:h-[46vh]">
+          <div className="flicker-in relative z-[2] h-[38vh] w-full md:h-[46vh]">
             <AsciiWordmark text="ARCANE LABS" cell={7} />
           </div>
 
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="relative z-[2] flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <PixelReveal>
-              <p className="max-w-xl text-sm leading-relaxed text-muted-foreground md:text-base">
+              <p className="max-w-xl text-sm leading-relaxed text-white/60 md:text-base">
                 Arcane Labs is a hybrid production company fusing high-end commercial work with a
                 drive to explore the unconventional.
               </p>
             </PixelReveal>
-            <span className="label-mono">Scroll ↓</span>
+            <span className="label-mono text-white/50">Scroll ↓</span>
           </div>
         </section>
 

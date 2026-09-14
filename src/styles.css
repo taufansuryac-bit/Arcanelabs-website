@@ -280,3 +280,32 @@ body {
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0 1px, transparent 1px 3px);
   mix-blend-mode: multiply;
 }
+
+/* ── Accessibility: prefers-reduced-motion ────────────────────────────────── */
+/* CSS-level kill-switch for all keyframe animations as a safety net on top  */
+/* of the JS-layer guards in each component.                                 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep marquee visible but static */
+  .marquee-track {
+    animation: none !important;
+  }
+
+  /* Snap flicker-in to final state immediately */
+  .flicker-in {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

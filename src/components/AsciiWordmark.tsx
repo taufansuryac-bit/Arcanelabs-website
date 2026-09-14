@@ -3,6 +3,8 @@ import {
   isDocumentVisible,
   observeDocumentVisibility,
   observeElementVisibility,
+  observeReducedMotion,
+  prefersReducedMotion,
   shouldAnimate,
 } from "@/lib/animation-runtime";
 
@@ -46,6 +48,7 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1.3 }
     let running = false;
     let pageVisible = isDocumentVisible();
     let inViewport = true;
+    let reducedMotion = prefersReducedMotion();
     let cols = 0;
     let rows = 0;
     let data: Uint8ClampedArray | null = null;
@@ -195,7 +198,7 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1.3 }
     };
 
     const syncRunningState = () => {
-      if (shouldAnimate(pageVisible, inViewport)) start();
+      if (shouldAnimate(pageVisible, inViewport, reducedMotion)) start();
       else stop();
     };
 
@@ -233,11 +236,18 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1.3 }
     window.addEventListener("resize", onResize);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerleave", onLeave);
+    const disconnectReducedMotion = observeReducedMotion((reduced) => {
+      reducedMotion = reduced;
+      syncRunningState();
+      // When reduced-motion is enabled, draw one static frame so the text is still visible.
+      if (reduced && data) requestAnimationFrame(draw);
+    });
 
     return () => {
       stop();
       disconnectViewport();
       disconnectDocument();
+      disconnectReducedMotion();
       window.removeEventListener("resize", onResize);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerleave", onLeave);

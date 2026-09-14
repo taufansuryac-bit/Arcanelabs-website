@@ -1,5 +1,20 @@
-export function shouldAnimate(pageVisible: boolean, inViewport: boolean) {
-  return pageVisible && inViewport;
+/** Returns true when the OS prefers-reduced-motion media query is active. */
+export function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Subscribes to OS-level motion preference changes. Returns a cleanup fn. */
+export function observeReducedMotion(onChange: (reduced: boolean) => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const handler = (e: MediaQueryListEvent) => onChange(e.matches);
+  mq.addEventListener("change", handler);
+  return () => mq.removeEventListener("change", handler);
+}
+
+export function shouldAnimate(pageVisible: boolean, inViewport: boolean, reducedMotion = false) {
+  return pageVisible && inViewport && !reducedMotion;
 }
 
 export function isDocumentVisible() {
