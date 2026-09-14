@@ -16,7 +16,7 @@ test("three tunnel phrases stay isolated and readable instead of stacking layere
   assert.match(scene, /text: "STEP INTO THE DIGITAL DIMENSION"[\s\S]*start: 0\.66[\s\S]*end: 0\.82/);
   assert.doesNotMatch(scene, /ghostText/);
   assert.match(scene, /renderOrder=\{20\}/);
-  assert.match(scene, /material-depthTest=\{false\}/);
+  assert.match(scene, /depthTest = false/);
   assert.match(scene, /particleTextWindow/);
 });
 
@@ -39,6 +39,8 @@ test("portal and footer crossfade with a long overlap so the same floating-block
   assert.match(portal, /useTransform/);
   assert.match(portal, /portalOpacity/);
   assert.match(portal, /\[0\.82, 0\.94, 1\]/);
-  assert.match(index, /md:-mt-\[28vh\]/);
-  assert.match(footer, /transparent_0%,black_30%,black_100%/);
+  assert.match(portal, /-mb-\[12vh\]/);
+  assert.match(portal, /md:-mb-\[16vh\]/);
+  assert.match(index, /md:-mt-\[12vh\]/);
+  assert.match(footer, /transparent_0%,black_18%,black_100%/);
 });
