@@ -229,12 +229,21 @@ export function EnchantedProjectCarousel() {
     <div className="relative isolate w-full overflow-hidden bg-transparent">
       <style>{`
         .enchanted-carousel-stage {
-          --carousel-card-w: clamp(170px, 54vw, 220px);
-          --carousel-card-h: clamp(110px, 35vw, 145px);
-          --carousel-radius: clamp(260px, 78vw, 330px);
-          --carousel-camera-z: clamp(-560px, -130vw, -450px);
-          --carousel-perspective: 900px;
-          --carousel-tilt: -2deg;
+          --carousel-card-w: clamp(108px, 30vw, 132px);
+          --carousel-card-h: clamp(72px, 20vw, 88px);
+          --carousel-radius: clamp(205px, 58vw, 245px);
+          --carousel-camera-z: clamp(-410px, -102vw, -350px);
+          --carousel-perspective: 760px;
+          --carousel-tilt: -1deg;
+        }
+        @media (max-width: 420px) {
+          .enchanted-carousel-stage {
+            --carousel-card-w: clamp(96px, 28vw, 118px);
+            --carousel-card-h: clamp(66px, 18vw, 82px);
+            --carousel-radius: clamp(188px, 54vw, 225px);
+            --carousel-camera-z: clamp(-380px, -96vw, -330px);
+            --carousel-perspective: 700px;
+          }
         }
         @media (min-width: 768px) {
           .enchanted-carousel-stage {
@@ -284,7 +293,7 @@ export function EnchantedProjectCarousel() {
 
       <div
         ref={stageRef}
-        className="enchanted-carousel-stage relative h-[68svh] min-h-[430px] max-h-[600px] w-full touch-pan-y cursor-grab select-none active:cursor-grabbing md:h-[56svh] md:min-h-[480px] md:max-h-[620px]"
+        className="enchanted-carousel-stage relative h-[42svh] min-h-[260px] max-h-[320px] w-full touch-pan-y cursor-grab select-none active:cursor-grabbing md:h-[56svh] md:min-h-[480px] md:max-h-[620px]"
         style={{
           perspective: "var(--carousel-perspective)",
           perspectiveOrigin: "50% 50%",
@@ -299,7 +308,7 @@ export function EnchantedProjectCarousel() {
         }}
       >
         <div
-          className="enchanted-ring-stage absolute left-1/2 top-1/2 md:top-[46%]"
+          className="enchanted-ring-stage absolute left-1/2 top-[47%] md:top-[46%]"
           style={{
             transform: `translate(-50%, -50%) translateZ(var(--carousel-camera-z)) rotateX(var(--carousel-tilt)) rotateY(${angle}deg)`,
           }}
@@ -405,15 +414,15 @@ function CardFace({
           ))}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-transparent to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-3 md:p-4">
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-2 md:p-4">
           <span
             className={`font-display uppercase tracking-tight text-neon ${
-              expanded ? "text-3xl md:text-4xl" : "text-lg md:text-xl"
+              expanded ? "text-3xl md:text-4xl" : "text-xs md:text-xl"
             }`}
           >
             {item.title}
           </span>
-          <span className="text-[8px] uppercase tracking-[0.18em] text-muted-foreground md:text-[10px] md:tracking-[0.2em]">
+          <span className="text-[6px] uppercase tracking-[0.12em] text-muted-foreground md:text-[10px] md:tracking-[0.2em]">
             {item.caption}
           </span>
         </div>
@@ -429,33 +438,33 @@ function CardFace({
       }`}
       style={{ opacity: hidden ? 0 : 1 }}
     >
-      <div className={expanded ? "p-6 md:p-8" : "p-4 md:p-5"}>
+      <div className={expanded ? "p-6 md:p-8" : "p-2 md:p-5"}>
         <span className="text-neon">&ldquo;</span>
         <p
           className={`mt-2 leading-relaxed ${
             expanded
               ? "text-base md:text-lg"
-              : "text-[9px] leading-[1.5] md:text-[11px] md:leading-[1.6]"
+              : "hidden text-[7px] leading-[1.35] md:block md:text-[11px] md:leading-[1.6]"
           }`}
         >
           {item.quote}
         </p>
       </div>
       <div
-        className={`flex items-center gap-3 ${
-          expanded ? "p-6 pt-0 md:p-8 md:pt-0" : "p-4 pt-0 md:p-5 md:pt-0"
+        className={`flex items-center gap-1.5 md:gap-3 ${
+          expanded ? "p-6 pt-0 md:p-8 md:pt-0" : "p-2 pt-0 md:p-5 md:pt-0"
         }`}
       >
-        <div className="h-7 w-7 rounded-full bg-neon/20 md:h-8 md:w-8" />
+        <div className="h-4 w-4 rounded-full bg-neon/20 md:h-8 md:w-8" />
         <div>
           <p
             className={
-              expanded ? "text-sm font-semibold" : "text-[9px] font-semibold md:text-[11px]"
+              expanded ? "text-sm font-semibold" : "text-[7px] font-semibold md:text-[11px]"
             }
           >
             {item.name}
           </p>
-          <p className="text-[8px] uppercase tracking-[0.16em] text-muted-foreground md:text-[10px] md:tracking-[0.18em]">
+          <p className="hidden text-[6px] uppercase tracking-[0.12em] text-muted-foreground md:block md:text-[10px] md:tracking-[0.18em]">
             {item.role}
           </p>
         </div>
