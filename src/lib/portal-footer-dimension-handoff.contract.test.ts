@@ -39,17 +39,19 @@ test("light mode keeps the logo black-graphite while preserving visible voxel se
 test("portal exits forward through the tunnel instead of rebuilding the logo", () => {
   assert.match(scene, /const exitDissolve = phase\(p, 0\.84, 1\)/);
   assert.match(scene, /material\.opacity = 1 - exitDissolve/);
-  assert.match(scene, /travelDistance = travel \* 135 \+ exitDissolve \* 72/);
+  assert.match(scene, /travelDistance = travel \* 135 \+ exitDissolve \* 82/);
+  assert.match(scene, /const finalDrive = phase\(p, 0\.66, 0\.82\)/);
   assert.doesNotMatch(scene, /const reassemble =/);
   assert.doesNotMatch(scene, /rebuiltInteraction/);
 });
 
-test("portal and footer crossfade with a long overlap so the same floating-block language continues", () => {
+test("portal and footer crossfade with a shorter overlap and no dead-scroll tail", () => {
   assert.match(portal, /useTransform/);
   assert.match(portal, /portalOpacity/);
-  assert.match(portal, /\[0\.82, 0\.94, 1\]/);
-  assert.match(portal, /-mb-\[12vh\]/);
-  assert.match(portal, /md:-mb-\[16vh\]/);
-  assert.match(index, /md:-mt-\[12vh\]/);
+  assert.match(portal, /\[0\.86, 0\.965, 1\]/);
+  assert.match(portal, /-mb-\[18vh\]/);
+  assert.match(portal, /md:-mb-\[24vh\]/);
+  assert.match(portal, /md:h-\[520vh\]/);
+  assert.match(index, /md:-mt-\[14vh\]/);
   assert.match(footer, /transparent_0%,black_18%,black_100%/);
 });
