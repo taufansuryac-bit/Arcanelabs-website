@@ -26,12 +26,13 @@ test("three tunnel phrases crossfade independently without a particle aperture a
   assert.doesNotMatch(portal, /ghostText/);
 });
 
-test("point particles keep the clean shader lighting language in both themes", () => {
-  assert.match(scene, /THREE\.ShaderMaterial/);
-  assert.match(scene, /dark \? "#f4f4f5" : "#111418"/);
-  assert.match(scene, /dark \? "#7f8992" : "#3d464e"/);
-  assert.match(scene, /uLightColor/);
-  assert.match(scene, /uShadowColor/);
+test("hybrid volumetric fragments keep premium lighting in both themes", () => {
+  assert.match(scene, /THREE\.MeshStandardMaterial/);
+  assert.match(scene, /THREE\.PointsMaterial/);
+  assert.match(scene, /dark \? "#f4f4f5" : "#252a30"/);
+  assert.match(scene, /dark \? "#79838e" : "#5a626b"/);
+  assert.match(scene, /roughness:/);
+  assert.match(scene, /metalness:/);
 });
 
 test("portal exits only forward and dissolves into the footer", () => {
