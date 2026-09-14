@@ -16,8 +16,11 @@ export function MetaversePortalV2() {
   });
 
   return (
-    <section ref={sectionRef} className="relative z-10 h-[700vh] border-t border-border">
-      <div className="sticky top-0 h-screen overflow-hidden bg-background">
+    <section
+      ref={sectionRef}
+      className="relative z-10 h-[240vh] border-t border-border md:h-[700vh]"
+    >
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-background md:h-screen">
         <UnifiedVoxelDimensionScene
           progress={scrollYProgress}
           className="absolute inset-0 h-full w-full"
