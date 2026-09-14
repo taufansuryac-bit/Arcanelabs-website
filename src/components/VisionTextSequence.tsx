@@ -37,9 +37,7 @@ const floodRows = [
 ] as const;
 
 function expandFlood(source: string, repeat: number) {
-  const expanded = source
-    .replaceAll("-{1,}", "-----")
-    .replaceAll("##{1,}", "########");
+  const expanded = source.replaceAll("-{1,}", "-----").replaceAll("##{1,}", "########");
 
   return Array.from(
     { length: repeat },
@@ -112,9 +110,7 @@ export function VisionTextSequence() {
                 key={`${activeIndex}-${activeStatement}`}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 18, filter: "blur(8px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={
-                  prefersReducedMotion ? {} : { opacity: 0, y: -14, filter: "blur(6px)" }
-                }
+                exit={prefersReducedMotion ? {} : { opacity: 0, y: -14, filter: "blur(6px)" }}
                 transition={{
                   duration: prefersReducedMotion ? 0 : 0.46,
                   ease: [0.22, 1, 0.36, 1],
