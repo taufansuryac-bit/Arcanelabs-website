@@ -85,8 +85,8 @@ test("portal handoff reaches the footer earlier without a long empty tail", () =
   assert.match(portalSource, /md:-mb-\[38vh\]/);
   assert.match(portalSource, /\[0\.82, 0\.96, 1\]/);
   assert.doesNotMatch(portalSource, /md:h-\[430vh\]/);
-  assert.match(homeSource, /-mt-\[10vh\]/);
-  assert.match(homeSource, /md:-mt-\[18vh\]/);
+  assert.match(homeSource, /-mt-\[6vh\]/);
+  assert.match(homeSource, /md:-mt-\[14vh\]/);
 });
 
 test("final tunnel camera motion remains forward-only and pointer camera influence is restrained", () => {
