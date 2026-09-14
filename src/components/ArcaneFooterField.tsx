@@ -375,7 +375,7 @@ export function ArcaneFooterField() {
       >
         {hasMounted && (
           <Canvas
-            eventSource={containerRef.current ?? undefined}
+            eventSource={containerRef.current!}
             eventPrefix="client"
             camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
             dpr={[1, 1.6]}
