@@ -23,13 +23,33 @@ export const Route = createFileRoute("/")({
 });
 
 const works = [
-  { title: "Finance Intelligence", client: "Business Operations", type: "Finance Analytics", year: "2026" },
-  { title: "Product Intelligence", client: "Product Teams", type: "Product Analytics", year: "2026" },
-  { title: "Operations Hub", client: "Internal Operations", type: "Business Application", year: "2026" },
+  {
+    title: "Finance Intelligence",
+    client: "Business Operations",
+    type: "Finance Analytics",
+    year: "2026",
+  },
+  {
+    title: "Product Intelligence",
+    client: "Product Teams",
+    type: "Product Analytics",
+    year: "2026",
+  },
+  {
+    title: "Operations Hub",
+    client: "Internal Operations",
+    type: "Business Application",
+    year: "2026",
+  },
   { title: "Commerce Console", client: "E-commerce", type: "Web Application", year: "2026" },
   { title: "AI Workflow", client: "Business Process", type: "AI Automation", year: "2026" },
   { title: "Custom CRM", client: "Customer Operations", type: "Application", year: "2026" },
-  { title: "Decision Dashboard", client: "Management", type: "Business Intelligence", year: "2026" },
+  {
+    title: "Decision Dashboard",
+    client: "Management",
+    type: "Business Intelligence",
+    year: "2026",
+  },
 ];
 
 const expertise = [
