@@ -6,7 +6,7 @@ import { UnifiedVoxelDimensionScene } from "./UnifiedVoxelDimensionScene";
 /**
  * V3 portal: one continuous 3D system.
  * The Arcane mark fractures into a dimensional tunnel, passes three branded depth beats,
- * then dissolves forward into the overlapping footer field instead of rebuilding the mark.
+ * then drives straight through into the overlapping footer field.
  */
 export function MetaversePortalV2() {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -14,12 +14,12 @@ export function MetaversePortalV2() {
     target: sectionRef,
     offset: ["start start", "end end"],
   });
-  const portalOpacity = useTransform(scrollYProgress, [0.82, 0.94, 1], [1, 0.48, 0]);
+  const portalOpacity = useTransform(scrollYProgress, [0.9, 0.965, 0.995, 1], [1, 0.82, 0.32, 0]);
 
   return (
     <section
       ref={sectionRef}
-      className="relative z-10 -mb-[12vh] h-[240vh] border-t border-border md:-mb-[16vh] md:h-[700vh]"
+      className="relative z-20 -mb-[64vh] h-[180vh] border-t border-border [overflow-anchor:none] md:-mb-[68vh] md:h-[320vh]"
     >
       <motion.div
         style={{ opacity: portalOpacity }}

@@ -9,12 +9,14 @@ import { IdentityConstellation } from "@/components/IdentityConstellation";
 import { InteractiveTicker } from "@/components/InteractiveTicker";
 import { MetaversePortalV2 } from "@/components/MetaversePortalV2";
 import { NoiseBackground } from "@/components/NoiseBackground";
+import { PartnerFlipGrid } from "@/components/PartnerFlipGrid";
 import { PixelFaq } from "@/components/PixelFaq";
 import { PixelReveal } from "@/components/PixelReveal";
 import { ProjectConverge } from "@/components/ProjectConverge";
 import { ScrambleText } from "@/components/ScrambleText";
 import { SectionPixelReveal } from "@/components/SectionPixelReveal";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { VisionTextSequence } from "@/components/VisionTextSequence";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -220,6 +222,8 @@ function Index() {
           </div>
         </section>
 
+        <PartnerFlipGrid />
+
         <SectionPixelReveal>
           <section id="works" className="relative z-10 line-top px-5 py-16 md:px-8 md:py-28">
             <div className="mb-8 flex items-baseline justify-between md:mb-12">
@@ -336,6 +340,8 @@ function Index() {
           </section>
         </SectionPixelReveal>
 
+        <VisionTextSequence />
+
         <SectionPixelReveal threshold={0.05}>
           <ProjectConverge />
         </SectionPixelReveal>
@@ -390,7 +396,7 @@ function Index() {
         `}</style>
         <footer
           id="contact"
-          className="mobile-footer-shell relative z-20 -mt-[4vh] overflow-visible md:-mt-[12vh]"
+          className="mobile-footer-shell relative z-10 -mt-[44vh] overflow-visible md:-mt-[40vh]"
         >
           <ArcaneFooterField />
         </footer>
