@@ -1,12 +1,15 @@
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { hasSeenLoader } from "@/lib/utils";
 import { AsciiWordmark } from "./AsciiWordmark";
 import {
   isDocumentVisible,
   observeDocumentVisibility,
   observeElementVisibility,
+  observeReducedMotion,
+  prefersReducedMotion,
   shouldAnimate,
 } from "@/lib/animation-runtime";
 
@@ -233,18 +236,13 @@ export function ArcaneFooterField() {
   const containerRef = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [appReady, setAppReady] = useState(
-    () => typeof window !== "undefined" && sessionStorage.getItem("arcane-loader-seen") === "1",
-  );
+  const [appReady, setAppReady] = useState(hasSeenLoader);
   const [hasMounted, setHasMounted] = useState(false);
   const dark = useDarkMode();
 
   useEffect(() => {
-    import("@/lib/animation-runtime").then((mod) => {
-      setReducedMotion(mod.prefersReducedMotion());
-      const cleanup = mod.observeReducedMotion((reduced) => setReducedMotion(reduced));
-      return cleanup;
-    });
+    setReducedMotion(prefersReducedMotion());
+    return observeReducedMotion(setReducedMotion);
   }, []);
 
   useEffect(() => {

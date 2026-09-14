@@ -109,7 +109,7 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
       }`}
       aria-label="Loading Arcane Labs"
       aria-hidden={exiting ? true : undefined}
-      inert={exiting ? "" : undefined}
+      inert={exiting ? true : undefined}
     >
       <div className="absolute inset-0 bg-grid opacity-25" aria-hidden />
       <div className="absolute inset-0">
