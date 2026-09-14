@@ -24,18 +24,21 @@ test("homepage places the partner flip grid immediately after the hero and befor
   assert.ok(heroEnd >= 0 && partners > heroEnd && partners < works);
 });
 
-test("partner cards use 3d flips plus pixel particles and preserve reduced-motion support", async () => {
+test("partner cards continuously alternate faces without a section header or closing rule", async () => {
   const source = await readComponent("PartnerFlipGrid");
   assert.match(source, /rotateY/);
   assert.match(source, /perspective/);
   assert.match(source, /particle/i);
+  assert.match(source, /Number\.POSITIVE_INFINITY/);
+  assert.match(source, /backPartner/);
+  assert.match(source, /bg-background/);
   assert.match(source, /prefersReducedMotion|useReducedMotion/);
-  assert.match(source, /SAMSUNG/);
-  assert.match(source, /EA × FC BAYERN|EA X FC BAYERN/);
-  assert.match(source, /MCDONALD/i);
+  assert.doesNotMatch(source, /2011-/);
+  assert.doesNotMatch(source, /\(Partners\)/);
+  assert.doesNotMatch(source, /border-y/);
 });
 
-test("our vision sequence sits directly after From vision to screen and crossfades in a fixed frame", async () => {
+test("our vision sequence sits directly after From vision to screen and crossfades only with opacity", async () => {
   assert.match(homeSource, /VisionTextSequence/);
   const visionToScreen = homeSource.indexOf("From vision to screen");
   const sequence = homeSource.indexOf("<VisionTextSequence");
@@ -47,14 +50,21 @@ test("our vision sequence sits directly after From vision to screen and crossfad
   assert.match(source, /CRAFT WITH PURPOSE/);
   assert.match(source, /CODE WITH INTENT/);
   assert.match(source, /CREATE THE UNCONVENTIONAL/);
-  assert.match(source, /opacity/);
-  assert.doesNotMatch(source, /height:\s*['"]auto['"]|layout/);
+  assert.match(source, /initial=\{prefersReducedMotion \? false : \{ opacity: 0 \}\}/);
+  assert.match(source, /animate=\{\{ opacity: 1 \}\}/);
+  assert.match(source, /exit=\{prefersReducedMotion \? \{\} : \{ opacity: 0 \}\}/);
+  assert.doesNotMatch(source, /filter: "blur/);
+  assert.doesNotMatch(source, /opacity: 0, y:/);
 });
 
-test("portal handoff is shorter and overlaps the footer without a dead-scroll tail", () => {
-  assert.match(portalSource, /md:h-\[(?:4|5)\d{2}vh\]/);
+test("portal handoff stays animated until the end and reaches the footer with a shorter scroll tail", () => {
+  assert.match(portalSource, /h-\[200vh\]/);
+  assert.match(portalSource, /md:h-\[430vh\]/);
+  assert.match(portalSource, /-mb-\[24vh\]/);
+  assert.match(portalSource, /md:-mb-\[32vh\]/);
+  assert.match(portalSource, /\[0\.9, 0\.99, 1\]/);
+  assert.doesNotMatch(portalSource, /md:h-\[520vh\]/);
   assert.doesNotMatch(portalSource, /md:h-\[700vh\]/);
-  assert.match(portalSource, /-mb-\[(?:1\d|2\d)vh\]/);
 });
 
 test("final tunnel camera motion remains forward-only and pointer camera influence is restrained", () => {
