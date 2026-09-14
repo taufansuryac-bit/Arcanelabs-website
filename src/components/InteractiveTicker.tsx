@@ -1,6 +1,12 @@
 import "@/redesign-v2.css";
 
-const ITEMS = ["BRANDING", "UI/UX", "WEB DEVELOPMENT", "MOTION", "CREATIVE TECHNOLOGY"] as const;
+const ITEMS = [
+  "APPLICATION DEVELOPMENT",
+  "WEB DEVELOPMENT",
+  "FINANCE ANALYTICS",
+  "PRODUCT ANALYTICS",
+  "AI AUTOMATION",
+] as const;
 
 export function InteractiveTicker() {
   return (
