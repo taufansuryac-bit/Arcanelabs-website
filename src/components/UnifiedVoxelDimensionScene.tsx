@@ -474,7 +474,7 @@ export function UnifiedVoxelDimensionScene({
   const [appReady, setAppReady] = useState(
     () => typeof window !== "undefined" && sessionStorage.getItem("arcane-loader-seen") === "1",
   );
-  const [hasMounted, setHasMounted] = useState(false);
+
   const data = useLogoVoxels("/arcane-logo-black.svg");
 
   useEffect(() => {
@@ -483,6 +483,17 @@ export function UnifiedVoxelDimensionScene({
       targetProgress.current = value;
     });
   }, [progress]);
+
+  const [hasMounted, setHasMounted] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    import("@/lib/animation-runtime").then((mod) => {
+      setReducedMotion(mod.prefersReducedMotion());
+      const cleanup = mod.observeReducedMotion((reduced) => setReducedMotion(reduced));
+      return cleanup;
+    });
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -543,7 +554,7 @@ export function UnifiedVoxelDimensionScene({
           <Canvas
             camera={{ position: [0, 0, 90], fov: 45, near: 0.1, far: 700 }}
             dpr={1}
-            frameloop={active ? "always" : "never"}
+            frameloop={active && !reducedMotion ? "always" : "never"}
             gl={{
               alpha: true,
               antialias: false,

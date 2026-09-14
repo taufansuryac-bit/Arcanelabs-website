@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useMemo, useState } from "react";
 
 type CapabilityId = "branding" | "uiux" | "development" | "motion";
@@ -197,17 +197,19 @@ const CAPABILITIES: Capability[] = [
 const DEFAULT_CAPABILITY = CAPABILITIES[0]!;
 
 function PixelCard({ card, index }: { card: Card; index: number }) {
+  const reduced = useReducedMotion();
+  
   return (
     <motion.figure
-      initial={{ opacity: 0, scale: 0.76, y: 34 + index * 6, filter: "blur(18px)" }}
+      initial={{ opacity: 0, scale: reduced ? 1 : 0.76, y: reduced ? 0 : 34 + index * 6, filter: "blur(18px)" }}
       animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-      exit={{ opacity: 0, scale: 1.08, y: -24 - index * 5, filter: "blur(16px)" }}
+      exit={{ opacity: 0, scale: reduced ? 1 : 1.08, y: reduced ? 0 : -24 - index * 5, filter: "blur(16px)" }}
       transition={{
-        opacity: { duration: 0.28 },
-        filter: { duration: 0.38 },
+        opacity: { duration: reduced ? 0 : 0.28 },
+        filter: { duration: reduced ? 0 : 0.38 },
         scale: { type: "spring", stiffness: 110, damping: 20, mass: 0.6 },
         y: { type: "spring", stiffness: 95, damping: 22, mass: 0.7 },
-        delay: index * 0.035,
+        delay: reduced ? 0 : index * 0.035,
       }}
       className="group absolute overflow-hidden border border-border bg-card shadow-[0_18px_50px_rgba(0,0,0,.18)]"
       style={{
@@ -223,10 +225,10 @@ function PixelCard({ card, index }: { card: Card; index: number }) {
           alt={card.label}
           loading="lazy"
           className="h-full w-full object-cover saturate-[.82] contrast-[1.04]"
-          initial={{ scale: 1.12 }}
+          initial={{ scale: reduced ? 1 : 1.12 }}
           animate={{ scale: 1 }}
-          exit={{ scale: 1.08 }}
-          transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ scale: reduced ? 1 : 1.08 }}
+          transition={{ duration: reduced ? 0 : 0.72, ease: [0.16, 1, 0.3, 1] }}
         />
         <div className="pixel-veil absolute inset-0 opacity-35" aria-hidden />
         <div

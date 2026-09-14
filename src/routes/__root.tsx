@@ -87,9 +87,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Arcane Labs is a hybrid production studio fusing high-end commercial craft with experimental, code-driven filmmaking.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://arcanelabs.mov/" },
+      { property: "og:image", content: "https://arcanelabs.mov/og-image.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
+      {
+        rel: "canonical",
+        href: "https://arcanelabs.mov/",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -120,6 +126,20 @@ function RootShell({ children }: { children: ReactNode }) {
           dangerouslySetInnerHTML={{
             __html:
               "try{var m=localStorage.getItem('al-theme-v2')||'dark';document.documentElement.classList.toggle('dark',m==='dark')}catch(e){}",
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Arcane Labs",
+              url: "https://arcanelabs.mov",
+              logo: "https://arcanelabs.mov/arcane-logo-black.svg",
+              description:
+                "Arcane Labs is a hybrid production studio fusing high-end commercial craft with experimental, code-driven filmmaking.",
+            }),
           }}
         />
       </head>

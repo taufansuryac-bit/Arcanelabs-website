@@ -70,6 +70,15 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
     const previousOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
 
+    // Respect reduced motion: skip 3D scatter if preferred
+    let wantsReducedMotion = false;
+    import("@/lib/animation-runtime").then((mod) => {
+      wantsReducedMotion = mod.prefersReducedMotion();
+      if (wantsReducedMotion) {
+        setWebglFailed(true);
+      }
+    });
+
     /* Watchdog: if the 3-D scene never fires onComplete (e.g. WebGL crash,
        slow network, zero-size canvas), we force the site visible after WATCHDOG_MS. */
     watchdogRef.current = window.setTimeout(() => {
@@ -99,6 +108,8 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
         exiting ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
       aria-label="Loading Arcane Labs"
+      aria-hidden={exiting ? true : undefined}
+      inert={exiting ? "" : undefined}
     >
       <div className="absolute inset-0 bg-grid opacity-25" aria-hidden />
       <div className="absolute inset-0">

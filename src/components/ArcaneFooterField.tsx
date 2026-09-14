@@ -232,11 +232,20 @@ function CameraRig() {
 export function ArcaneFooterField() {
   const containerRef = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [appReady, setAppReady] = useState(
     () => typeof window !== "undefined" && sessionStorage.getItem("arcane-loader-seen") === "1",
   );
   const [hasMounted, setHasMounted] = useState(false);
   const dark = useDarkMode();
+
+  useEffect(() => {
+    import("@/lib/animation-runtime").then((mod) => {
+      setReducedMotion(mod.prefersReducedMotion());
+      const cleanup = mod.observeReducedMotion((reduced) => setReducedMotion(reduced));
+      return cleanup;
+    });
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -304,7 +313,7 @@ export function ArcaneFooterField() {
           <Canvas
             camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
             dpr={[1, 1.6]}
-            frameloop={active ? "always" : "never"}
+            frameloop={active && !reducedMotion ? "always" : "never"}
             gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }}
           >
             <color attach="background" args={[background]} />

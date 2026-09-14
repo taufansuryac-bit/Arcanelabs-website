@@ -127,11 +127,12 @@ function Index() {
           />
 
           <div className="relative z-[2] flex items-start justify-between">
-            <p className="label-mono max-w-[10rem] leading-relaxed text-white/70">
+            <h1 className="label-mono max-w-[10rem] leading-relaxed text-white/70">
+              <span className="sr-only">Arcane Labs — </span>
               Film production.
-              <br />
+              <br aria-hidden="true" />
               Reimagined.
-            </p>
+            </h1>
             <p className="label-mono text-right text-white/70">Berlin — Worldwide</p>
           </div>
 
