@@ -18,7 +18,7 @@ test("dimension scene tells Arcane Labs story across three branded tunnel sessio
   assert.doesNotMatch(source, /text: "ENTER THE FIELD"/);
 });
 
-test("each phrase moves through scene depth and the camera gets three tunnel zoom pulses", () => {
+test("each phrase moves through scene depth while the final phrase drives forward", () => {
   assert.match(source, /<Text|<SafeText/);
   assert.match(source, /phraseDepth/);
   assert.match(source, /phraseOpacity/);
@@ -26,15 +26,16 @@ test("each phrase moves through scene depth and the camera gets three tunnel zoo
   assert.match(source, /sessionZoom/);
   assert.match(source, /sessionOneZoom/);
   assert.match(source, /sessionTwoZoom/);
-  assert.match(source, /sessionThreeZoom/);
+  assert.match(source, /finalDrive/);
+  assert.doesNotMatch(source, /sessionThreeZoom/);
   assert.doesNotMatch(source, /PortalPhrase/);
 });
 
 test("final phase continues through the tunnel and dissolves into the footer handoff", () => {
   assert.match(source, /const exitDissolve = phase\(p, 0\.84, 1\)/);
   assert.match(source, /material\.opacity = 1 - exitDissolve/);
-  assert.match(source, /travelDistance = travel \* 135 \+ exitDissolve \* 72/);
-  assert.match(source, /cameraZ = tunnelZ - fit \* 0\.14 \* exitDissolve/);
+  assert.match(source, /travelDistance = travel \* 135 \+ exitDissolve \* 82/);
+  assert.match(source, /cameraZ = tunnelZ - fit \* 0\.16 \* exitDissolve/);
   assert.doesNotMatch(source, /reassemble/);
 });
 
