@@ -78,15 +78,15 @@ test("kinetic fabric background keeps the supplied mesh and pointer physics with
   assert.doesNotMatch(source, /FREEZE/);
 });
 
-test("portal handoff reaches the footer earlier without a long empty tail", () => {
+test("portal handoff reaches a full footer viewport with no empty band", () => {
   assert.match(portalSource, /h-\[180vh\]/);
   assert.match(portalSource, /md:h-\[320vh\]/);
-  assert.match(portalSource, /-mb-\[26vh\]/);
-  assert.match(portalSource, /md:-mb-\[38vh\]/);
-  assert.match(portalSource, /\[0\.82, 0\.96, 1\]/);
+  assert.match(portalSource, /-mb-\[56vh\]/);
+  assert.match(portalSource, /md:-mb-\[60vh\]/);
+  assert.match(portalSource, /\[0\.86, 0\.98, 1\]/);
   assert.doesNotMatch(portalSource, /md:h-\[430vh\]/);
-  assert.match(homeSource, /-mt-\[6vh\]/);
-  assert.match(homeSource, /md:-mt-\[14vh\]/);
+  assert.match(homeSource, /z-10 -mt-\[44vh\]/);
+  assert.match(homeSource, /md:-mt-\[40vh\]/);
 });
 
 test("final tunnel camera motion remains forward-only and pointer camera influence is restrained", () => {
