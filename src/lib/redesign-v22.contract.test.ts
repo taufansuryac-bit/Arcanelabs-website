@@ -29,7 +29,7 @@ test("voxel logo uses the source repo camera controls for genuine 360 degree ins
   assert.match(source, /maxDistance/);
 });
 
-test("loader keeps cursor-local chaos while portal uses the clean particle scene", async () => {
+test("loader keeps cursor-local chaos while portal uses the hybrid volumetric scene", async () => {
   const loaderScene = await readSource("../components/MagneticLoaderScene.tsx");
   const loader = await readSource("../components/ArcaneLoader.tsx");
   const portal = await readSource("../components/MetaversePortalV2.tsx");
@@ -58,13 +58,14 @@ test("voxel logo fits measured geometry responsively and uses the original stand
   assert.match(source, /directionalLight/);
 });
 
-test("portal uses the new shader point field and exits forward into the footer handoff", async () => {
+test("portal uses hybrid volumetric fragments and exits forward into the footer handoff", async () => {
   const portal = await readSource("../components/MetaversePortalV2.tsx");
   const scene = await readSource("../components/ParticleDimensionScene.tsx");
   assert.match(portal, /ParticleDimensionScene/);
   assert.doesNotMatch(portal, /UnifiedVoxelDimensionScene/);
-  assert.match(scene, /THREE\.Points/);
-  assert.match(scene, /THREE\.ShaderMaterial/);
+  assert.match(scene, /THREE\.InstancedMesh/);
+  assert.match(scene, /THREE\.MeshStandardMaterial/);
+  assert.match(scene, /THREE\.PointsMaterial/);
   assert.match(scene, /forwardTravel/);
   assert.match(scene, /exitProgress/);
   assert.doesNotMatch(scene, /reassemble/);
