@@ -49,13 +49,31 @@ type DimensionPhrase = {
 
 export const DIMENSION_PHRASES: DimensionPhrase[] = [
   {
-    text: "ENTER THE FIELD",
-    kicker: "ARCANE // SIGNAL",
-    ghost: "ARCANE",
-    start: 0.3,
-    end: 0.82,
-    depthFrom: -28,
-    depthTo: 5,
+    text: "WE BUILD WEBSITES",
+    kicker: "ARCANE LABS // DIGITAL EXPERIENCES",
+    ghost: "WEBSITES",
+    start: 0.18,
+    end: 0.38,
+    depthFrom: -30,
+    depthTo: 4,
+  },
+  {
+    text: "WE CRAFT APPS",
+    kicker: "PRODUCTS // SYSTEMS // INTERFACES",
+    ghost: "APPS",
+    start: 0.4,
+    end: 0.6,
+    depthFrom: -36,
+    depthTo: 6,
+  },
+  {
+    text: "STEP INTO THE DIGITAL DIMENSION",
+    kicker: "CODE // MOTION // INTERACTION",
+    ghost: "DIMENSION",
+    start: 0.62,
+    end: 0.84,
+    depthFrom: -44,
+    depthTo: 8,
   },
 ];
 
@@ -343,11 +361,13 @@ function UnifiedScene({
   targetProgress,
   sceneProgress,
   pointerInside,
+  dark,
 }: {
   data: VoxelData;
   targetProgress: React.MutableRefObject<number>;
   sceneProgress: React.MutableRefObject<number>;
   pointerInside: React.MutableRefObject<boolean>;
+  dark: boolean;
 }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -383,17 +403,26 @@ function UnifiedScene({
     sceneProgress.current += (targetProgress.current - sceneProgress.current) * response;
     const p = clamp01(sceneProgress.current);
 
-    const approach = phase(p, 0.02, 0.28);
-    const fracture = phase(p, 0.2, 0.46);
-    const travel = phase(p, 0.42, 0.74);
-    const reassemble = phase(p, 0.74, 0.96);
-    const settle = phase(p, 0.94, 1);
+    const approach = phase(p, 0.02, 0.24);
+    const fracture = phase(p, 0.16, 0.36);
+    const travel = phase(p, 0.28, 0.84);
+    const reassemble = phase(p, 0.84, 0.985);
+    const settle = phase(p, 0.95, 1);
     const fieldAmount = fracture * (1 - reassemble);
-    const textPresence = phase(p, 0.3, 0.4) * (1 - phase(p, 0.72, 0.84));
+    const textPresence = phase(p, 0.16, 0.22) * (1 - phase(p, 0.84, 0.9));
 
-    const stableInteraction = 1 - phase(p, 0.14, 0.34);
-    const rebuiltInteraction = phase(p, 0.88, 0.985);
-    const fieldInteraction = phase(p, 0.26, 0.42) * (1 - phase(p, 0.8, 0.96));
+    const sessionOneZoom = phase(p, 0.18, 0.24) * (1 - phase(p, 0.34, 0.39));
+    const sessionTwoZoom = phase(p, 0.4, 0.46) * (1 - phase(p, 0.56, 0.61));
+    const sessionThreeZoom = phase(p, 0.62, 0.68) * (1 - phase(p, 0.8, 0.85));
+    const sessionZoom = Math.max(
+      sessionOneZoom * 0.035,
+      sessionTwoZoom * 0.055,
+      sessionThreeZoom * 0.075,
+    );
+
+    const stableInteraction = 1 - phase(p, 0.12, 0.3);
+    const rebuiltInteraction = phase(p, 0.92, 0.995);
+    const fieldInteraction = phase(p, 0.18, 0.34) * (1 - phase(p, 0.84, 0.985));
     const interactionBlend = clamp01(stableInteraction + rebuiltInteraction);
     const pointerFracture = interactionBlend * (pointerInside.current ? 1 : 0);
 
@@ -435,8 +464,9 @@ function UnifiedScene({
 
     const fit = fitDistance.current;
     const approachZ = THREE.MathUtils.lerp(fit * 1.08, fit * 0.7, approach);
-    const travelZ = THREE.MathUtils.lerp(approachZ, fit * 0.54, travel * (1 - reassemble));
-    const cameraZ = THREE.MathUtils.lerp(travelZ, fit * 0.96, reassemble);
+    const travelZ = THREE.MathUtils.lerp(approachZ, fit * 0.5, travel * (1 - reassemble));
+    const tunnelZ = travelZ - fit * sessionZoom;
+    const cameraZ = THREE.MathUtils.lerp(tunnelZ, fit * 0.98, reassemble);
     const ambientDrift = fieldAmount * 0.66 * (1 - pointerPresence.current * 0.9);
     camera.position.set(
       cameraParallaxX.current + Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
@@ -452,7 +482,7 @@ function UnifiedScene({
     camera.rotation.z += cameraRoll.current;
 
     const time = state.clock.elapsedTime;
-    const travelDistance = travel * 125;
+    const travelDistance = travel * 135;
     for (let index = 0; index < data.voxels.length; index += 1) {
       const voxel = data.voxels[index];
       if (!voxel) continue;
@@ -461,6 +491,7 @@ function UnifiedScene({
         voxel.orbitRadius *
         (0.72 + fracture * 1.15) *
         (1 - fieldAmount) *
+        (1 - reassemble) *
         Math.max(interactionBlend, 0.35 * (1 - reassemble));
       const orbitAngle = time * (0.34 + voxel.rand * 0.28) + voxel.orbitPhase;
       const orbitX = Math.cos(orbitAngle) * looseOrbit;
@@ -537,11 +568,11 @@ function UnifiedScene({
     >
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial
-        color="#f4f4f5"
+        color={dark ? "#f4f4f5" : "#171a1f"}
         metalness={0.35}
         roughness={0.25}
-        emissive="#9aa0ff"
-        emissiveIntensity={0.08}
+        emissive={dark ? "#9aa0ff" : "#000000"}
+        emissiveIntensity={dark ? 0.08 : 0}
       />
     </instancedMesh>
   );
@@ -662,6 +693,7 @@ export function UnifiedVoxelDimensionScene({
                 targetProgress={targetProgress}
                 sceneProgress={sceneProgress}
                 pointerInside={pointerInside}
+                dark={dark}
               />
             )}
             <DimensionalPhrases sceneProgress={sceneProgress} dark={dark} />
