@@ -14,12 +14,12 @@ export function MetaversePortalV2() {
     target: sectionRef,
     offset: ["start start", "end end"],
   });
-  const portalOpacity = useTransform(scrollYProgress, [0.82, 0.96, 1], [1, 0.48, 0]);
+  const portalOpacity = useTransform(scrollYProgress, [0.86, 0.98, 1], [1, 0.42, 0]);
 
   return (
     <section
       ref={sectionRef}
-      className="relative z-10 -mb-[26vh] h-[180vh] border-t border-border md:-mb-[38vh] md:h-[320vh]"
+      className="relative z-20 -mb-[56vh] h-[180vh] border-t border-border md:-mb-[60vh] md:h-[320vh]"
     >
       <motion.div
         style={{ opacity: portalOpacity }}
