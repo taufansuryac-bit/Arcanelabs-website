@@ -7,23 +7,26 @@ const source = await readFile(
   "utf8",
 );
 
-test("dimension scene defines three configurable depth phrases", () => {
+test("dimension scene uses the approved cinematic ENTER THE FIELD phrase", () => {
   assert.match(source, /DIMENSION_PHRASES/);
-  assert.match(source, /ENTER THE ARCANE FIELD/);
-  assert.match(source, /PIXELS BECOME SPACE/);
-  assert.match(source, /BUILD BEYOND THE FRAME/);
+  assert.match(source, /ENTER THE FIELD/);
+  assert.match(source, /ARCANE \/\/ SIGNAL/);
+  assert.doesNotMatch(source, /ENTER THE ARCANE FIELD/);
+  assert.doesNotMatch(source, /PIXELS BECOME SPACE/);
+  assert.doesNotMatch(source, /BUILD BEYOND THE FRAME/);
 });
 
-test("phrases move through scene depth instead of being full-screen DOM overlays", () => {
-  assert.match(source, /Text3D|<Text/);
+test("phrase moves through scene depth instead of being a full-screen DOM overlay", () => {
+  assert.match(source, /<Text|<SafeText/);
   assert.match(source, /phraseDepth/);
   assert.match(source, /phraseOpacity/);
   assert.match(source, /phraseScale/);
   assert.doesNotMatch(source, /PortalPhrase/);
 });
 
-test("phrase transitions overlap using fade-out and fade-in windows", () => {
+test("phrase reveal keeps a long premium hold between fade-in and fade-out", () => {
   assert.match(source, /phraseWindow/);
   assert.match(source, /fadeIn/);
   assert.match(source, /fadeOut/);
+  assert.match(source, /phraseWindow - 0\.82/);
 });

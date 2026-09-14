@@ -39,6 +39,8 @@ type VoxelData = {
 
 type DimensionPhrase = {
   text: string;
+  kicker: string;
+  ghost: string;
   start: number;
   end: number;
   depthFrom: number;
@@ -47,25 +49,13 @@ type DimensionPhrase = {
 
 export const DIMENSION_PHRASES: DimensionPhrase[] = [
   {
-    text: "ENTER THE ARCANE FIELD",
-    start: 0.28,
-    end: 0.43,
-    depthFrom: -34,
-    depthTo: 6,
-  },
-  {
-    text: "PIXELS BECOME SPACE",
-    start: 0.45,
-    end: 0.6,
-    depthFrom: -40,
-    depthTo: 7,
-  },
-  {
-    text: "BUILD BEYOND THE FRAME",
-    start: 0.62,
-    end: 0.78,
-    depthFrom: -46,
-    depthTo: 8,
+    text: "ENTER THE FIELD",
+    kicker: "ARCANE // SIGNAL",
+    ghost: "ARCANE",
+    start: 0.3,
+    end: 0.82,
+    depthFrom: -28,
+    depthTo: 5,
   },
 ];
 
@@ -223,50 +213,81 @@ function SafeText(props: React.ComponentProps<typeof Text>) {
   return <Text {...(cleanProps as unknown as React.ComponentProps<typeof Text>)} />;
 }
 
-/** Pixelate-futuristic galaxy phrase card rendered inside the 3D canvas. */
+type TroikaTextMesh = THREE.Mesh & { fillOpacity?: number };
+
+/** Premium cinematic phrase rendered as a layered object inside the voxel field. */
 function DimensionalPhrase({
   phrase,
   sceneProgress,
+  dark,
 }: {
   phrase: DimensionPhrase;
   sceneProgress: React.MutableRefObject<number>;
+  dark: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
-  const textMesh = useRef<(THREE.Mesh & { fillOpacity?: number }) | null>(null);
+  const mainText = useRef<TroikaTextMesh | null>(null);
+  const kickerText = useRef<TroikaTextMesh | null>(null);
+  const ghostText = useRef<TroikaTextMesh | null>(null);
 
-  useFrame(() => {
+  useFrame((state) => {
     const groupObject = group.current;
-    const textObject = textMesh.current;
-    if (!groupObject || !textObject) return;
+    const mainObject = mainText.current;
+    const kickerObject = kickerText.current;
+    const ghostObject = ghostText.current;
+    if (!groupObject || !mainObject || !kickerObject || !ghostObject) return;
 
     const phraseWindow = clamp01(
       (sceneProgress.current - phrase.start) / (phrase.end - phrase.start),
     );
-    const fadeIn = smoother(clamp01(phraseWindow / 0.22));
-    const fadeOut = smoother(clamp01((phraseWindow - 0.72) / 0.28));
+    const fadeIn = smoother(clamp01(phraseWindow / 0.18));
+    const fadeOut = smoother(clamp01((phraseWindow - 0.82) / 0.18));
     const phraseOpacity = fadeIn * (1 - fadeOut);
-    const travel = smoother(phraseWindow);
+    const travel = smoother(clamp01(phraseWindow / 0.72));
     const phraseDepth = THREE.MathUtils.lerp(phrase.depthFrom, phrase.depthTo, travel);
-    const phraseScale = THREE.MathUtils.lerp(0.78, 1.12, travel);
+    const phraseScale = THREE.MathUtils.lerp(0.84, 1.04, travel);
+    const pointerX = state.pointer.x * 0.72 * phraseOpacity;
+    const pointerY = state.pointer.y * 0.36 * phraseOpacity;
 
     groupObject.visible = phraseOpacity > 0.002;
-    groupObject.position.set(0, THREE.MathUtils.lerp(0.5, -0.2, travel), phraseDepth);
+    groupObject.position.set(
+      pointerX,
+      THREE.MathUtils.lerp(0.65, -0.15, travel) + pointerY,
+      phraseDepth,
+    );
+    groupObject.rotation.x = -state.pointer.y * 0.012 * phraseOpacity;
+    groupObject.rotation.y = state.pointer.x * 0.018 * phraseOpacity;
     groupObject.scale.setScalar(phraseScale);
 
-    // fillOpacity: satu-satunya prop Troika yang aman untuk direct mutation
-    if (textObject.fillOpacity !== phraseOpacity) {
-      textObject.fillOpacity = phraseOpacity;
-    }
+    mainObject.fillOpacity = phraseOpacity;
+    kickerObject.fillOpacity = phraseOpacity * 0.84;
+    ghostObject.fillOpacity = phraseOpacity * 0.055;
   });
+
+  const primary = dark ? "#f2f4f7" : "#171a1f";
 
   return (
     <group ref={group}>
       <SafeText
-        ref={textMesh}
-        color="#9cff45"
-        fontSize={5.0}
-        letterSpacing={0.06}
-        maxWidth={68}
+        ref={ghostText}
+        color={primary}
+        fontSize={10.6}
+        letterSpacing={0.17}
+        maxWidth={84}
+        textAlign="center"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, -0.25, -2.8]}
+        fillOpacity={0}
+      >
+        {phrase.ghost}
+      </SafeText>
+      <SafeText
+        ref={mainText}
+        color={primary}
+        fontSize={5.8}
+        letterSpacing={0.035}
+        maxWidth={62}
         textAlign="center"
         anchorX="center"
         anchorY="middle"
@@ -274,15 +295,44 @@ function DimensionalPhrase({
       >
         {phrase.text}
       </SafeText>
+      <SafeText
+        ref={kickerText}
+        color="#b7e36d"
+        fontSize={0.86}
+        letterSpacing={0.3}
+        maxWidth={40}
+        textAlign="center"
+        anchorX="center"
+        anchorY="middle"
+        position={[0, 4.8, 0.2]}
+        fillOpacity={0}
+      >
+        {phrase.kicker}
+      </SafeText>
+      <mesh position={[0, -4.5, 0.15]}>
+        <planeGeometry args={[8.6, 0.07]} />
+        <meshBasicMaterial color="#b7e36d" transparent opacity={0.72} />
+      </mesh>
     </group>
   );
 }
 
-function DimensionalPhrases({ sceneProgress }: { sceneProgress: React.MutableRefObject<number> }) {
+function DimensionalPhrases({
+  sceneProgress,
+  dark,
+}: {
+  sceneProgress: React.MutableRefObject<number>;
+  dark: boolean;
+}) {
   return (
     <>
       {DIMENSION_PHRASES.map((phrase) => (
-        <DimensionalPhrase key={phrase.text} phrase={phrase} sceneProgress={sceneProgress} />
+        <DimensionalPhrase
+          key={phrase.text}
+          phrase={phrase}
+          sceneProgress={sceneProgress}
+          dark={dark}
+        />
       ))}
     </>
   );
@@ -308,6 +358,10 @@ function UnifiedScene({
   const logoTiltY = useRef(0);
   const cameraParallaxX = useRef(0);
   const cameraParallaxY = useRef(0);
+  const cameraLookX = useRef(0);
+  const cameraLookY = useRef(0);
+  const cameraRoll = useRef(0);
+  const pointerPresence = useRef(0);
   const { camera, size } = useThree();
   const fitDistance = useRef(90);
   const origin = useMemo(() => new THREE.Vector3(0, 0, 0), []);
@@ -335,10 +389,11 @@ function UnifiedScene({
     const reassemble = phase(p, 0.74, 0.96);
     const settle = phase(p, 0.94, 1);
     const fieldAmount = fracture * (1 - reassemble);
+    const textPresence = phase(p, 0.3, 0.4) * (1 - phase(p, 0.72, 0.84));
 
     const stableInteraction = 1 - phase(p, 0.14, 0.34);
     const rebuiltInteraction = phase(p, 0.88, 0.985);
-    const fieldInteraction = phase(p, 0.32, 0.52) * (1 - phase(p, 0.78, 0.94));
+    const fieldInteraction = phase(p, 0.26, 0.42) * (1 - phase(p, 0.8, 0.96));
     const interactionBlend = clamp01(stableInteraction + rebuiltInteraction);
     const pointerFracture = interactionBlend * (pointerInside.current ? 1 : 0);
 
@@ -361,23 +416,40 @@ function UnifiedScene({
     current.rotation.x = logoTiltX.current;
     current.rotation.y = logoTiltY.current;
 
-    const cameraTargetX = state.pointer.x * 3.4 * fieldInteraction;
-    const cameraTargetY = state.pointer.y * 2.15 * fieldInteraction;
-    cameraParallaxX.current += (cameraTargetX - cameraParallaxX.current) * pointerResponse;
-    cameraParallaxY.current += (cameraTargetY - cameraParallaxY.current) * pointerResponse;
+    const cameraResponse = 1 - Math.exp(-Math.min(delta, 0.05) * 5.6);
+    const pointerMagnitude = pointerInside.current
+      ? clamp01(Math.hypot(state.pointer.x, state.pointer.y) * 1.15 + 0.12)
+      : 0;
+    pointerPresence.current += (pointerMagnitude - pointerPresence.current) * cameraResponse;
+
+    const cameraTargetX = state.pointer.x * 7.2 * fieldInteraction;
+    const cameraTargetY = state.pointer.y * 4.6 * fieldInteraction;
+    const lookTargetX = state.pointer.x * 9.2 * fieldInteraction;
+    const lookTargetY = state.pointer.y * 5.7 * fieldInteraction;
+    const rollTarget = -state.pointer.x * 0.018 * fieldInteraction;
+    cameraParallaxX.current += (cameraTargetX - cameraParallaxX.current) * cameraResponse;
+    cameraParallaxY.current += (cameraTargetY - cameraParallaxY.current) * cameraResponse;
+    cameraLookX.current += (lookTargetX - cameraLookX.current) * cameraResponse;
+    cameraLookY.current += (lookTargetY - cameraLookY.current) * cameraResponse;
+    cameraRoll.current += (rollTarget - cameraRoll.current) * cameraResponse;
 
     const fit = fitDistance.current;
     const approachZ = THREE.MathUtils.lerp(fit * 1.08, fit * 0.7, approach);
     const travelZ = THREE.MathUtils.lerp(approachZ, fit * 0.54, travel * (1 - reassemble));
     const cameraZ = THREE.MathUtils.lerp(travelZ, fit * 0.96, reassemble);
-    const ambientDrift = fieldAmount * 0.42;
+    const ambientDrift = fieldAmount * 0.66 * (1 - pointerPresence.current * 0.9);
     camera.position.set(
       cameraParallaxX.current + Math.sin(state.clock.elapsedTime * 0.22) * ambientDrift,
       cameraParallaxY.current + Math.cos(state.clock.elapsedTime * 0.19) * ambientDrift * 0.55,
-      cameraZ,
+      cameraZ + state.pointer.y * 0.85 * fieldInteraction,
     );
-    lookTarget.set(cameraParallaxX.current * 0.18, cameraParallaxY.current * 0.14, 0);
+    lookTarget.set(
+      cameraLookX.current + Math.sin(state.clock.elapsedTime * 0.17) * ambientDrift * 0.2,
+      cameraLookY.current + Math.cos(state.clock.elapsedTime * 0.15) * ambientDrift * 0.12,
+      -11 * fieldInteraction,
+    );
     camera.lookAt(fieldInteraction > 0.001 ? lookTarget : origin);
+    camera.rotation.z += cameraRoll.current;
 
     const time = state.clock.elapsedTime;
     const travelDistance = travel * 125;
@@ -413,13 +485,23 @@ function UnifiedScene({
       const fieldY = voxel.field.x * sinSwirl + voxel.field.y * cosSwirl;
       const fieldZ = voxel.field.z + travelDistance * (0.72 + voxel.rand * 0.5);
 
+      const textClearance = textPresence * fieldAmount;
+      const clearanceX = Math.max(0, 1 - Math.abs(fieldX) / 35);
+      const clearanceY = Math.max(0, 1 - Math.abs(fieldY) / 9.5);
+      const clearance = smoother(clearanceX * clearanceY) * textClearance;
+      const clearanceDirectionX = fieldX === 0 ? Math.sign(voxel.seed.x || 1) : Math.sign(fieldX);
+      const clearanceDirectionY = fieldY === 0 ? Math.sign(voxel.seed.y || 1) : Math.sign(fieldY);
+      const clearedFieldX = fieldX + clearanceDirectionX * clearance * 4.2;
+      const clearedFieldY = fieldY + clearanceDirectionY * clearance * 10.5;
+      const clearedFieldZ = fieldZ - clearance * 5.5;
+
       const unstableX = voxel.base.x + orbitX + localX + voxel.seed.x * fracture * 0.8;
       const unstableY = voxel.base.y + orbitY + localY + voxel.seed.y * fracture * 0.8;
       const unstableZ = voxel.base.z + orbitZ + localZ + voxel.seed.z * fracture * 1.15;
 
-      const dimensionalX = THREE.MathUtils.lerp(unstableX, fieldX, fieldAmount);
-      const dimensionalY = THREE.MathUtils.lerp(unstableY, fieldY, fieldAmount);
-      const dimensionalZ = THREE.MathUtils.lerp(unstableZ, fieldZ, fieldAmount);
+      const dimensionalX = THREE.MathUtils.lerp(unstableX, clearedFieldX, fieldAmount);
+      const dimensionalY = THREE.MathUtils.lerp(unstableY, clearedFieldY, fieldAmount);
+      const dimensionalZ = THREE.MathUtils.lerp(unstableZ, clearedFieldZ, fieldAmount);
 
       const x = THREE.MathUtils.lerp(dimensionalX, voxel.base.x, reassemble);
       const y = THREE.MathUtils.lerp(dimensionalY, voxel.base.y, reassemble);
@@ -475,6 +557,7 @@ export function UnifiedVoxelDimensionScene({
   const pointerInside = useRef(false);
   const [active, setActive] = useState(false);
   const [appReady, setAppReady] = useState(hasSeenLoader);
+  const [dark, setDark] = useState(false);
 
   const data = useLogoVoxels("/arcane-logo-black.svg");
 
@@ -491,6 +574,15 @@ export function UnifiedVoxelDimensionScene({
   useEffect(() => {
     setReducedMotion(prefersReducedMotion());
     return observeReducedMotion(setReducedMotion);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const syncTheme = () => setDark(root.classList.contains("dark"));
+    syncTheme();
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -553,6 +645,8 @@ export function UnifiedVoxelDimensionScene({
             camera={{ position: [0, 0, 90], fov: 45, near: 0.1, far: 700 }}
             dpr={1}
             frameloop={active && !reducedMotion ? "always" : "never"}
+            eventSource={containerRef.current!}
+            eventPrefix="client"
             gl={{
               alpha: true,
               antialias: false,
@@ -570,7 +664,7 @@ export function UnifiedVoxelDimensionScene({
                 pointerInside={pointerInside}
               />
             )}
-            <DimensionalPhrases sceneProgress={sceneProgress} />
+            <DimensionalPhrases sceneProgress={sceneProgress} dark={dark} />
           </Canvas>
         </WebGLCrashBoundary>
       )}
