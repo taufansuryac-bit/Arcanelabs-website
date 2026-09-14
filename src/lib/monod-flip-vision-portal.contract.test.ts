@@ -81,9 +81,10 @@ test("kinetic fabric background keeps the supplied mesh and pointer physics with
 test("portal handoff reaches a full footer viewport with no empty band", () => {
   assert.match(portalSource, /h-\[180vh\]/);
   assert.match(portalSource, /md:h-\[320vh\]/);
-  assert.match(portalSource, /-mb-\[56vh\]/);
-  assert.match(portalSource, /md:-mb-\[60vh\]/);
-  assert.match(portalSource, /\[0\.86, 0\.98, 1\]/);
+  assert.match(portalSource, /-mb-\[64vh\]/);
+  assert.match(portalSource, /md:-mb-\[68vh\]/);
+  assert.match(portalSource, /\[0\.9, 0\.965, 0\.995, 1\]/);
+  assert.match(portalSource, /\[overflow-anchor:none\]/);
   assert.doesNotMatch(portalSource, /md:h-\[430vh\]/);
   assert.match(homeSource, /z-10 -mt-\[44vh\]/);
   assert.match(homeSource, /md:-mt-\[40vh\]/);
