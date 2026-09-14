@@ -13,15 +13,29 @@ async function readSource(relativeUrl: string) {
 const portal = await readSource("../components/MetaversePortalV2.tsx");
 const particleScene = await readSource("../components/ParticleDimensionScene.tsx");
 
-test("portal uses the cleaner GPU point-particle engine from the particle prototype", () => {
+test("portal uses a hybrid volumetric field instead of a point-only dust cloud", () => {
   assert.match(portal, /ParticleDimensionScene/);
-  assert.doesNotMatch(portal, /UnifiedVoxelDimensionScene/);
+  assert.match(particleScene, /THREE\.InstancedMesh/);
+  assert.match(particleScene, /THREE\.BoxGeometry/);
+  assert.match(particleScene, /THREE\.MeshStandardMaterial/);
   assert.match(particleScene, /THREE\.Points/);
-  assert.match(particleScene, /THREE\.ShaderMaterial/);
-  assert.match(particleScene, /curlNoise/);
-  assert.match(particleScene, /uProgress/);
-  assert.match(particleScene, /uMouse/);
+  assert.match(particleScene, /CORE_FRAGMENT_SHARE/);
+  assert.match(particleScene, /LOGO_DEPTH/);
+  assert.match(particleScene, /FOREGROUND_FRAGMENT_SHARE/);
   assert.match(particleScene, /progress\.on\("change"/);
+});
+
+test("volumetric core keeps meaningful z depth and foreground fragments", () => {
+  assert.match(particleScene, /LOGO_DEPTH\s*=\s*1\.[4-9]/);
+  assert.match(particleScene, /FOREGROUND_FRAGMENT_SHARE\s*=\s*0\.[12]/);
+  assert.match(particleScene, /nearCameraZ/);
+  assert.match(particleScene, /coreMesh\.setMatrixAt/);
+});
+
+test("micro debris remains an accent rather than the primary visual mass", () => {
+  assert.match(particleScene, /DEBRIS_SHARE\s*=\s*0\.2/);
+  assert.match(particleScene, /debrisPoints/);
+  assert.match(particleScene, /PointsMaterial/);
 });
 
 test("three branded messages crossfade without opening and closing the particle tunnel", () => {
