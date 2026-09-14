@@ -43,10 +43,7 @@ export function PartnerFlipGrid() {
           const shouldFlip = inView && !prefersReducedMotion;
 
           return (
-            <div
-              key={partner.name}
-              className="relative bg-background [perspective:1400px]"
-            >
+            <div key={partner.name} className="relative bg-background [perspective:1400px]">
               <motion.div
                 initial={false}
                 animate={
