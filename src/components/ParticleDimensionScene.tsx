@@ -185,9 +185,8 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       for (let index = 0; index < coreCount; index += 1) {
         const sourcePosition = Math.floor((index / coreCount) * logoPoints.length);
         const jitter = Math.floor((seeded(index * 2.71 + 5.2) - 0.5) * 11);
-        const point = logoPoints[
-          Math.max(0, Math.min(logoPoints.length - 1, sourcePosition + jitter))
-        ];
+        const point =
+          logoPoints[Math.max(0, Math.min(logoPoints.length - 1, sourcePosition + jitter))];
         if (!point) continue;
 
         const base = index * 3;
@@ -317,8 +316,7 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       const travelDistance = forwardTravel * (mobile ? 90 : 116);
       const interactionRadius = mobile ? 1.8 : 2.65;
       const pointerTarget = pointer.lengthSq() > 0.0001 ? 1 : 0;
-      pointerPresence +=
-        (pointerTarget - pointerPresence) * (1 - Math.exp(-delta * 7.5));
+      pointerPresence += (pointerTarget - pointerPresence) * (1 - Math.exp(-delta * 7.5));
 
       if (coreMesh && coreMaterial) {
         for (let index = 0; index < coreCount; index += 1) {
@@ -391,14 +389,14 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
               valueAt(debrisLogo, base + 1),
               valueAt(debrisTunnel, base + 1),
               morph,
-            ) + Math.cos(time * 0.77 + phase) * 0.055 * morph;
+            ) +
+            Math.cos(time * 0.77 + phase) * 0.055 * morph;
           positions[base + 2] =
             THREE.MathUtils.lerp(valueAt(debrisLogo, base + 2), tunnelZ, morph) +
             exitProgress * 5.8;
         }
         attribute.needsUpdate = true;
-        debrisMaterial.opacity =
-          (dark ? 0.48 : 0.34) * (1 - smoothstep01((p - 0.88) / 0.12));
+        debrisMaterial.opacity = (dark ? 0.48 : 0.34) * (1 - smoothstep01((p - 0.88) / 0.12));
       }
 
       const pointerMagnitude = Math.min(1, pointer.length());
