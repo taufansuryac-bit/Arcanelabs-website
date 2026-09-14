@@ -505,16 +505,19 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
     });
     resizeObserver.observe(container);
 
-    const intersectionObserver = new IntersectionObserver((entries) => {
-      const entry = entries[0];
-      inViewport = entry ? entry.isIntersecting : true;
-      if (isRunning()) {
-        lastFrame = performance.now();
-        schedule(animate);
-      } else {
-        cancelAnimationFrame(raf);
-      }
-    }, { rootMargin: "220px 0px" });
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        inViewport = entry ? entry.isIntersecting : true;
+        if (isRunning()) {
+          lastFrame = performance.now();
+          schedule(animate);
+        } else {
+          cancelAnimationFrame(raf);
+        }
+      },
+      { rootMargin: "220px 0px" },
+    );
     intersectionObserver.observe(container);
 
     document.addEventListener("visibilitychange", handleVisibility);
