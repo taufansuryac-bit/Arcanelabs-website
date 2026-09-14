@@ -31,7 +31,13 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
       if (reason) {
         console.warn(`[ArcaneLoader] finished via: ${reason}`);
       }
-      sessionStorage.setItem("arcane-loader-seen", "1");
+      // Storage write is best-effort — private browsing / quota errors must
+      // never prevent onComplete() from running.
+      try {
+        sessionStorage.setItem("arcane-loader-seen", "1");
+      } catch {
+        // ignore — site will re-show the loader on next visit, which is fine
+      }
       document.documentElement.style.overflow = "";
       onComplete();
       setExiting(true);
@@ -46,8 +52,15 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    /* Skip loader on return visits for snappier repeat navigation. */
-    if (sessionStorage.getItem("arcane-loader-seen") === "1") {
+    /* Skip loader on return visits for snappier repeat navigation.
+       Read is also wrapped — storage can throw in sandboxed iframes. */
+    let alreadySeen = false;
+    try {
+      alreadySeen = sessionStorage.getItem("arcane-loader-seen") === "1";
+    } catch {
+      // ignore — just show the loader
+    }
+    if (alreadySeen) {
       completedRef.current = true;
       setVisible(false);
       onComplete();
