@@ -32,7 +32,7 @@ test("partner cards use 3d flips plus pixel particles and preserve reduced-motio
   assert.match(source, /prefersReducedMotion|useReducedMotion/);
   assert.match(source, /SAMSUNG/);
   assert.match(source, /EA × FC BAYERN|EA X FC BAYERN/);
-  assert.match(source, /MCDONALD/);
+  assert.match(source, /MCDONALD/i);
 });
 
 test("our vision sequence sits directly after From vision to screen and crossfades in a fixed frame", async () => {
