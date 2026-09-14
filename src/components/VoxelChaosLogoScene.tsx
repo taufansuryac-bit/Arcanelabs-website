@@ -23,6 +23,8 @@ type VoxelChaosLogoSceneProps = {
   className?: string;
   durationMs?: number;
   onComplete?: () => void;
+  /** Called when WebGL context cannot be acquired, so parent can show a CSS fallback. */
+  onError?: () => void;
   interactive?: boolean;
 };
 
@@ -345,12 +347,14 @@ export function VoxelChaosLogoScene({
   className = "",
   durationMs = 1900,
   onComplete,
+  onError,
   interactive = true,
 }: VoxelChaosLogoSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef(0);
   const completeRef = useRef(false);
   const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
   const hoverChaos = useRef(0);
   const hovering = useRef(false);
   const sceneState = useRef<SceneState>({ globalChaos: mode === "loader" ? 1.08 : 0, opacity: 1 });
@@ -360,6 +364,10 @@ export function VoxelChaosLogoScene({
   useEffect(() => {
     onCompleteRef.current = onComplete;
   }, [onComplete]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   useEffect(() => {
     if (!progress) return;
@@ -415,6 +423,13 @@ export function VoxelChaosLogoScene({
         dpr={[1, 1.5]}
         frameloop={active ? "always" : "never"}
         gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+        onCreated={({ gl }) => {
+          gl.domElement.addEventListener(
+            "webglcontextlost",
+            () => onErrorRef.current?.(),
+            { once: true },
+          );
+        }}
       >
         <ambientLight intensity={0.5} />
         <directionalLight position={[30, 40, 50]} intensity={2.2} />
