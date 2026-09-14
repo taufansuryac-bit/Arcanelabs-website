@@ -14,7 +14,6 @@ const footer = await readFile(
   new URL("../components/ArcaneFooterField.tsx", import.meta.url),
   "utf8",
 );
-const index = await readFile(new URL("../routes/index.tsx", import.meta.url), "utf8");
 
 test("three tunnel phrases crossfade independently without a particle aperture animation", () => {
   assert.match(portal, /WE BUILD WEBSITES/);
@@ -45,7 +44,7 @@ test("portal exits only forward and dissolves into the footer", () => {
 
 test("footer begins one viewport before portal layout ends so there is no blank scroll gap", () => {
   assert.match(portal, /md:h-\[560vh\]/);
-  assert.match(index, /-mt-\[100svh\]/);
-  assert.match(index, /md:-mt-\[100vh\]/);
+  assert.match(portal, /-mb-\[100svh\]/);
+  assert.match(portal, /md:-mb-\[100vh\]/);
   assert.match(footer, /transparent_0%,black_18%,black_100%/);
 });
