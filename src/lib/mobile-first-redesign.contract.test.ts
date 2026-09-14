@@ -44,7 +44,9 @@ test("identity preserves the floating constellation on mobile with responsive ge
 test("project carousel keeps the 3D ring on mobile with compact touch geometry", () => {
   assert.match(carouselSource, /enchanted-ring-stage/);
   assert.match(carouselSource, /touch-pan-y/);
-  assert.match(carouselSource, /--carousel-radius: clamp\(260px, 78vw, 330px\)/);
+  assert.match(carouselSource, /@media \(max-width: 420px\)/);
+  assert.match(carouselSource, /--carousel-radius: clamp\(188px, 54vw, 225px\)/);
+  assert.match(carouselSource, /--carousel-card-w: clamp\(96px, 28vw, 118px\)/);
   assert.doesNotMatch(carouselSource, /snap-x snap-mandatory/);
   assert.doesNotMatch(carouselSource, /if \(isMobile\)/);
 });
