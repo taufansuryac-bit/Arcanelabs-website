@@ -597,6 +597,7 @@ export function UnifiedVoxelDimensionScene({
   const targetProgress = useRef(progress.get());
   const sceneProgress = useRef(progress.get());
   const pointerInside = useRef(false);
+  const activeRef = useRef(false);
   const [active, setActive] = useState(false);
   const [appReady, setAppReady] = useState(hasSeenLoader);
   const [hasMounted, setHasMounted] = useState(false);
@@ -606,9 +607,12 @@ export function UnifiedVoxelDimensionScene({
   const data = useLogoVoxels("/arcane-logo-black.svg");
 
   useEffect(() => {
-    targetProgress.current = progress.get();
+    const currentProgress = progress.get();
+    targetProgress.current = currentProgress;
+    sceneProgress.current = currentProgress;
     return progress.on("change", (value) => {
       targetProgress.current = value;
+      if (!activeRef.current) sceneProgress.current = value;
     });
   }, [progress]);
 
@@ -632,7 +636,16 @@ export function UnifiedVoxelDimensionScene({
 
     let pageVisible = isDocumentVisible();
     let inViewport = false;
-    const sync = () => setActive(shouldAnimate(pageVisible, inViewport));
+    const sync = () => {
+      const nextActive = shouldAnimate(pageVisible, inViewport);
+      activeRef.current = nextActive;
+      if (nextActive) {
+        const currentProgress = progress.get();
+        targetProgress.current = currentProgress;
+        sceneProgress.current = currentProgress;
+      }
+      setActive(nextActive);
+    };
     const disconnectViewport = observeElementVisibility(
       container,
       (visible) => {
@@ -650,7 +663,7 @@ export function UnifiedVoxelDimensionScene({
       disconnectDocument();
       disconnectViewport();
     };
-  }, []);
+  }, [progress]);
 
   useEffect(() => {
     if (appReady) return;
