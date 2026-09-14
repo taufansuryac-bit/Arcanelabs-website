@@ -39,12 +39,7 @@ function useDarkMode() {
 
 function Terrain({ dark: _dark }: { dark: boolean }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-    }),
-    [],
-  );
+  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), []);
 
   useFrame((state) => {
     const mat = materialRef.current;
