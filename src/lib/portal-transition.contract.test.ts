@@ -12,15 +12,16 @@ test("portal logo scale grows monotonically through the approach phase", () => {
   for (let step = 1; step <= 60; step += 1) {
     const progress = step / 100;
     const current = getPortalVisualState(progress).scale;
-    assert.ok(current >= previous - 0.000001, `scale regressed at ${progress}: ${current} < ${previous}`);
+    assert.ok(
+      current >= previous - 0.000001,
+      `scale regressed at ${progress}: ${current} < ${previous}`,
+    );
     previous = current;
   }
 });
 
 test("portal fracture overlaps the still-visible logo and particle field", async () => {
-  const source = await readSource("../components/MetaversePortalV2.tsx");
-  assert.match(source, /fieldIn = smootherstep\(clamp01\(\(p - 0\.20\) \/ 0\.30\)\)/);
-  assert.match(source, /logoOpacity = useTransform\(p, \[0, 0\.42, 0\.72, 0\.9, 1\]/);
-  assert.match(source, /stiffness: 72/);
-  assert.match(source, /damping: 30/);
+  const source = await readSource("./voxel-scene-model.ts");
+  assert.match(source, /fractureIn = smoother\(\(p - 0\.42\) \/ 0\.28\)/);
+  assert.match(source, /cameraPush = smoother\(\(p - 0\.58\) \/ 0\.24\)/);
 });

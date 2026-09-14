@@ -247,9 +247,15 @@ function VoxelMesh({
       const wobble = Math.sin(time * 2 + voxel.rand * 30);
 
       dummy.position.set(
-        voxel.base.x + (dx / (distance || 1)) * push + voxel.seed.x * (localScatter + globalScatter),
-        voxel.base.y + (dy / (distance || 1)) * push + voxel.seed.y * (localScatter + globalScatter),
-        voxel.base.z + voxel.seed.z * (localScatter * 1.6 + globalScatter * 0.8) + wobble * 2.5 * chaos,
+        voxel.base.x +
+          (dx / (distance || 1)) * push +
+          voxel.seed.x * (localScatter + globalScatter),
+        voxel.base.y +
+          (dy / (distance || 1)) * push +
+          voxel.seed.y * (localScatter + globalScatter),
+        voxel.base.z +
+          voxel.seed.z * (localScatter * 1.6 + globalScatter * 0.8) +
+          wobble * 2.5 * chaos,
       );
       dummy.rotation.set(
         voxel.seed.x * (chaos * 6 + time * 0.08 * chaos),
@@ -266,7 +272,11 @@ function VoxelMesh({
   });
 
   return (
-    <instancedMesh ref={mesh} args={[undefined, undefined, data.voxels.length]} frustumCulled={false}>
+    <instancedMesh
+      ref={mesh}
+      args={[undefined, undefined, data.voxels.length]}
+      frustumCulled={false}
+    >
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial
         ref={material}
@@ -402,9 +412,9 @@ export function VoxelChaosLogoScene({
     >
       <Canvas
         camera={{ position: [0, 0, 90], fov: 45, near: 0.1, far: 600 }}
-        dpr={[1, 2]}
+        dpr={[1, 1.5]}
         frameloop={active ? "always" : "never"}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
       >
         <ambientLight intensity={0.5} />
         <directionalLight position={[30, 40, 50]} intensity={2.2} />
@@ -421,8 +431,17 @@ export function VoxelChaosLogoScene({
         {data && (
           <>
             <ResponsiveCamera data={data} />
-            <VoxelMesh data={data} hoverChaos={hoverChaos} hovering={hovering} sceneState={sceneState} />
-            <ResponsiveControls mode={mode} interactive={interactive} measuredRadius={data.measuredRadius} />
+            <VoxelMesh
+              data={data}
+              hoverChaos={hoverChaos}
+              hovering={hovering}
+              sceneState={sceneState}
+            />
+            <ResponsiveControls
+              mode={mode}
+              interactive={interactive}
+              measuredRadius={data.measuredRadius}
+            />
           </>
         )}
       </Canvas>

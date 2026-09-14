@@ -12,7 +12,7 @@ import {
 
 const RESIDUE_COUNT = 560;
 const FOOTER_TICKER =
-  "[c] ARCANE LABS CREATED BY TAUFAN SURC 2026 — THE BEGININNG OF DEVELOPER ERA — ";
+  "[c] ARCANE LABS CREATED BY TAUFAN SURC 2026 — THE BEGININNG OF DEVELOPER ERA ";
 
 function seeded(value: number) {
   const n = Math.sin(value * 127.1 + 311.7) * 43758.5453;
@@ -35,6 +35,7 @@ function useDarkMode() {
 }
 
 function Terrain({ dark }: { dark: boolean }) {
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
@@ -45,72 +46,88 @@ function Terrain({ dark }: { dark: boolean }) {
   );
 
   useEffect(() => {
-    uniforms.uLow.value.set(dark ? "#d7dddd" : "#2d3132");
-    uniforms.uHigh.value.set(dark ? "#ffffff" : "#070809");
-  }, [dark, uniforms]);
+    const mat = materialRef.current;
+    if (mat?.uniforms?.["uLow"] && mat?.uniforms?.["uHigh"]) {
+      mat.uniforms["uLow"].value.set(dark ? "#d7dddd" : "#2d3132");
+      mat.uniforms["uHigh"].value.set(dark ? "#ffffff" : "#070809");
+    }
+  }, [dark]);
 
   useFrame((state) => {
-    uniforms.uTime.value = state.clock.elapsedTime * 1.45;
+    const mat = materialRef.current;
+    if (mat?.uniforms?.["uTime"]) {
+      mat.uniforms["uTime"].value = state.clock.elapsedTime * 1.45;
+    }
   });
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4.8, -62]}>
-      <planeGeometry args={[224, 244, 164, 164]} />
+      <planeGeometry args={[320, 320, 160, 160]} />
       <shaderMaterial
+        ref={materialRef}
         uniforms={uniforms}
         wireframe
         transparent
         depthWrite={false}
         blending={dark ? THREE.AdditiveBlending : THREE.NormalBlending}
-        vertexShader={/* glsl */ `
+        vertexShader={
+          /* glsl */ `
           uniform float uTime;
           varying float vDepth;
           varying float vHeight;
+          varying vec2 vPos;
 
           float terrainWave(vec2 p) {
             float ocean = 0.0;
-            ocean += sin(p.x * 0.036 + uTime * 0.58) * 3.05;
-            ocean += sin(p.y * 0.030 - uTime * 0.46) * 2.55;
-            ocean += sin((p.x + p.y) * 0.024 + uTime * 0.37) * 1.75;
-            ocean += sin((p.x - p.y) * 0.021 - uTime * 0.31) * 1.10;
+            ocean += sin(p.x * 0.036 + uTime * 0.15) * 1.50;
+            ocean += sin(p.y * 0.030 - uTime * 0.12) * 1.20;
+            ocean += sin((p.x + p.y) * 0.024 + uTime * 0.09) * 0.85;
+            ocean += sin((p.x - p.y) * 0.021 - uTime * 0.07) * 0.45;
 
             float ripples = 0.0;
-            ripples += sin((p.x + p.y) * 0.076 - uTime * 0.52) * 0.72;
-            ripples += sin((p.x - p.y) * 0.062 + uTime * 0.43) * 0.56;
+            ripples += sin((p.x + p.y) * 0.076 - uTime * 0.18) * 0.35;
+            ripples += sin((p.x - p.y) * 0.062 + uTime * 0.14) * 0.25;
 
             float trough = pow(
-              abs(sin(p.x * 0.034 + uTime * 0.12) * sin(p.y * 0.032 - uTime * 0.10)),
+              abs(sin(p.x * 0.034 + uTime * 0.04) * sin(p.y * 0.032 - uTime * 0.03)),
               0.72
-            ) * 0.68;
+            ) * 0.38;
 
             return ocean + ripples - trough;
           }
 
           void main() {
             vec3 pos = position;
-            float breathe = 0.90 + 0.30 * sin(uTime * 0.55);
+            float breathe = 0.90 + 0.10 * sin(uTime * 0.15);
             float h = terrainWave(pos.xy) * breathe;
-            pos.z += h * 1.38;
+            pos.z += h * 0.85;
             vec4 mv = modelViewMatrix * vec4(pos, 1.0);
             vDepth = -mv.z;
             vHeight = h;
+            vPos = pos.xy;
             gl_Position = projectionMatrix * mv;
           }
-        `}
-        fragmentShader={/* glsl */ `
+        `
+        }
+        fragmentShader={
+          /* glsl */ `
           uniform vec3 uLow;
           uniform vec3 uHigh;
           varying float vDepth;
           varying float vHeight;
+          varying vec2 vPos;
 
           void main() {
             float crest = smoothstep(-2.2, 3.4, vHeight);
             vec3 color = mix(uLow, uHigh, crest);
             float depthFade = 1.0 - smoothstep(54.0, 176.0, vDepth);
+            float sideFade = smoothstep(160.0, 100.0, abs(vPos.x));
+            float backFade = smoothstep(160.0, 100.0, vPos.y);
             float horizonFade = 0.50 + crest * 0.50;
-            gl_FragColor = vec4(color, depthFade * horizonFade);
+            gl_FragColor = vec4(color, depthFade * sideFade * backFade * horizonFade);
           }
-        `}
+        `
+        }
       />
     </mesh>
   );
@@ -169,11 +186,7 @@ function ResidueVoxels({ dark }: { dark: boolean }) {
   });
 
   return (
-    <instancedMesh
-      ref={mesh}
-      args={[undefined, undefined, residues.length]}
-      frustumCulled={false}
-    >
+    <instancedMesh ref={mesh} args={[undefined, undefined, residues.length]} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial
         color={dark ? "#ffffff" : "#17191a"}
@@ -201,13 +214,13 @@ function CameraRig() {
     const ambientY = Math.sin(time * 0.11 + 1.3) * 0.28;
     const ambientLook = Math.sin(time * 0.09 + 0.6) * 0.8;
 
-    state.camera.position.x = smooth.current.x * 2.75 + ambientX;
-    state.camera.position.y = 8.0 - smooth.current.y * 1.6 + ambientY;
+    state.camera.position.x = smooth.current.x * 3.8 + ambientX;
+    state.camera.position.y = 8.0 - smooth.current.y * 2.2 + ambientY;
     state.camera.position.z = 26;
-    state.camera.rotation.z = -smooth.current.x * 0.018 + Math.sin(time * 0.08) * 0.004;
+    state.camera.rotation.z = -smooth.current.x * 0.022 + Math.sin(time * 0.08) * 0.004;
     lookTarget.set(
-      smooth.current.x * 5.4 + ambientLook,
-      3.8 - smooth.current.y * 2.05 + ambientY,
+      smooth.current.x * 6.5 + ambientLook,
+      3.8 - smooth.current.y * 3.1 + ambientY,
       -62,
     );
     state.camera.lookAt(lookTarget);
@@ -219,6 +232,10 @@ function CameraRig() {
 export function ArcaneFooterField() {
   const containerRef = useRef<HTMLElement | null>(null);
   const [active, setActive] = useState(false);
+  const [appReady, setAppReady] = useState(
+    () => typeof window !== "undefined" && sessionStorage.getItem("arcane-loader-seen") === "1",
+  );
+  const [hasMounted, setHasMounted] = useState(false);
   const dark = useDarkMode();
 
   useEffect(() => {
@@ -226,7 +243,9 @@ export function ArcaneFooterField() {
     if (!container) return;
     let pageVisible = isDocumentVisible();
     let inViewport = false;
-    const sync = () => setActive(shouldAnimate(pageVisible, inViewport));
+    const sync = () => {
+      setActive(pageVisible && inViewport);
+    };
     const disconnectViewport = observeElementVisibility(
       container,
       (visible) => {
@@ -244,6 +263,21 @@ export function ArcaneFooterField() {
       disconnectDocument();
     };
   }, []);
+
+  useEffect(() => {
+    if (appReady) return;
+    const handleReady = () => setAppReady(true);
+    window.addEventListener("arcane-app-ready", handleReady);
+    return () => window.removeEventListener("arcane-app-ready", handleReady);
+  }, [appReady]);
+
+  useEffect(() => {
+    if (appReady && active) {
+      const timer = setTimeout(() => setHasMounted(true), 800);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [appReady, active]);
 
   const background = dark ? "#020203" : "#f3f3ee";
   const primaryText = dark ? "text-[#f4f3ed]" : "text-[#101214]";
@@ -266,56 +300,52 @@ export function ArcaneFooterField() {
         data-footer-scene
         className="absolute inset-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_18%,black_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,black_18%,black_100%)]"
       >
-        <Canvas
-          camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
-          dpr={[1, 1.6]}
-          frameloop={active ? "always" : "never"}
-          gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }}
-        >
-          <color attach="background" args={[background]} />
-          <ambientLight intensity={dark ? 1.7 : 1.0} />
-          <hemisphereLight
-            args={[
-              "#ffffff",
-              dark ? "#111113" : "#9da1a0",
-              dark ? 1.35 : 0.72,
-            ]}
-          />
-          <directionalLight
-            position={[28, 36, 42]}
-            intensity={dark ? 2.45 : 1.45}
-            color="#ffffff"
-          />
-          <directionalLight
-            position={[-34, 8, 6]}
-            intensity={dark ? 1.15 : 0.45}
-            color="#ffffff"
-          />
-          <Terrain dark={dark} />
-          <ResidueVoxels dark={dark} />
-          <CameraRig />
-        </Canvas>
+        {hasMounted && (
+          <Canvas
+            camera={{ position: [0, 8.0, 26], fov: 48, near: 0.1, far: 430 }}
+            dpr={[1, 1.6]}
+            frameloop={active ? "always" : "never"}
+            gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }}
+          >
+            <color attach="background" args={[background]} />
+            <ambientLight intensity={dark ? 1.7 : 1.0} />
+            <hemisphereLight args={["#ffffff", dark ? "#111113" : "#9da1a0", dark ? 1.35 : 0.72]} />
+            <directionalLight
+              position={[28, 36, 42]}
+              intensity={dark ? 2.45 : 1.45}
+              color="#ffffff"
+            />
+            <directionalLight
+              position={[-34, 8, 6]}
+              intensity={dark ? 1.15 : 0.45}
+              color="#ffffff"
+            />
+            <Terrain dark={dark} />
+            <ResidueVoxels dark={dark} />
+            <CameraRig />
+          </Canvas>
+        )}
       </div>
 
       <motion.div
         data-footer-content
-        className="absolute inset-x-[4%] top-[17%] z-20 flex flex-col items-center md:inset-x-[6%] md:top-[16%]"
+        className="absolute inset-x-[6%] bottom-[12%] z-20 flex flex-col items-center justify-end md:inset-x-[8%] md:bottom-[10%]"
         animate={active ? { y: [0, -3, 2, 0] } : { y: 0 }}
         transition={{ duration: 11.5, repeat: Infinity, ease: "easeInOut" }}
       >
         <div
           data-footer-logo
-          className={`pointer-events-auto h-[31vh] min-h-[220px] w-full max-w-[1500px] md:h-[37vh] ${textGlow}`}
+          className={`pointer-events-auto h-[35vh] min-h-[180px] w-full max-w-[1500px] mb-6 md:h-[45vh] md:mb-10 ${textGlow}`}
         >
           <AsciiWordmark text="ARCANE LABS" cell={8} chaosStrength={1.65} />
         </div>
 
         <div
           data-footer-nav
-          className={`mt-2 w-full max-w-[1320px] text-left md:mt-3 ${textGlow}`}
+          className={`w-full max-w-[1320px] text-left ${textGlow}`}
           aria-label="Arcane Labs footer navigation and contact"
         >
-          <div className="grid grid-cols-2 gap-x-7 gap-y-7 border-t border-current/15 pt-5 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-x-12 md:pt-6">
+          <div className="grid grid-cols-1 gap-y-10 border-t border-current/20 pt-8 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:gap-x-12 md:gap-y-0 md:pt-10">
             <div>
               <p className={`label-mono mb-3 ${accentText} ${accentGlow}`}>■ CONTACT</p>
               <a
@@ -335,10 +365,18 @@ export function ArcaneFooterField() {
             <div>
               <p className={`label-mono mb-3 ${accentText} ${accentGlow}`}>■ INDEX</p>
               <div className={`space-y-2 text-xs tracking-[0.12em] md:text-sm ${primaryText}`}>
-                <a href="#works" className="block hover:opacity-70">WORKS</a>
-                <a href="#top" className="block hover:opacity-70">STUDIO</a>
-                <a href="#faq" className="block hover:opacity-70">FAQ</a>
-                <a href="#contact" className="block hover:opacity-70">CONTACT</a>
+                <a href="#works" className="block hover:opacity-70">
+                  WORKS
+                </a>
+                <a href="#top" className="block hover:opacity-70">
+                  STUDIO
+                </a>
+                <a href="#faq" className="block hover:opacity-70">
+                  FAQ
+                </a>
+                <a href="#contact" className="block hover:opacity-70">
+                  CONTACT
+                </a>
               </div>
             </div>
 
@@ -357,7 +395,9 @@ export function ArcaneFooterField() {
                 <span className="block">© 2026 ARCANE LABS</span>
                 <span className="block">CREATED BY TAUFAN SURC</span>
                 <span className={`block ${secondaryText}`}>PRIVACY / IMPRINT</span>
-                <a href="#top" className="block hover:opacity-70">:/ BACK TO TOP</a>
+                <a href="#top" className="block hover:opacity-70">
+                  :/ BACK TO TOP
+                </a>
               </div>
             </div>
           </div>
@@ -369,13 +409,14 @@ export function ArcaneFooterField() {
         className={`absolute inset-x-0 bottom-[2%] z-30 overflow-hidden border-y border-white/10 bg-black/40 py-2 backdrop-blur-[1px] ${textGlow}`}
       >
         <div className="flex w-max marquee-track">
-          {[0, 1, 2].map((key) => (
-            <span
+          {[0, 1, 2, 3].map((key) => (
+            <div
               key={key}
-              className="whitespace-nowrap px-4 font-mono text-[9px] uppercase tracking-[0.2em] text-white/80 md:text-[11px]"
+              className={`flex items-center px-4 font-mono text-[10px] uppercase tracking-[0.2em] md:px-8 md:text-xs ${key % 2 === 0 ? accentText : primaryText
+                }`}
             >
-              {FOOTER_TICKER}
-            </span>
+              {FOOTER_TICKER.repeat(2)}
+            </div>
           ))}
         </div>
       </div>

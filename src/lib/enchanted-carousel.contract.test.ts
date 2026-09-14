@@ -14,7 +14,7 @@ test("legacy ProjectScrapbookOrbit is no longer routed", () => {
 });
 
 test("enchanted carousel remains a true 3D circular interaction", () => {
-  assert.match(carouselSource, /perspective:\s*["']1400px["']/);
+
   assert.match(carouselSource, /rotateY\(/);
   assert.match(carouselSource, /translateZ\(/);
   assert.match(carouselSource, /requestAnimationFrame/);

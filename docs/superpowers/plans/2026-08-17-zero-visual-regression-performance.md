@@ -23,10 +23,12 @@
 ### Task 1: Shared animation lifecycle primitives
 
 **Files:**
+
 - Create: `src/lib/animation-runtime.ts`
 - Create: `src/lib/animation-runtime.test.ts`
 
 **Interfaces:**
+
 - Produces: `shouldAnimate(pageVisible: boolean, inViewport: boolean): boolean`
 - Produces: `isDocumentVisible(): boolean`
 - Produces: `observeElementVisibility(element: Element, onChange: (visible: boolean) => void, options?: IntersectionObserverInit): () => void`
@@ -68,10 +70,12 @@ Commit: `perf: add shared animation lifecycle runtime`
 ### Task 2: Pause `AsciiWordmark` without changing rendering
 
 **Files:**
+
 - Modify: `src/components/AsciiWordmark.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
 
 **Interfaces:**
+
 - Consumes: `observeElementVisibility`, `observeDocumentVisibility`, `shouldAnimate`.
 
 - [ ] **Step 1: Add a source contract test**
@@ -97,10 +101,12 @@ Commit: `perf: pause ascii wordmarks offscreen`
 ### Task 3: Optimize `NoiseBackground` execution only
 
 **Files:**
+
 - Modify: `src/components/NoiseBackground.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
 
 **Interfaces:**
+
 - Consumes shared document visibility runtime.
 
 - [ ] **Step 1: Add tests for hidden-page behavior contracts**
@@ -126,10 +132,12 @@ Commit: `perf: pause and reuse background canvas buffers`
 ### Task 4: Pause `MetaversePortal` when it cannot be seen
 
 **Files:**
+
 - Modify: `src/components/MetaversePortal.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
 
 **Interfaces:**
+
 - Consumes shared viewport/page visibility helpers.
 
 - [ ] **Step 1: Add portal invariants test**
@@ -155,10 +163,12 @@ Commit: `perf: pause portal rendering offscreen`
 ### Task 5: Dispose completed `PixelReveal` overlays
 
 **Files:**
+
 - Modify: `src/components/PixelReveal.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
 
 **Interfaces:**
+
 - Produces no new public API.
 
 - [ ] **Step 1: Add a source contract test**
@@ -184,6 +194,7 @@ Commit: `perf: dispose completed pixel reveal overlays`
 ### Task 6: Small correctness fixes with zero visible change
 
 **Files:**
+
 - Modify: `src/components/ui/menubar.tsx`
 - Modify: `src/components/ui/carousel.tsx`
 - Modify: `src/components/ui/chart.tsx`
@@ -213,6 +224,7 @@ Commit: `fix: harden ui runtime correctness`
 ### Task 7: Add verification gates
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Add scripts**

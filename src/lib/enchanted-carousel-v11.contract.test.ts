@@ -18,7 +18,7 @@ test("carousel uses only the global website background", () => {
 });
 
 test("Projects keeps the reduced gap into the carousel", () => {
-  assert.match(projectsSource, /pt-24 pb-8/);
-  assert.match(projectsSource, /md:pt-32 md:pb-10/);
+  assert.match(projectsSource, /pt-24 pb-0/);
+  assert.match(projectsSource, /md:pt-32 md:pb-0/);
   assert.doesNotMatch(projectsSource, /md:py-32/);
 });

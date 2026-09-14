@@ -38,7 +38,7 @@ test("portal grows the intact logo before the fracture begins", () => {
   const start = getPortalVisualState(0);
   const small = getPortalVisualState(0.12);
   const larger = getPortalVisualState(0.24);
-  const fracture = getPortalVisualState(0.34);
+  const fracture = getPortalVisualState(0.58);
 
   assert.ok(start.scale < small.scale);
   assert.ok(small.scale < larger.scale);

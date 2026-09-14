@@ -155,11 +155,11 @@ export function EnchantedProjectCarousel() {
     <div className="relative isolate w-full overflow-hidden bg-transparent">
       <style>{`
         .enchanted-carousel-stage {
-          --carousel-card-w: clamp(230px, 60vw, 300px);
-          --carousel-card-h: clamp(148px, 38vw, 194px);
-          --carousel-radius: clamp(380px, 88vw, 520px);
-          --carousel-camera-z: clamp(-700px, -92vw, -560px);
-          --carousel-perspective: 1600px;
+          --carousel-card-w: clamp(200px, 50vw, 260px);
+          --carousel-card-h: clamp(130px, 32vw, 170px);
+          --carousel-radius: clamp(340px, 90vw, 480px);
+          --carousel-camera-z: clamp(-820px, -110vw, -600px);
+          --carousel-perspective: 1200px;
           --carousel-tilt: -2deg;
         }
         @media (min-width: 768px) {

@@ -5,7 +5,8 @@
  */
 @font-face {
   font-family: "Pixellari";
-  src: url("https://raw.githubusercontent.com/zedseven/Pixellari/master/Pixellari.ttf") format("truetype");
+  src: url("https://raw.githubusercontent.com/zedseven/Pixellari/master/Pixellari.ttf")
+    format("truetype");
   font-style: normal;
   font-weight: 400;
   font-display: swap;

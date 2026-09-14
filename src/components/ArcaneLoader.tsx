@@ -36,7 +36,10 @@ export function ArcaneLoader({ onComplete }: ArcaneLoaderProps) {
     document.documentElement.style.overflow = "";
     onComplete();
     setExiting(true);
-    exitTimerRef.current = window.setTimeout(() => setVisible(false), 420);
+    exitTimerRef.current = window.setTimeout(() => {
+      setVisible(false);
+      window.dispatchEvent(new Event("arcane-app-ready"));
+    }, 420);
   }, [onComplete]);
 
   if (!visible) return null;

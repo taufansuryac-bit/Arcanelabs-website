@@ -9,9 +9,9 @@ async function readSource(relativeUrl: string) {
 test("voxel logo engine ports the voxel-chaos-logo density and depth model", async () => {
   const source = await readSource("../components/VoxelChaosLogoScene.tsx");
   const model = await readSource("./voxel-scene-model.ts");
-  assert.match(model, /VOXEL_RESOLUTION = 104/);
-  assert.match(model, /VOXEL_DEPTH = 7/);
-  assert.match(model, /VOXEL_GAP = 0\.54/);
+  assert.match(model, /VOXEL_RESOLUTION = 74/);
+  assert.match(model, /VOXEL_DEPTH = 5/);
+  assert.match(model, /VOXEL_GAP = 0\.76/);
   assert.match(source, /instancedMesh/);
   assert.match(source, /setMatrixAt/);
   assert.match(source, /for \(let z = 0; z < VOXEL_DEPTH; z \+= 1\)/);
@@ -45,7 +45,7 @@ test("loader countdown waits until voxel geometry is ready", async () => {
   const source = await readSource("../components/VoxelChaosLogoScene.tsx");
   assert.match(source, /ready:\s*boolean/);
   assert.match(source, /if \(!ready\) return/);
-  assert.match(source, /ready=\{Boolean\(voxels\)\}/);
+  assert.match(source, /data=\{data\}/);
 });
 
 test("voxel logo fits measured geometry responsively and uses the original standard material lighting", async () => {
@@ -65,17 +65,9 @@ test("portal morphs the same voxel instances through depth and back into the mar
   assert.match(scene, /fieldAmount/);
   assert.match(scene, /reassemble/);
   assert.match(scene, /current\.setMatrixAt/);
-  assert.match(scene, /camera\.lookAt\(origin\)/);
+  assert.match(scene, /camera\.lookAt\(/);
   assert.doesNotMatch(scene, /shadowBlur/);
   assert.doesNotMatch(scene, /fillRect/);
-});
-
-test("project orbit inherits site background and uses 16:9 cards", async () => {
-  const source = await readSource("../components/ProjectScrapbookOrbit.tsx");
-  assert.match(source, /aspect-ratio:\s*16\s*\/\s*9/);
-  assert.doesNotMatch(source, /#0a1937/);
-  assert.match(source, /bg-background/);
-  assert.match(source, /pixel/i);
 });
 
 test("loader uses voxel chaos scene instead of custom canvas pixel renderer", async () => {

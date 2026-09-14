@@ -65,8 +65,10 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1.3 }
       canvas.height = Math.round(ch * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      cellW = cell;
-      cellH = cell * 1.55;
+      const minColsNeeded = text.length * 6; // Rough estimate of columns needed for legible text
+      const maxCellWForText = Math.floor(cw / minColsNeeded);
+      cellW = Math.min(cell, Math.max(2, maxCellWForText));
+      cellH = cellW * 1.55;
       cols = Math.max(24, Math.floor(cw / cellW));
       rows = Math.max(8, Math.floor(ch / cellH));
 
@@ -151,9 +153,7 @@ export function AsciiWordmark({ text, className, cell = 8, chaosStrength = 1.3 }
             const n = hash(x, y);
             const wob = chaos * 3.8;
             const sx =
-              x +
-              Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob +
-              (dx / radius) * chaos * 2.65;
+              x + Math.sin(time * 2.1 + y * 0.42 + n * 6.28) * wob + (dx / radius) * chaos * 2.65;
             const sy =
               y +
               Math.cos(time * 1.7 + x * 0.33 + n * 6.28) * wob * 0.48 +

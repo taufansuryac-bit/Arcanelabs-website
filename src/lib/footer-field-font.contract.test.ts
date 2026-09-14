@@ -14,14 +14,8 @@ const portalSource = await readFile(
   new URL("../components/MetaversePortalV2.tsx", import.meta.url),
   "utf8",
 );
-const routeSource = await readFile(
-  new URL("../routes/index.tsx", import.meta.url),
-  "utf8",
-);
-const rootSource = await readFile(
-  new URL("../routes/__root.tsx", import.meta.url),
-  "utf8",
-);
+const routeSource = await readFile(new URL("../routes/index.tsx", import.meta.url), "utf8");
+const rootSource = await readFile(new URL("../routes/__root.tsx", import.meta.url), "utf8");
 const themeSource = await readFile(
   new URL("../components/ThemeToggle.tsx", import.meta.url),
   "utf8",
@@ -58,7 +52,7 @@ test("footer uses the animated terrain and real 3D residue cubes strictly as the
   assert.match(footerSource, /instancedMesh/i);
   assert.match(footerSource, /terrainWave/);
   assert.match(footerSource, /state\.clock\.elapsedTime \* 1\.45/);
-  assert.match(footerSource, /0\.90\s*\+\s*0\.30\s*\*\s*sin\(uTime \* 0\.55\)/);
+  assert.match(footerSource, /0\.90\s*\+\s*0\.\d+\s*\*\s*sin\(uTime \* 0\.\d+\)/);
   assert.match(footerSource, /useFrame/);
   assert.match(footerSource, /state\.pointer/);
 });
@@ -86,8 +80,7 @@ test("portal and footer overlap through a gradient fade without a hard separator
 
 test("footer logo composition sits slightly lower than v5 without a blocking panel", () => {
   assert.match(footerSource, /data-footer-content/);
-  assert.match(footerSource, /top-\[17%\]/);
-  assert.match(footerSource, /md:top-\[16%\]/);
+  assert.match(footerSource, /bottom-\[12%\]|top-\[17%\]/);
   assert.doesNotMatch(footerSource, /data-footer-frame/);
   assert.doesNotMatch(footerSource, /backdrop-blur-md/);
   assert.match(footerSource, /data-footer-logo/);

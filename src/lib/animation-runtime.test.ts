@@ -115,28 +115,11 @@ test("VoxelArcaneLogo remains real WebGL2 instanced 3D", async () => {
 
 test("MetaversePortalV2 uses a restrained square-depth particle field", async () => {
   const source = await readSource("../components/MetaversePortalV2.tsx");
-  assert.match(source, /VoxelChaosLogoScene/);
-  assert.match(source, /SquareDepthField/);
-  assert.match(source, /observeElementVisibility/);
-  assert.match(source, /observeDocumentVisibility/);
-  assert.match(source, /const PARTICLE_COUNT =/);
-  assert.match(source, /particleSize/);
-  assert.match(source, /h-\[620vh\]/);
+  assert.match(source, /UnifiedVoxelDimensionScene/);
   assert.doesNotMatch(source, /shockwave/);
   assert.doesNotMatch(source, /turbulence/);
   assert.doesNotMatch(source, /nestedFrames/);
   assert.doesNotMatch(source, /drawFrameCorners/);
-});
-
-test("ProjectScrapbookOrbit provides a large rotating project screenshot ride", async () => {
-  const source = await readSource("../components/ProjectScrapbookOrbit.tsx");
-  assert.match(source, /PROJECTS/);
-  assert.match(source, /preserve-3d/);
-  assert.match(source, /rotateY/);
-  assert.match(source, /translateZ/);
-  assert.match(source, /requestAnimationFrame/);
-  assert.match(source, /onPointerDown/);
-  assert.match(source, /aspect-ratio:16\/9/);
 });
 
 test("index mounts the redesign v2.2 experience components", async () => {
@@ -145,7 +128,7 @@ test("index mounts the redesign v2.2 experience components", async () => {
   assert.match(source, /SectionPixelReveal/);
   assert.match(source, /InteractiveTicker/);
   assert.match(source, /IdentityConstellation/);
-  assert.match(source, /ProjectScrapbookOrbit/);
+  assert.match(source, /EnchantedProjectCarousel/);
   assert.match(source, /MetaversePortalV2/);
   assert.doesNotMatch(source, /<MetaversePortal \/>/);
 });

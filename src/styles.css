@@ -197,7 +197,6 @@
   --color-neon: var(--neon);
 }
 
-
 html {
   scroll-behavior: smooth;
 }
@@ -210,11 +209,10 @@ body {
 
 /* fine dot matrix, like a CRT pixel grid */
 @utility bg-grid {
-  background-image:
-    radial-gradient(
-      color-mix(in oklab, var(--foreground) 9%, transparent) 0.5px,
-      transparent 0.5px
-    );
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--foreground) 9%, transparent) 0.5px,
+    transparent 0.5px
+  );
   background-size: 7px 7px;
   background-position: 0 0;
 }
@@ -240,8 +238,12 @@ body {
 }
 
 @keyframes marquee-x {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @utility marquee-track {
@@ -250,11 +252,21 @@ body {
 }
 
 @keyframes flicker-in {
-  0% { opacity: 0; }
-  20% { opacity: 0.4; }
-  30% { opacity: 0.1; }
-  60% { opacity: 0.85; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.4;
+  }
+  30% {
+    opacity: 0.1;
+  }
+  60% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @utility flicker-in {

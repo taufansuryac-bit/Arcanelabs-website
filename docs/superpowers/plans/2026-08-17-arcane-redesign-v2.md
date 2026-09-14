@@ -9,6 +9,7 @@
 **Tech Stack:** React 19, TanStack Start, Motion, Canvas 2D, TypeScript, Tailwind CSS 4.
 
 ## Global Constraints
+
 - Work only on `feature/arcane-redesign-v2`.
 - `main` remains untouched.
 - Dark/light theme parity is required.
@@ -23,6 +24,7 @@
 ### Task 1: First-party logo assets and runtime component
 
 **Files:**
+
 - Create binary assets: `public/arcane-logo-black.png`, `public/arcane-logo-white.png`
 - Modify: `src/components/PixelLogo.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
@@ -39,6 +41,7 @@
 ### Task 2: Grid Hover Background V2
 
 **Files:**
+
 - Create: `src/components/GridHoverBackground.tsx`
 - Modify: `src/routes/index.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
@@ -55,6 +58,7 @@
 ### Task 3: Arcane Loader
 
 **Files:**
+
 - Create: `src/components/ArcaneLoader.tsx`
 - Modify: `src/routes/index.tsx`
 - Modify: `src/styles.css`
@@ -72,6 +76,7 @@
 ### Task 4: Reusable Section Pixel Entrance
 
 **Files:**
+
 - Create: `src/components/SectionPixelReveal.tsx`
 - Modify: `src/routes/index.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
@@ -86,6 +91,7 @@
 ### Task 5: Interactive Ticker
 
 **Files:**
+
 - Create: `src/components/InteractiveTicker.tsx`
 - Modify: `src/routes/index.tsx`
 - Modify: `src/styles.css`
@@ -101,6 +107,7 @@
 ### Task 6: Our Identity V2
 
 **Files:**
+
 - Create: `src/components/IdentityConstellation.tsx`
 - Modify: `src/routes/index.tsx`
 - Modify: `src/styles.css`
@@ -118,6 +125,7 @@
 ### Task 7: Voxel Arcane Logo
 
 **Files:**
+
 - Create: `src/components/VoxelArcaneLogo.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
 
@@ -130,6 +138,7 @@
 ### Task 8: Metaverse Portal V2
 
 **Files:**
+
 - Create: `src/components/MetaversePortalV2.tsx`
 - Modify: `src/routes/index.tsx`
 - Test: `src/lib/animation-runtime.test.ts`
@@ -146,6 +155,7 @@
 ### Task 9: Full verification
 
 **Files:**
+
 - Modify tests only if assertions need formatting updates; no behavior weakening.
 
 - [ ] Run `npm run test`.

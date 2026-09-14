@@ -1,6 +1,6 @@
-export const VOXEL_RESOLUTION = 104;
-export const VOXEL_DEPTH = 7;
-export const VOXEL_GAP = 0.54;
+export const VOXEL_RESOLUTION = 74;
+export const VOXEL_DEPTH = 5;
+export const VOXEL_GAP = 0.76;
 export const VOXEL_SIZE = VOXEL_GAP * 0.9;
 export const LOGO_SCENE_WIDTH = VOXEL_RESOLUTION * VOXEL_GAP;
 export const LOGO_SCENE_HEIGHT = VOXEL_RESOLUTION * VOXEL_GAP;
