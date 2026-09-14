@@ -7,184 +7,12 @@ type ParticleDimensionSceneProps = {
   className?: string;
 };
 
-const VERTEX_SHADER = /* glsl */ `
-  uniform float uTime;
-  uniform float uProgress;
-  uniform float uForwardTravel;
-  uniform float uExitProgress;
-  uniform vec3 uMouse;
-  uniform float uHoverStrength;
-  uniform float uMouseRadius;
-  uniform float uMouseForce;
-  uniform float uParticleSize;
-  uniform float uNoiseSpeed;
-  uniform float uNoiseAmplitude;
-
-  attribute vec3 aColor;
-  attribute float aRandom;
-  attribute vec3 aTarget;
-
-  varying vec3 vColor;
-  varying vec3 vMvPos;
-  varying float vLocalZ;
-
-  vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-  vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-  vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
-  vec4 taylorInvSqrt(vec4 r) {
-    return 1.79284291400159 - 0.85373472095314 * r;
-  }
-
-  float snoise(vec3 v) {
-    const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
-    const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-    vec3 i = floor(v + dot(v, C.yyy));
-    vec3 x0 = v - i + dot(i, C.xxx);
-    vec3 g = step(x0.yzx, x0.xyz);
-    vec3 l = 1.0 - g;
-    vec3 i1 = min(g.xyz, l.zxy);
-    vec3 i2 = max(g.xyz, l.zxy);
-    vec3 x1 = x0 - i1 + C.xxx;
-    vec3 x2 = x0 - i2 + C.yyy;
-    vec3 x3 = x0 - D.yyy;
-    i = mod289(i);
-    vec4 p = permute(
-      permute(
-        permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) +
-        i.y + vec4(0.0, i1.y, i2.y, 1.0)
-      ) + i.x + vec4(0.0, i1.x, i2.x, 1.0)
-    );
-    vec3 ns = 0.142857142857 * D.wyz - D.xzx;
-    vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-    vec4 x_ = floor(j * ns.z);
-    vec4 y_ = floor(j - 7.0 * x_);
-    vec4 x = x_ * ns.x + ns.yyyy;
-    vec4 y = y_ * ns.x + ns.yyyy;
-    vec4 h = 1.0 - abs(x) - abs(y);
-    vec4 b0 = vec4(x.xy, y.xy);
-    vec4 b1 = vec4(x.zw, y.zw);
-    vec4 s0 = floor(b0) * 2.0 + 1.0;
-    vec4 s1 = floor(b1) * 2.0 + 1.0;
-    vec4 sh = -step(h, vec4(0.0));
-    vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
-    vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
-    vec3 p0 = vec3(a0.xy, h.x);
-    vec3 p1 = vec3(a0.zw, h.y);
-    vec3 p2 = vec3(a1.xy, h.z);
-    vec3 p3 = vec3(a1.zw, h.w);
-    vec4 norm = taylorInvSqrt(
-      vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3))
-    );
-    p0 *= norm.x;
-    p1 *= norm.y;
-    p2 *= norm.z;
-    p3 *= norm.w;
-    vec4 m = max(
-      0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)),
-      0.0
-    );
-    m *= m;
-    return 42.0 * dot(
-      m * m,
-      vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3))
-    );
-  }
-
-  vec3 curlNoise(vec3 p) {
-    const float e = 0.1;
-    vec3 dx = vec3(e, 0.0, 0.0);
-    vec3 dy = vec3(0.0, e, 0.0);
-    vec3 dz = vec3(0.0, 0.0, e);
-    vec3 p_x0 = vec3(snoise(p - dx), snoise(p - dx + 13.5), snoise(p - dx + 31.2));
-    vec3 p_x1 = vec3(snoise(p + dx), snoise(p + dx + 13.5), snoise(p + dx + 31.2));
-    vec3 p_y0 = vec3(snoise(p - dy), snoise(p - dy + 13.5), snoise(p - dy + 31.2));
-    vec3 p_y1 = vec3(snoise(p + dy), snoise(p + dy + 13.5), snoise(p + dy + 31.2));
-    vec3 p_z0 = vec3(snoise(p - dz), snoise(p - dz + 13.5), snoise(p - dz + 31.2));
-    vec3 p_z1 = vec3(snoise(p + dz), snoise(p + dz + 13.5), snoise(p + dz + 31.2));
-    float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;
-    float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;
-    float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;
-    return normalize(vec3(x, y, z));
-  }
-
-  void main() {
-    vColor = aColor;
-
-    float morphEase = smoothstep(0.08, 0.28, uProgress);
-    vec3 tunnelTarget = aTarget;
-    const float tunnelSpan = 174.0;
-    tunnelTarget.z = mod(
-      tunnelTarget.z + uForwardTravel * 216.0 + 170.0,
-      tunnelSpan
-    ) - 170.0;
-
-    vec3 pos = mix(position, tunnelTarget, morphEase);
-
-    float transitionFlow = sin(morphEase * 3.14159265);
-    vec3 transitionNoise = curlNoise(pos * 0.72 + aRandom * 7.0 + uTime * 0.26);
-    pos += transitionNoise * transitionFlow * 0.24;
-
-    float tunnelLife = smoothstep(0.2, 0.52, uProgress);
-    vec3 idleNoise = curlNoise(pos * 0.24 + uTime * uNoiseSpeed + aRandom * 10.0);
-    pos += idleNoise * uNoiseAmplitude * mix(0.2, 1.0, tunnelLife);
-
-    pos.xy *= 1.0 + uExitProgress * 0.16;
-    pos.z += uExitProgress * 10.0;
-
-    vec3 dirToMouse = pos - uMouse;
-    float distToMouse = length(dirToMouse);
-    float influence = smoothstep(uMouseRadius, uMouseRadius * 0.12, distToMouse) * uHoverStrength;
-    influence = pow(influence, 1.35);
-    if (influence > 0.0) {
-      vec3 normDir = normalize(dirToMouse);
-      vec3 vortex = cross(normDir, vec3(0.0, 0.0, 1.0));
-      vec3 sandCurl = curlNoise(pos * 0.42 - uTime * 0.9 + aRandom * 4.0);
-      pos += (normDir * 0.22 + vortex * 0.44 + sandCurl * 0.72) * influence * uMouseForce;
-    }
-
-    vLocalZ = pos.z;
-    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    vMvPos = mvPosition.xyz;
-
-    float depthSize = clamp(11.0 / max(2.0, -mvPosition.z), 0.38, 2.6);
-    float tunnelSize = mix(1.18, 0.92, morphEase);
-    gl_PointSize = uParticleSize * depthSize * tunnelSize * (1.0 + uExitProgress * 0.2);
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const FRAGMENT_SHADER = /* glsl */ `
-  uniform vec3 uLightColor;
-  uniform vec3 uShadowColor;
-  uniform vec3 uLightDir;
-  uniform float uExitProgress;
-
-  varying vec3 vColor;
-  varying vec3 vMvPos;
-  varying float vLocalZ;
-
-  void main() {
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    float dist = length(coord);
-    if (dist > 0.5) discard;
-
-    float sphereZ = sqrt(max(0.0, 0.25 - dist * dist));
-    vec3 microNormal = normalize(vec3(coord.x, -coord.y, sphereZ));
-    vec3 viewDir = normalize(-vMvPos);
-    vec3 lightDir = normalize(uLightDir);
-    float diff = max(dot(microNormal, lightDir), 0.0);
-    float rim = pow(1.0 - max(dot(microNormal, viewDir), 0.0), 2.4);
-    float depthTone = smoothstep(-170.0, 4.0, vLocalZ);
-
-    vec3 diffuse = uLightColor * (0.28 + diff * 0.72);
-    vec3 ambient = mix(uShadowColor, uLightColor, 0.18 + depthTone * 0.18);
-    vec3 finalColor = vColor * (ambient + diffuse * 0.72) + rim * uLightColor * 0.22;
-
-    float edge = smoothstep(0.5, 0.36, dist);
-    float exitFade = 1.0 - smoothstep(0.48, 1.0, uExitProgress);
-    gl_FragColor = vec4(finalColor, edge * exitFade);
-  }
-`;
+const CORE_FRAGMENT_SHARE = 0.78;
+const DEBRIS_SHARE = 0.22;
+const LOGO_DEPTH = 1.7;
+const FOREGROUND_FRAGMENT_SHARE = 0.18;
+const DESKTOP_ELEMENT_BUDGET = 9000;
+const MOBILE_ELEMENT_BUDGET = 4200;
 
 function clamp01(value: number) {
   return Math.max(0, Math.min(1, value));
@@ -234,29 +62,47 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
     let renderer: THREE.WebGLRenderer | null = null;
     let camera: THREE.PerspectiveCamera | null = null;
     let scene: THREE.Scene | null = null;
-    let points: THREE.Points | null = null;
-    let material: THREE.ShaderMaterial | null = null;
+    let coreMesh: THREE.InstancedMesh | null = null;
+    let coreGeometry: THREE.BoxGeometry | null = null;
+    let coreMaterial: THREE.MeshStandardMaterial | null = null;
+    let debrisPoints: THREE.Points | null = null;
+    let debrisGeometry: THREE.BufferGeometry | null = null;
+    let debrisMaterial: THREE.PointsMaterial | null = null;
+
+    let coreLogo = new Float32Array(0);
+    let coreTunnel = new Float32Array(0);
+    let coreScale = new Float32Array(0);
+    let corePhase = new Float32Array(0);
+    let coreSpin = new Float32Array(0);
+    let coreCount = 0;
+
+    let debrisLogo = new Float32Array(0);
+    let debrisTunnel = new Float32Array(0);
+    let debrisPhase = new Float32Array(0);
+    let debrisCount = 0;
+
     let raf = 0;
     let inViewport = true;
     let documentVisible = document.visibilityState !== "hidden";
     let lastFrame = performance.now();
-    let hoverStrength = 0;
     let cameraX = 0;
     let cameraY = 0;
     let lookX = 0;
     let lookY = 0;
+    let pointerPresence = 0;
 
     const pointer = new THREE.Vector2(0, 0);
     const mouseWorld = new THREE.Vector3(999, 999, 0);
     const raycaster = new THREE.Raycaster();
     const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-    const lookTarget = new THREE.Vector3(0, 0, -38);
+    const lookTarget = new THREE.Vector3(0, 0, -34);
+    const dummy = new THREE.Object3D();
+    const instanceColor = new THREE.Color();
+    const lowCoreColor = new THREE.Color(dark ? "#aeb5bd" : "#15191e");
+    const highCoreColor = new THREE.Color(dark ? "#f4f4f5" : "#252a30");
+    const coreBaseColor = dark ? "#f4f4f5" : "#252a30";
+    const debrisColor = dark ? "#79838e" : "#5a626b";
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const highColor = new THREE.Color(dark ? "#f4f4f5" : "#111418");
-    const lowColor = new THREE.Color(dark ? "#7f8992" : "#3d464e");
-    const lightColor = new THREE.Color(dark ? "#ffffff" : "#dfe5e7");
-    const shadowColor = new THREE.Color(dark ? "#111319" : "#080b0d");
 
     const isRunning = () => inViewport && documentVisible;
 
@@ -279,10 +125,10 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       const pixels = context.getImageData(0, 0, size, size).data;
       const result: Array<[number, number]> = [];
 
-      for (let y = 0; y < size; y += 2) {
-        for (let x = 0; x < size; x += 2) {
+      for (let y = 0; y < size; y += 3) {
+        for (let x = 0; x < size; x += 3) {
           const alpha = pixels[(y * size + x) * 4 + 3] ?? 0;
-          if (alpha < 90) continue;
+          if (alpha < 100) continue;
           result.push([(x / size) * 2 - 1, -(y / size) * 2 + 1]);
         }
       }
@@ -290,106 +136,153 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       return result;
     };
 
-    const buildParticles = (image: HTMLImageElement) => {
+    const buildHybridField = (image: HTMLImageElement) => {
       if (!scene || !renderer) return;
       const logoPoints = buildLogoMask(image);
       if (logoPoints.length === 0) return;
 
       const mobile = container.clientWidth < 768;
-      const particleCap = mobile ? 62_000 : 105_000;
-      const targetTotal = Math.min(
-        particleCap,
-        Math.max(42_000, Math.floor(logoPoints.length * (mobile ? 2.2 : 3.4))),
+      const elementBudget = mobile ? MOBILE_ELEMENT_BUDGET : DESKTOP_ELEMENT_BUDGET;
+      coreCount = Math.min(
+        logoPoints.length,
+        Math.max(2200, Math.floor(elementBudget * CORE_FRAGMENT_SHARE)),
       );
+      debrisCount = Math.max(700, Math.floor(elementBudget * DEBRIS_SHARE));
 
-      const positions = new Float32Array(targetTotal * 3);
-      const targets = new Float32Array(targetTotal * 3);
-      const colors = new Float32Array(targetTotal * 3);
-      const randoms = new Float32Array(targetTotal);
-      const worldScale = mobile ? 4.35 : 5.25;
+      coreLogo = new Float32Array(coreCount * 3);
+      coreTunnel = new Float32Array(coreCount * 3);
+      coreScale = new Float32Array(coreCount);
+      corePhase = new Float32Array(coreCount);
+      coreSpin = new Float32Array(coreCount * 3);
+
+      debrisLogo = new Float32Array(debrisCount * 3);
+      debrisTunnel = new Float32Array(debrisCount * 3);
+      debrisPhase = new Float32Array(debrisCount);
+
+      const worldScale = mobile ? 4.65 : 5.35;
       const tau = Math.PI * 2;
-      const mixed = new THREE.Color();
+      const nearCameraZ = 5.4;
+      const tunnelSpan = mobile ? 108 : 132;
 
-      for (let index = 0; index < targetTotal; index += 1) {
-        const baseIndex = index * 3;
-        const point = logoPoints[Math.floor(seeded(index * 7.31 + 2.7) * logoPoints.length)];
+      coreGeometry = new THREE.BoxGeometry(1, 1, 1);
+      coreMaterial = new THREE.MeshStandardMaterial({
+        color: coreBaseColor,
+        roughness: dark ? 0.4 : 0.52,
+        metalness: dark ? 0.38 : 0.2,
+        transparent: true,
+        opacity: 1,
+      });
+      coreMesh = new THREE.InstancedMesh(coreGeometry, coreMaterial, coreCount);
+      coreMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      coreMesh.frustumCulled = false;
+      coreMesh.castShadow = false;
+      coreMesh.receiveShadow = false;
+
+      for (let index = 0; index < coreCount; index += 1) {
+        const sourcePosition = Math.floor((index / coreCount) * logoPoints.length);
+        const jitter = Math.floor((seeded(index * 2.71 + 5.2) - 0.5) * 11);
+        const point = logoPoints[
+          Math.max(0, Math.min(logoPoints.length - 1, sourcePosition + jitter))
+        ];
         if (!point) continue;
 
-        const randomA = seeded(index * 3.17 + 1.1);
-        const randomB = seeded(index * 5.31 + 7.2);
-        const randomC = seeded(index * 9.73 + 13.4);
-        const randomD = seeded(index * 11.91 + 23.7);
-        const angle = randomA * tau;
-        const radius = 2.4 + Math.pow(randomB, 0.62) * (mobile ? 14.5 : 19.5);
-        const squash = 0.68 + randomC * 0.2;
-        const bevelAngle = randomD * tau;
-        const bevelRadius = Math.pow(seeded(index * 17.13 + 5.2), 1.8) * 0.07;
+        const base = index * 3;
+        const a = seeded(index * 3.17 + 1.1);
+        const b = seeded(index * 5.31 + 7.2);
+        const c = seeded(index * 9.73 + 13.4);
+        const d = seeded(index * 11.91 + 23.7);
+        const angle = a * tau;
+        const foreground = b < FOREGROUND_FRAGMENT_SHARE;
+        const radius = foreground
+          ? 2.2 + Math.pow(c, 0.6) * (mobile ? 7.5 : 10.5)
+          : 3.2 + Math.pow(c, 0.58) * (mobile ? 13.5 : 18.5);
+        const squash = 0.7 + d * 0.18;
 
-        positions[baseIndex] = point[0] * worldScale + Math.cos(bevelAngle) * bevelRadius;
-        positions[baseIndex + 1] = point[1] * worldScale + Math.sin(bevelAngle) * bevelRadius;
-        positions[baseIndex + 2] = (seeded(index * 19.7 + 2.8) - 0.5) * 0.42;
+        coreLogo[base] = point[0] * worldScale + (a - 0.5) * 0.035;
+        coreLogo[base + 1] = point[1] * worldScale + (b - 0.5) * 0.035;
+        coreLogo[base + 2] = (c - 0.5) * LOGO_DEPTH;
 
-        targets[baseIndex] = Math.cos(angle) * radius;
-        targets[baseIndex + 1] = Math.sin(angle) * radius * squash;
-        targets[baseIndex + 2] = -170 + seeded(index * 12.77 + 73.2) * 174;
+        coreTunnel[base] = Math.cos(angle) * radius;
+        coreTunnel[base + 1] = Math.sin(angle) * radius * squash;
+        coreTunnel[base + 2] = foreground
+          ? nearCameraZ - d * (mobile ? 13 : 17)
+          : -tunnelSpan + d * (tunnelSpan - 8);
 
-        mixed.lerpColors(lowColor, highColor, 0.2 + randomC * 0.8);
-        colors[baseIndex] = mixed.r;
-        colors[baseIndex + 1] = mixed.g;
-        colors[baseIndex + 2] = mixed.b;
-        randoms[index] = randomD;
+        coreScale[index] = mobile ? 0.105 + c * 0.105 : 0.12 + c * 0.14;
+        corePhase[index] = d * tau;
+        coreSpin[base] = (a - 0.5) * 1.4;
+        coreSpin[base + 1] = (b - 0.5) * 1.8;
+        coreSpin[base + 2] = (c - 0.5) * 1.2;
+
+        instanceColor.lerpColors(lowCoreColor, highCoreColor, 0.32 + c * 0.68);
+        coreMesh.setColorAt(index, instanceColor);
+      }
+      if (coreMesh.instanceColor) coreMesh.instanceColor.needsUpdate = true;
+      scene.add(coreMesh);
+
+      const debrisPositions = new Float32Array(debrisCount * 3);
+      for (let index = 0; index < debrisCount; index += 1) {
+        const base = index * 3;
+        const point = logoPoints[Math.floor(seeded(index * 13.7 + 4.8) * logoPoints.length)];
+        if (!point) continue;
+
+        const a = seeded(index * 4.1 + 1.3);
+        const b = seeded(index * 6.7 + 9.4);
+        const c = seeded(index * 8.9 + 17.2);
+        const angle = a * tau;
+        const radius = 3.4 + Math.pow(b, 0.55) * (mobile ? 14 : 20);
+
+        debrisLogo[base] = point[0] * worldScale + (a - 0.5) * 0.1;
+        debrisLogo[base + 1] = point[1] * worldScale + (b - 0.5) * 0.1;
+        debrisLogo[base + 2] = (c - 0.5) * (LOGO_DEPTH * 1.25);
+
+        debrisTunnel[base] = Math.cos(angle) * radius;
+        debrisTunnel[base + 1] = Math.sin(angle) * radius * (0.72 + c * 0.18);
+        debrisTunnel[base + 2] = -tunnelSpan + c * (tunnelSpan - 6);
+        debrisPhase[index] = seeded(index * 12.3 + 31.7) * tau;
+
+        debrisPositions[base] = debrisLogo[base];
+        debrisPositions[base + 1] = debrisLogo[base + 1];
+        debrisPositions[base + 2] = debrisLogo[base + 2];
       }
 
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute("aTarget", new THREE.BufferAttribute(targets, 3));
-      geometry.setAttribute("aColor", new THREE.BufferAttribute(colors, 3));
-      geometry.setAttribute("aRandom", new THREE.BufferAttribute(randoms, 1));
-      geometry.setDrawRange(0, targetTotal);
-      geometry.computeBoundingSphere();
-
-      const uniforms: Record<string, THREE.IUniform> = {
-        uTime: { value: 0 },
-        uProgress: { value: progressRef.current },
-        uForwardTravel: { value: 0 },
-        uExitProgress: { value: 0 },
-        uMouse: { value: mouseWorld.clone() },
-        uHoverStrength: { value: 0 },
-        uMouseRadius: { value: mobile ? 1.7 : 2.1 },
-        uMouseForce: { value: mobile ? 0.55 : 0.72 },
-        uParticleSize: { value: (mobile ? 2.25 : 2.55) * renderer.getPixelRatio() },
-        uNoiseSpeed: { value: reducedMotion ? 0 : 0.11 },
-        uNoiseAmplitude: { value: reducedMotion ? 0 : mobile ? 0.12 : 0.16 },
-        uLightColor: { value: lightColor },
-        uShadowColor: { value: shadowColor },
-        uLightDir: { value: new THREE.Vector3(0.72, 0.8, 1).normalize() },
-      };
-
-      material = new THREE.ShaderMaterial({
-        uniforms,
-        vertexShader: VERTEX_SHADER,
-        fragmentShader: FRAGMENT_SHADER,
+      debrisGeometry = new THREE.BufferGeometry();
+      debrisGeometry.setAttribute("position", new THREE.BufferAttribute(debrisPositions, 3));
+      debrisMaterial = new THREE.PointsMaterial({
+        color: debrisColor,
+        size: mobile ? 0.028 : 0.034,
+        sizeAttenuation: true,
         transparent: true,
+        opacity: dark ? 0.48 : 0.34,
         depthWrite: false,
         depthTest: true,
-        blending: THREE.NormalBlending,
       });
-
-      points = new THREE.Points(geometry, material);
-      points.frustumCulled = false;
-      scene.add(points);
+      debrisPoints = new THREE.Points(debrisGeometry, debrisMaterial);
+      debrisPoints.frustumCulled = false;
+      scene.add(debrisPoints);
     };
 
     const init = () => {
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(
-        48,
+        47,
         container.clientWidth / Math.max(1, container.clientHeight),
         0.1,
-        420,
+        360,
       );
-      camera.position.set(0, 0, 10);
-      camera.lookAt(0, 0, -38);
+      camera.position.set(0, 0, 12.5);
+      camera.lookAt(0, 0, -34);
+
+      const ambient = new THREE.HemisphereLight(
+        dark ? 0xf6f7f8 : 0xffffff,
+        dark ? 0x0c1015 : 0xb8c0c8,
+        dark ? 1.2 : 1.55,
+      );
+      const key = new THREE.DirectionalLight(dark ? 0xffffff : 0xeef3f5, dark ? 3.4 : 2.8);
+      key.position.set(7, 10, 11);
+      const rim = new THREE.DirectionalLight(dark ? 0xaebed3 : 0x9ca8b4, dark ? 2.1 : 1.4);
+      rim.position.set(-8, -4, 7);
+      scene.add(ambient, key, rim);
 
       renderer = new THREE.WebGLRenderer({
         alpha: true,
@@ -399,6 +292,9 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       renderer.setClearColor(0x000000, 0);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = dark ? 1.02 : 0.92;
       container.appendChild(renderer.domElement);
     };
 
@@ -408,42 +304,104 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       lastFrame = now;
 
       const p = clamp01(progressRef.current);
+      const morph = smoothstep01((p - 0.055) / 0.13);
       const exitProgress = smoothstep01((p - 0.84) / 0.16);
-      const forwardTravel = p * 0.86 + exitProgress * 0.72;
+      const forwardTravel = p * 0.92 + exitProgress * 0.9;
+      const time = now / 1000;
+      const mobile = container.clientWidth < 768;
+      const tunnelSpan = mobile ? 108 : 132;
+      const travelDistance = forwardTravel * (mobile ? 90 : 116);
+      const interactionRadius = mobile ? 1.8 : 2.65;
+      const pointerTarget = pointer.lengthSq() > 0.0001 ? 1 : 0;
+      pointerPresence +=
+        (pointerTarget - pointerPresence) * (1 - Math.exp(-delta * 7.5));
 
-      if (material) {
-        const uniforms = material.uniforms;
-        uniforms["uTime"]!.value = (uniforms["uTime"]!.value as number) + delta;
-        uniforms["uProgress"]!.value = p;
-        uniforms["uForwardTravel"]!.value = forwardTravel;
-        uniforms["uExitProgress"]!.value = exitProgress;
+      if (coreMesh && coreMaterial) {
+        for (let index = 0; index < coreCount; index += 1) {
+          const base = index * 3;
+          let tunnelZ = coreTunnel[base + 2] + travelDistance;
+          while (tunnelZ > 6.4) tunnelZ -= tunnelSpan;
 
-        const hoverTarget = pointer.lengthSq() > 0.0001 ? 1 : 0;
-        hoverStrength += (hoverTarget - hoverStrength) * (1 - Math.exp(-delta * 7.5));
-        uniforms["uHoverStrength"]!.value = hoverStrength;
-        (uniforms["uMouse"]!.value as THREE.Vector3).lerp(mouseWorld, 1 - Math.exp(-delta * 8));
+          const flow = reducedMotion ? 0 : Math.sin(time * 0.82 + corePhase[index]) * 0.11;
+          let x = THREE.MathUtils.lerp(coreLogo[base], coreTunnel[base], morph);
+          let y = THREE.MathUtils.lerp(coreLogo[base + 1], coreTunnel[base + 1], morph);
+          let z = THREE.MathUtils.lerp(coreLogo[base + 2], tunnelZ, morph);
+
+          x += flow * morph;
+          y += Math.cos(time * 0.69 + corePhase[index] * 1.17) * 0.08 * morph;
+          z += Math.sin(time * 0.53 + corePhase[index] * 0.71) * 0.14 * morph;
+
+          const dx = x - mouseWorld.x;
+          const dy = y - mouseWorld.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (pointerPresence > 0.01 && distance < interactionRadius) {
+            const influence = Math.pow(1 - distance / interactionRadius, 1.7) * pointerPresence;
+            const inverse = distance > 0.001 ? 1 / distance : 0;
+            const nx = dx * inverse;
+            const ny = dy * inverse;
+            x += (nx * 0.34 - ny * 0.5) * influence;
+            y += (ny * 0.34 + nx * 0.5) * influence;
+            z += influence * 0.34;
+          }
+
+          x *= 1 + exitProgress * 0.13;
+          y *= 1 + exitProgress * 0.13;
+          z += exitProgress * 5.5;
+
+          const nearBoost = 1 + Math.max(0, (z + 10) / 18) * 0.48 * morph;
+          const scale = coreScale[index] * nearBoost;
+          dummy.position.set(x, y, z);
+          dummy.rotation.set(
+            coreSpin[base] * morph + time * 0.09 * morph,
+            coreSpin[base + 1] * morph + time * 0.11 * morph,
+            coreSpin[base + 2] * morph + time * 0.07 * morph,
+          );
+          dummy.scale.set(scale * 1.08, scale * 0.9, scale * 1.22);
+          dummy.updateMatrix();
+          coreMesh.setMatrixAt(index, dummy.matrix);
+        }
+        coreMesh.instanceMatrix.needsUpdate = true;
+        coreMaterial.opacity = 1 - smoothstep01((p - 0.9) / 0.1);
+      }
+
+      if (debrisGeometry && debrisMaterial) {
+        const attribute = debrisGeometry.getAttribute("position") as THREE.BufferAttribute;
+        const positions = attribute.array as Float32Array;
+        for (let index = 0; index < debrisCount; index += 1) {
+          const base = index * 3;
+          let tunnelZ = debrisTunnel[base + 2] + travelDistance * 1.05;
+          while (tunnelZ > 6.2) tunnelZ -= tunnelSpan;
+
+          const drift = reducedMotion ? 0 : Math.sin(time * 0.95 + debrisPhase[index]) * 0.08;
+          positions[base] = THREE.MathUtils.lerp(debrisLogo[base], debrisTunnel[base], morph) + drift * morph;
+          positions[base + 1] =
+            THREE.MathUtils.lerp(debrisLogo[base + 1], debrisTunnel[base + 1], morph) +
+            Math.cos(time * 0.77 + debrisPhase[index]) * 0.055 * morph;
+          positions[base + 2] =
+            THREE.MathUtils.lerp(debrisLogo[base + 2], tunnelZ, morph) + exitProgress * 5.8;
+        }
+        attribute.needsUpdate = true;
+        debrisMaterial.opacity = (dark ? 0.48 : 0.34) * (1 - smoothstep01((p - 0.88) / 0.12));
       }
 
       const pointerMagnitude = Math.min(1, pointer.length());
       const idleWeight = 1 - pointerMagnitude;
-      const cameraResponse = 1 - Math.exp(-delta * 6.8);
-      const targetX = pointer.x * 1.7;
-      const targetY = pointer.y * 0.95;
-      cameraX += (targetX - cameraX) * cameraResponse;
-      cameraY += (targetY - cameraY) * cameraResponse;
-      lookX += (pointer.x * 4.2 - lookX) * cameraResponse;
-      lookY += (pointer.y * 2.5 - lookY) * cameraResponse;
+      const cameraResponse = 1 - Math.exp(-delta * 6.6);
+      cameraX += (pointer.x * 1.65 - cameraX) * cameraResponse;
+      cameraY += (pointer.y * 0.92 - cameraY) * cameraResponse;
+      lookX += (pointer.x * 4.0 - lookX) * cameraResponse;
+      lookY += (pointer.y * 2.3 - lookY) * cameraResponse;
 
-      const time = now / 1000;
+      const forwardCamera = p * 1.2 + exitProgress * 2.8;
       camera.position.set(
-        cameraX + Math.sin(time * 0.16) * 0.15 * idleWeight,
-        cameraY + Math.cos(time * 0.13) * 0.09 * idleWeight,
-        10,
+        cameraX + Math.sin(time * 0.16) * 0.14 * idleWeight,
+        cameraY + Math.cos(time * 0.13) * 0.08 * idleWeight,
+        12.5 - forwardCamera,
       );
       lookTarget.set(
-        lookX + Math.sin(time * 0.11) * 0.22 * idleWeight,
-        lookY + Math.cos(time * 0.1) * 0.12 * idleWeight,
-        -38 - exitProgress * 12,
+        lookX + Math.sin(time * 0.11) * 0.18 * idleWeight,
+        lookY + Math.cos(time * 0.1) * 0.1 * idleWeight,
+        -34 - p * 7 - exitProgress * 13,
       );
       camera.lookAt(lookTarget);
 
@@ -484,7 +442,7 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
     const image = new Image();
     image.decoding = "async";
     image.onload = () => {
-      buildParticles(image);
+      buildHybridField(image);
       lastFrame = performance.now();
       schedule(animate);
     };
@@ -498,10 +456,6 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       renderer.setSize(width, height);
-      if (material?.uniforms["uParticleSize"]) {
-        material.uniforms["uParticleSize"].value =
-          (width < 768 ? 2.25 : 2.55) * renderer.getPixelRatio();
-      }
     });
     resizeObserver.observe(container);
 
@@ -535,11 +489,12 @@ export function ParticleDimensionScene({ progress, className }: ParticleDimensio
       container.removeEventListener("pointerleave", clearPointer);
       image.onload = null;
 
-      if (points) {
-        points.geometry.dispose();
-        material?.dispose();
-        scene?.remove(points);
-      }
+      if (coreMesh) scene?.remove(coreMesh);
+      if (debrisPoints) scene?.remove(debrisPoints);
+      coreGeometry?.dispose();
+      coreMaterial?.dispose();
+      debrisGeometry?.dispose();
+      debrisMaterial?.dispose();
       scene?.clear();
 
       if (renderer) {
