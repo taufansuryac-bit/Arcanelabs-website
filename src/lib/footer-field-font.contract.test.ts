@@ -101,12 +101,12 @@ test("small continuous creator ticker has a forty-percent black readability stri
   assert.match(footerSource, /THE BEGININNG OF DEVELOPER ERA/);
 });
 
-test("ASCII cursor chaos remains stronger by default while footer keeps its local value", () => {
-  assert.match(asciiSource, /chaosStrength = 1\.8/);
+test("ASCII cursor chaos keeps the current default while footer keeps its local value", () => {
+  assert.match(asciiSource, /chaosStrength = 1\.3/);
   assert.match(footerSource, /chaosStrength=\{1\.65\}/);
 });
 
-test("global pixel typography defines Pixellari and overrides the UI font token", () => {
+test("global pixel typography defines Pixellari and the mono UI token", () => {
   assert.match(fontSource, /font-family:\s*"Pixellari"/);
-  assert.match(fontSource, /--font-ui:\s*"Pixellari"/);
+  assert.match(fontSource, /--font-mono-ui:\s*"Pixellari"/);
 });
