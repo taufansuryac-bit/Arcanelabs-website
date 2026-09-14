@@ -21,13 +21,16 @@ test("portal field keeps premium isolated typography across the three branded se
   assert.doesNotMatch(source, /ENTER THE ARCANE FIELD/);
 });
 
-test("voxel field camera follows pointer with footer-like damped look parallax", () => {
+test("voxel field camera follows pointer with restrained damped look parallax", () => {
   assert.match(source, /pointerPresence/);
   assert.match(source, /cameraLookX/);
   assert.match(source, /cameraLookY/);
   assert.match(source, /cameraRoll/);
-  assert.match(source, /state\.pointer\.x \* 7\.2/);
-  assert.match(source, /state\.pointer\.x \* 9\.2/);
+  assert.match(source, /state\.pointer\.x \* 2\.6/);
+  assert.match(source, /state\.pointer\.x \* 3\.2/);
+  assert.match(source, /state\.pointer\.y \* 1\.8/);
+  assert.match(source, /state\.pointer\.y \* 2\.1/);
+  assert.match(source, /rollTarget = -state\.pointer\.x \* 0\.006 \* fieldInteraction/);
   assert.match(source, /1 - pointerPresence\.current \* 0\.9/);
   assert.match(source, /eventSource=\{containerRef\.current!\}/);
   assert.match(source, /eventPrefix="client"/);
