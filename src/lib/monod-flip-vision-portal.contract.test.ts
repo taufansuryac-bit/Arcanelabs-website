@@ -18,8 +18,8 @@ async function readComponent(name: string) {
 
 test("homepage places the partner flip grid immediately after the hero and before works", () => {
   assert.match(homeSource, /PartnerFlipGrid/);
-  const heroEnd = homeSource.indexOf('</section>', homeSource.indexOf('id="top"'));
-  const partners = homeSource.indexOf('<PartnerFlipGrid');
+  const heroEnd = homeSource.indexOf("</section>", homeSource.indexOf('id="top"'));
+  const partners = homeSource.indexOf("<PartnerFlipGrid");
   const works = homeSource.indexOf('id="works"');
   assert.ok(heroEnd >= 0 && partners > heroEnd && partners < works);
 });
@@ -37,9 +37,9 @@ test("partner cards use 3d flips plus pixel particles and preserve reduced-motio
 
 test("our vision sequence sits directly after From vision to screen and crossfades in a fixed frame", async () => {
   assert.match(homeSource, /VisionTextSequence/);
-  const visionToScreen = homeSource.indexOf('From vision to screen');
-  const sequence = homeSource.indexOf('<VisionTextSequence');
-  const projects = homeSource.indexOf('<ProjectConverge');
+  const visionToScreen = homeSource.indexOf("From vision to screen");
+  const sequence = homeSource.indexOf("<VisionTextSequence");
+  const projects = homeSource.indexOf("<ProjectConverge");
   assert.ok(visionToScreen >= 0 && sequence > visionToScreen && sequence < projects);
 
   const source = await readComponent("VisionTextSequence");
@@ -59,7 +59,10 @@ test("portal handoff is shorter and overlaps the footer without a dead-scroll ta
 
 test("final tunnel camera motion remains forward-only and pointer camera influence is restrained", () => {
   assert.match(tunnelSource, /finalDrive/);
-  assert.doesNotMatch(tunnelSource, /sessionThreeZoom\s*=\s*phase\(p, 0\.66, 0\.71\) \* \(1 - phase\(p, 0\.79, 0\.83\)\)/);
+  assert.doesNotMatch(
+    tunnelSource,
+    /sessionThreeZoom\s*=\s*phase\(p, 0\.66, 0\.71\) \* \(1 - phase\(p, 0\.79, 0\.83\)\)/,
+  );
   assert.match(tunnelSource, /state\.pointer\.x \* [23]\.[0-9] \* fieldInteraction/);
   assert.match(tunnelSource, /state\.pointer\.y \* [12]\.[0-9] \* fieldInteraction/);
   assert.match(tunnelSource, /rollTarget = -state\.pointer\.x \* 0\.00[4-9] \* fieldInteraction/);
