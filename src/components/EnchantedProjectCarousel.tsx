@@ -72,7 +72,7 @@ const items: CardItem[] = [
 const STEP = 360 / items.length;
 
 function normalizeAngle(value: number) {
-  return (((value + 180) % 360) + 360) % 360 - 180;
+  return ((((value + 180) % 360) + 360) % 360) - 180;
 }
 
 export function EnchantedProjectCarousel() {
