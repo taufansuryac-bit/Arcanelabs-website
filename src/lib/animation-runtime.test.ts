@@ -113,12 +113,14 @@ test("VoxelArcaneLogo remains real WebGL2 instanced 3D", async () => {
   assert.doesNotMatch(source, /ctx\.fillRect/);
 });
 
-test("MetaversePortalV2 uses the clean shader point-particle field", async () => {
+test("MetaversePortalV2 uses the hybrid volumetric fragment field", async () => {
   const portal = await readSource("../components/MetaversePortalV2.tsx");
   const scene = await readSource("../components/ParticleDimensionScene.tsx");
   assert.match(portal, /ParticleDimensionScene/);
+  assert.match(scene, /THREE\.InstancedMesh/);
+  assert.match(scene, /THREE\.MeshStandardMaterial/);
   assert.match(scene, /THREE\.Points/);
-  assert.match(scene, /THREE\.ShaderMaterial/);
+  assert.match(scene, /THREE\.PointsMaterial/);
   assert.doesNotMatch(portal, /UnifiedVoxelDimensionScene/);
   assert.doesNotMatch(portal, /shockwave/);
   assert.doesNotMatch(portal, /nestedFrames/);
