@@ -45,14 +45,30 @@ test("portal exits forward through the tunnel instead of rebuilding the logo", (
   assert.doesNotMatch(scene, /rebuiltInteraction/);
 });
 
-test("portal and footer crossfade with a tighter overlap and no dead-scroll tail", () => {
-  assert.match(portal, /useTransform/);
-  assert.match(portal, /portalOpacity/);
-  assert.match(portal, /\[0\.82, 0\.96, 1\]/);
-  assert.match(portal, /-mb-\[26vh\]/);
-  assert.match(portal, /md:-mb-\[38vh\]/);
+test("portal WebGL is pre-mounted after app ready instead of mounting at first viewport entry", () => {
+  assert.match(scene, /if \(!appReady\) return undefined;/);
+  assert.match(scene, /setTimeout\(\(\) => setHasMounted\(true\), 120\)/);
+  assert.match(scene, /\}, \[appReady\]\);/);
+  assert.doesNotMatch(scene, /if \(appReady && active\)/);
+});
+
+test("portal and footer crossfade as one continuous voxel field with a full-viewport overlap", () => {
+  assert.match(portal, /z-20/);
+  assert.match(portal, /-mb-\[56vh\]/);
+  assert.match(portal, /md:-mb-\[60vh\]/);
   assert.match(portal, /h-\[180vh\]/);
   assert.match(portal, /md:h-\[320vh\]/);
-  assert.match(index, /md:-mt-\[14vh\]/);
-  assert.match(footer, /transparent_0%,black_18%,black_100%/);
+  assert.match(portal, /\[0\.86, 0\.98, 1\]/);
+  assert.match(index, /z-10 -mt-\[44vh\]/);
+  assert.match(index, /md:-mt-\[40vh\]/);
+  assert.match(footer, /rgba\(0,0,0,0\.45\)_0%,black_12%,black_100%/);
+  assert.match(footer, /const RESIDUE_COUNT = 760/);
+  assert.match(footer, /position=\{\[0, -3\.2, -62\]\}/);
+});
+
+test("footer WebGL is warmed before the overlap instead of appearing late during the handoff", () => {
+  assert.match(footer, /if \(!appReady\) return undefined;/);
+  assert.match(footer, /setTimeout\(\(\) => setHasMounted\(true\), 700\)/);
+  assert.match(footer, /\}, \[appReady\]\);/);
+  assert.doesNotMatch(footer, /if \(appReady && active\)/);
 });
