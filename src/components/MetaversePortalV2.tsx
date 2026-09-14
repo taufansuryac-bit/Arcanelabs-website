@@ -28,7 +28,10 @@ export function MetaversePortalV2() {
   const portalOpacity = useTransform(scrollYProgress, [0.9, 0.97, 1], [1, 0.62, 0]);
 
   return (
-    <section ref={sectionRef} className="relative z-10 h-[220vh] border-t border-border md:h-[560vh]">
+    <section
+      ref={sectionRef}
+      className="relative z-10 -mb-[100svh] h-[220vh] border-t border-border md:-mb-[100vh] md:h-[560vh]"
+    >
       <motion.div
         style={{ opacity: portalOpacity }}
         className="sticky top-0 h-[100svh] overflow-hidden bg-background md:h-screen"
