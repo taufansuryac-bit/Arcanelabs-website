@@ -259,7 +259,6 @@ function PixelCard({ card, index }: { card: Card; index: number }) {
   );
 }
 
-/** Our Identity V2 — capability stack drives a floating project constellation. */
 export function IdentityConstellation() {
   const [activeId, setActiveId] = useState<CapabilityId>("branding");
   const active = useMemo<Capability>(
@@ -270,14 +269,73 @@ export function IdentityConstellation() {
   return (
     <section
       id="studio"
-      className="relative z-10 min-h-[100svh] overflow-hidden border-t border-border px-5 py-20 md:px-8 md:py-24"
+      className="relative z-10 overflow-hidden border-t border-border px-5 py-16 md:min-h-[100svh] md:px-8 md:py-24"
     >
       <div className="relative z-30 flex items-baseline justify-between">
         <h2 className="font-display text-2xl uppercase tracking-tight md:text-4xl">Our Identity</h2>
         <span className="label-mono">02</span>
       </div>
 
-      <div className="relative mx-auto mt-12 min-h-[72svh] max-w-[118rem] md:mt-6">
+      <div className="relative mx-auto mt-9 max-w-[118rem] md:mt-6 md:min-h-[72svh]">
+        <div className="md:hidden">
+          <div className="-mx-5 overflow-x-auto px-5 pb-3 md:hidden">
+            <div className="flex min-w-max gap-2">
+              {CAPABILITIES.map((capability) => {
+                const selected = active.id === capability.id;
+                return (
+                  <button
+                    key={capability.id}
+                    type="button"
+                    onClick={() => setActiveId(capability.id)}
+                    aria-pressed={selected}
+                    className={`border px-4 py-3 font-mono text-[10px] uppercase tracking-[0.16em] transition-colors ${
+                      selected
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-background text-muted-foreground"
+                    }`}
+                  >
+                    {capability.title}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <motion.p
+            key={active.eyebrow}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
+          >
+            {active.eyebrow}
+          </motion.p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <AnimatePresence mode="sync">
+              {active.cards.slice(0, 2).map((card, index) => (
+                <motion.figure
+                  key={`${active.id}-${card.label}`}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ delay: index * 0.04, duration: 0.3 }}
+                  className="overflow-hidden border border-border bg-card"
+                >
+                  <img
+                    src={card.image}
+                    alt={card.label}
+                    loading="lazy"
+                    className="aspect-[4/3] w-full object-cover"
+                  />
+                  <figcaption className="px-2 py-2 font-mono text-[8px] uppercase tracking-[0.14em] text-muted-foreground">
+                    {card.label}
+                  </figcaption>
+                </motion.figure>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+
         <div className="pointer-events-none absolute inset-0 hidden md:block" aria-hidden>
           <AnimatePresence mode="sync">
             <motion.div
@@ -295,12 +353,12 @@ export function IdentityConstellation() {
           </AnimatePresence>
         </div>
 
-        <div className="relative z-20 flex min-h-[58svh] flex-col items-center justify-center md:min-h-[72svh]">
+        <div className="relative z-20 hidden min-h-[72svh] flex-col items-center justify-center md:flex">
           <motion.p
             key={active.eyebrow}
             initial={{ opacity: 0, y: 8, filter: "blur(7px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            className="mb-5 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground md:mb-3"
+            className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground"
           >
             {active.eyebrow}
           </motion.p>
@@ -331,30 +389,6 @@ export function IdentityConstellation() {
               );
             })}
           </div>
-        </div>
-
-        <div className="relative z-20 grid grid-cols-2 gap-3 md:hidden">
-          <AnimatePresence mode="sync">
-            {active.cards.map((card, index) => (
-              <motion.figure
-                key={`${active.id}-${card.label}`}
-                initial={{ opacity: 0, y: 20, filter: "blur(12px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -14, filter: "blur(10px)" }}
-                transition={{ delay: index * 0.04, duration: 0.38 }}
-                className="overflow-hidden border border-border bg-card"
-              >
-                <img
-                  src={card.image}
-                  alt={card.label}
-                  className="aspect-[4/3] w-full object-cover"
-                />
-                <figcaption className="px-2 py-2 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground">
-                  {card.label}
-                </figcaption>
-              </motion.figure>
-            ))}
-          </AnimatePresence>
         </div>
       </div>
     </section>

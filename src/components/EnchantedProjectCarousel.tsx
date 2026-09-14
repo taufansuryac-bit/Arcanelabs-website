@@ -81,7 +81,72 @@ const items: CardItem[] = [
 
 const STEP = 360 / items.length;
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  return isMobile;
+}
+
+function CarouselStyles() {
+  return (
+    <style>{`
+      .enchanted-carousel-stage {
+        --carousel-card-w: clamp(200px, 50vw, 260px);
+        --carousel-card-h: clamp(130px, 32vw, 170px);
+        --carousel-radius: clamp(340px, 90vw, 480px);
+        --carousel-camera-z: clamp(-820px, -110vw, -600px);
+        --carousel-perspective: 1200px;
+        --carousel-tilt: -2deg;
+      }
+      @media (min-width: 768px) {
+        .enchanted-carousel-stage {
+          --carousel-card-w: clamp(380px, 22vw, 430px);
+          --carousel-card-h: clamp(238px, 14vw, 270px);
+          --carousel-radius: clamp(800px, 52vw, 1050px);
+          --carousel-camera-z: clamp(-980px, -48vw, -820px);
+          --carousel-perspective: clamp(1900px, 110vw, 2300px);
+          --carousel-tilt: -2deg;
+        }
+      }
+      .enchanted-ring-stage {
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
+      .enchanted-ring-card {
+        transform-style: preserve-3d;
+        transition: filter 400ms ease;
+      }
+      .enchanted-ring-card:hover { filter: brightness(1.12); }
+      @keyframes enchanted-pixel-in {
+        0% { opacity: 0; filter: blur(10px) contrast(220%) saturate(160%); transform: scale(1.06); }
+        60% { opacity: 1; filter: blur(3px) contrast(150%) saturate(120%); }
+        100% { opacity: 1; filter: none; transform: scale(1); }
+      }
+      @keyframes enchanted-pixel-out {
+        0% { opacity: 1; filter: none; }
+        100% { opacity: 0; filter: blur(12px) contrast(240%) saturate(180%); }
+      }
+      .pixel-in { image-rendering: pixelated; animation: enchanted-pixel-in 900ms steps(7,end) both; z-index: 1; }
+      .pixel-out { image-rendering: pixelated; animation: enchanted-pixel-out 900ms steps(7,end) both; z-index: 0; }
+      @keyframes enchanted-card-pop {
+        0% { opacity: 0; transform: translateZ(-400px) scale(.55); }
+        100% { opacity: 1; transform: translateZ(0) scale(1); }
+      }
+      .card-pop { animation: enchanted-card-pop 620ms cubic-bezier(.22,1,.36,1) both; }
+    `}</style>
+  );
+}
+
 export function EnchantedProjectCarousel() {
+  const isMobile = useIsMobile();
   const [angle, setAngle] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [hovering, setHovering] = useState(false);
@@ -97,6 +162,8 @@ export function EnchantedProjectCarousel() {
   const paused = selected !== null || hovering || drag.current.active;
 
   useEffect(() => {
+    if (isMobile) return undefined;
+
     let last = performance.now();
     const tick = (now: number) => {
       const dt = now - last;
@@ -108,7 +175,7 @@ export function EnchantedProjectCarousel() {
     return () => {
       if (raf.current) cancelAnimationFrame(raf.current);
     };
-  }, [paused]);
+  }, [isMobile, paused]);
 
   useEffect(() => {
     const imageIds = items.filter((i) => i.kind === "image").map((i) => i.id);
@@ -150,53 +217,41 @@ export function EnchantedProjectCarousel() {
 
   const selectedItem = selected === null ? null : items.find((i) => i.id === selected)!;
 
+  if (isMobile) {
+    return (
+      <section className="relative isolate overflow-hidden border-t border-border py-14">
+        <CarouselStyles />
+        <div className="mb-7 flex items-end justify-between px-5">
+          <div>
+            <p className="label-mono mb-2">Explore</p>
+            <h2 className="font-display text-2xl uppercase tracking-tight">Selected frames</h2>
+          </div>
+          <span className="label-mono">Swipe →</span>
+        </div>
+        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="aspect-[340/220] w-[82vw] max-w-[340px] shrink-0 snap-center text-left"
+              onClick={() => setSelected(item.id)}
+              aria-label={item.kind === "image" ? item.title : item.name}
+            >
+              <CardFace
+                item={item}
+                photoIndex={item.kind === "image" ? photo[item.id] : undefined}
+              />
+            </button>
+          ))}
+        </div>
+        <SelectedOverlay item={selectedItem} photo={photo} onClose={() => setSelected(null)} />
+      </section>
+    );
+  }
+
   return (
     <div className="relative isolate w-full overflow-hidden bg-transparent">
-      <style>{`
-        .enchanted-carousel-stage {
-          --carousel-card-w: clamp(200px, 50vw, 260px);
-          --carousel-card-h: clamp(130px, 32vw, 170px);
-          --carousel-radius: clamp(340px, 90vw, 480px);
-          --carousel-camera-z: clamp(-820px, -110vw, -600px);
-          --carousel-perspective: 1200px;
-          --carousel-tilt: -2deg;
-        }
-        @media (min-width: 768px) {
-          .enchanted-carousel-stage {
-            --carousel-card-w: clamp(380px, 22vw, 430px);
-            --carousel-card-h: clamp(238px, 14vw, 270px);
-            --carousel-radius: clamp(800px, 52vw, 1050px);
-            --carousel-camera-z: clamp(-980px, -48vw, -820px);
-            --carousel-perspective: clamp(1900px, 110vw, 2300px);
-            --carousel-tilt: -2deg;
-          }
-        }
-        .enchanted-ring-stage {
-          transform-style: preserve-3d;
-          will-change: transform;
-        }
-        .enchanted-ring-card {
-          transform-style: preserve-3d;
-          transition: filter 400ms ease;
-        }
-        .enchanted-ring-card:hover { filter: brightness(1.12); }
-        @keyframes enchanted-pixel-in {
-          0% { opacity: 0; filter: blur(10px) contrast(220%) saturate(160%); transform: scale(1.06); }
-          60% { opacity: 1; filter: blur(3px) contrast(150%) saturate(120%); }
-          100% { opacity: 1; filter: none; transform: scale(1); }
-        }
-        @keyframes enchanted-pixel-out {
-          0% { opacity: 1; filter: none; }
-          100% { opacity: 0; filter: blur(12px) contrast(240%) saturate(180%); }
-        }
-        .pixel-in { image-rendering: pixelated; animation: enchanted-pixel-in 900ms steps(7,end) both; z-index: 1; }
-        .pixel-out { image-rendering: pixelated; animation: enchanted-pixel-out 900ms steps(7,end) both; z-index: 0; }
-        @keyframes enchanted-card-pop {
-          0% { opacity: 0; transform: translateZ(-400px) scale(.55); }
-          100% { opacity: 1; transform: translateZ(0) scale(1); }
-        }
-        .card-pop { animation: enchanted-card-pop 620ms cubic-bezier(.22,1,.36,1) both; }
-      `}</style>
+      <CarouselStyles />
 
       <div
         className="enchanted-carousel-stage relative h-[56svh] min-h-[480px] max-h-[620px] w-full cursor-grab select-none active:cursor-grabbing"
@@ -251,33 +306,47 @@ export function EnchantedProjectCarousel() {
         </div>
       </div>
 
-      {selectedItem && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 px-6 backdrop-blur-xl"
-          onClick={() => setSelected(null)}
-        >
-          <div
-            className="card-pop w-full max-w-[680px]"
-            onClick={(e) => e.stopPropagation()}
-            style={{ perspective: "1200px" }}
-          >
-            <div className="aspect-[340/220] w-full">
-              <CardFace
-                item={selectedItem}
-                expanded
-                photoIndex={selectedItem.kind === "image" ? photo[selectedItem.id] : undefined}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelected(null)}
-              className="mx-auto mt-6 block rounded-full border border-border px-5 py-2 text-xs uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Close
-            </button>
-          </div>
+      <SelectedOverlay item={selectedItem} photo={photo} onClose={() => setSelected(null)} />
+    </div>
+  );
+}
+
+function SelectedOverlay({
+  item,
+  photo,
+  onClose,
+}: {
+  item: CardItem | null;
+  photo: Record<number, number>;
+  onClose: () => void;
+}) {
+  if (!item) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-5 backdrop-blur-xl"
+      onClick={onClose}
+    >
+      <div
+        className="card-pop w-full max-w-[680px]"
+        onClick={(event) => event.stopPropagation()}
+        style={{ perspective: "1200px" }}
+      >
+        <div className="aspect-[340/220] w-full">
+          <CardFace
+            item={item}
+            expanded
+            photoIndex={item.kind === "image" ? photo[item.id] : undefined}
+          />
         </div>
-      )}
+        <button
+          type="button"
+          onClick={onClose}
+          className="mx-auto mt-6 block rounded-full border border-border px-5 py-2 text-xs uppercase tracking-[0.25em] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Close
+        </button>
+      </div>
     </div>
   );
 }
@@ -319,7 +388,7 @@ function CardFace({
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4">
           <span
             className={`font-display uppercase tracking-tight text-neon ${
-              expanded ? "text-4xl" : "text-xl"
+              expanded ? "text-3xl md:text-4xl" : "text-xl"
             }`}
           >
             {item.title}
@@ -340,13 +409,17 @@ function CardFace({
       }`}
       style={{ opacity: hidden ? 0 : 1 }}
     >
-      <div className={expanded ? "p-8" : "p-5"}>
+      <div className={expanded ? "p-6 md:p-8" : "p-5"}>
         <span className="text-neon">&ldquo;</span>
-        <p className={`mt-2 leading-relaxed ${expanded ? "text-lg" : "text-[11px] leading-[1.6]"}`}>
+        <p
+          className={`mt-2 leading-relaxed ${expanded ? "text-base md:text-lg" : "text-[11px] leading-[1.6]"}`}
+        >
           {item.quote}
         </p>
       </div>
-      <div className={`flex items-center gap-3 ${expanded ? "p-8 pt-0" : "p-5 pt-0"}`}>
+      <div
+        className={`flex items-center gap-3 ${expanded ? "p-6 pt-0 md:p-8 md:pt-0" : "p-5 pt-0"}`}
+      >
         <div className="h-8 w-8 rounded-full bg-neon/20" />
         <div>
           <p className={expanded ? "text-sm font-semibold" : "text-[11px] font-semibold"}>
