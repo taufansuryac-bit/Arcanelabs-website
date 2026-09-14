@@ -75,7 +75,8 @@ test("dark-mode residual cubes remain white-silver and light-mode cubes become g
 });
 
 test("portal and footer overlap through a gradient fade without a hard separator", () => {
-  assert.match(routeSource, /-mt-\[12vh\]/);
+  assert.match(routeSource, /-mt-\[6vh\]/);
+  assert.match(routeSource, /md:-mt-\[14vh\]/);
   assert.doesNotMatch(footerSource, /border-t border-border/);
   assert.match(footerSource, /data-footer-scene/);
   assert.match(footerSource, /mask-image:linear-gradient/);
