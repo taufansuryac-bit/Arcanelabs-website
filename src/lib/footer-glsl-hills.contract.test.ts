@@ -30,9 +30,10 @@ test("footer terrain follows the reference GLSL hills profile", () => {
   assert.doesNotMatch(footerSource, /float crest =/);
 });
 
-test("footer keeps floating residue cubes and scene composition", () => {
+test("footer keeps a denser floating residue continuation and raised terrain", () => {
   assert.match(footerSource, /<Terrain dark=\{dark\} \/>/);
   assert.match(footerSource, /<ResidueVoxels dark=\{dark\} \/>/);
-  assert.match(footerSource, /const RESIDUE_COUNT = 560/);
+  assert.match(footerSource, /const RESIDUE_COUNT = 760/);
+  assert.match(footerSource, /<mesh position=\{\[0, -3\.2, -62\]\}>/);
   assert.match(footerSource, /<CameraRig \/>/);
 });
