@@ -21,8 +21,8 @@ const particleOffsets = [
   [-40, 8],
 ] as const;
 
-const flipTimes = [0, 0.16, 0.28, 0.54, 0.68, 1] as const;
-const particleTimes = [0, 0.22, 0.28, 0.34, 0.62, 0.68, 0.74, 1] as const;
+const flipTimes: number[] = [0, 0.16, 0.28, 0.54, 0.68, 1];
+const particleTimes: number[] = [0, 0.22, 0.28, 0.34, 0.62, 0.68, 0.74, 1];
 
 export function PartnerFlipGrid() {
   const sectionRef = useRef<HTMLElement | null>(null);
