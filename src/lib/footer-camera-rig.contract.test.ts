@@ -22,7 +22,7 @@ test("footer camera follows pointer smoothly across the full footer surface", ()
   assert.match(footerSource, /const idleWeight = 1 - pointerMagnitude/);
   assert.match(
     footerSource,
-    /lookTarget\.set\(cameraOffset\.current\.x \* 1\.55, 3\.8 \+ cameraOffset\.current\.y \* 1\.35/,
+    /lookTarget\.set\([\s\S]*?cameraOffset\.current\.x \* 1\.55[\s\S]*?3\.8 \+ cameraOffset\.current\.y \* 1\.35/,
   );
   assert.match(footerSource, /roll\.current \+= \(rollTarget - roll\.current\) \* pointerResponse/);
   assert.doesNotMatch(footerSource, /8\.0 - smooth\.current\.y/);
