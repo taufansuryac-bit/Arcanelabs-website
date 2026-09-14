@@ -11,7 +11,22 @@ const statements = [
   "HUF X BONKERS",
 ] as const;
 
-const GLITCH_GLYPHS = ["#", "%", "@", "/", "=", "■", "□", "▓", "▒", "░", "*", "<", ">", "+"] as const;
+const GLITCH_GLYPHS = [
+  "#",
+  "%",
+  "@",
+  "/",
+  "=",
+  "■",
+  "□",
+  "▓",
+  "▒",
+  "░",
+  "*",
+  "<",
+  ">",
+  "+",
+] as const;
 
 function clamp01(value: number) {
   return Math.min(1, Math.max(0, value));
@@ -24,7 +39,7 @@ function morphStatement(from: string, to: string, progress: number, tick: number
   if (amount >= 0.985) return to;
 
   return Array.from({ length }, (_, index) => {
-    const start = index / Math.max(1, length) * 0.46;
+    const start = (index / Math.max(1, length)) * 0.46;
     const local = clamp01((amount - start) / 0.44);
     const fromChar = from[index] ?? " ";
     const toChar = to[index] ?? " ";
