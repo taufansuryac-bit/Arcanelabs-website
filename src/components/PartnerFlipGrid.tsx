@@ -38,7 +38,9 @@ export function PartnerFlipGrid() {
           (Partners)
         </h2>
         <span className="h-2 w-2 rounded-full bg-foreground" aria-hidden />
-        <span className="label-mono justify-self-center text-foreground">2011-{String(year).slice(-2)}©</span>
+        <span className="label-mono justify-self-center text-foreground">
+          2011-{String(year).slice(-2)}©
+        </span>
         <span className="h-2 w-2 rounded-full bg-foreground" aria-hidden />
       </div>
 
@@ -47,8 +49,12 @@ export function PartnerFlipGrid() {
           <div key={partner.name} className="relative [perspective:1200px]">
             <motion.div
               initial={prefersReducedMotion ? false : { rotateY: -88, opacity: 0.45 }}
-              animate={inView ? { rotateY: 0, opacity: 1 } : undefined}
-              whileHover={prefersReducedMotion ? undefined : { rotateY: 8 }}
+              animate={
+                inView || prefersReducedMotion
+                  ? { rotateY: 0, opacity: 1 }
+                  : { rotateY: -88, opacity: 0.45 }
+              }
+              whileHover={prefersReducedMotion ? {} : { rotateY: 8 }}
               transition={{
                 duration: prefersReducedMotion ? 0 : 0.72,
                 delay: prefersReducedMotion ? 0 : index * 0.065,
@@ -80,7 +86,7 @@ export function PartnerFlipGrid() {
                             opacity: [0, 0.75, 0],
                             scale: [0.3, 1, 0.4],
                           }
-                        : undefined
+                        : { x: 0, y: 0, opacity: 0, scale: 0.3 }
                     }
                     transition={{
                       duration: 0.58,
