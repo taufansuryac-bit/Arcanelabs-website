@@ -244,11 +244,7 @@ export function EnchantedProjectCarousel() {
             </button>
           ))}
         </div>
-        <SelectedOverlay
-          item={selectedItem}
-          photo={photo}
-          onClose={() => setSelected(null)}
-        />
+        <SelectedOverlay item={selectedItem} photo={photo} onClose={() => setSelected(null)} />
       </section>
     );
   }
@@ -415,11 +411,15 @@ function CardFace({
     >
       <div className={expanded ? "p-6 md:p-8" : "p-5"}>
         <span className="text-neon">&ldquo;</span>
-        <p className={`mt-2 leading-relaxed ${expanded ? "text-base md:text-lg" : "text-[11px] leading-[1.6]"}`}>
+        <p
+          className={`mt-2 leading-relaxed ${expanded ? "text-base md:text-lg" : "text-[11px] leading-[1.6]"}`}
+        >
           {item.quote}
         </p>
       </div>
-      <div className={`flex items-center gap-3 ${expanded ? "p-6 pt-0 md:p-8 md:pt-0" : "p-5 pt-0"}`}>
+      <div
+        className={`flex items-center gap-3 ${expanded ? "p-6 pt-0 md:p-8 md:pt-0" : "p-5 pt-0"}`}
+      >
         <div className="h-8 w-8 rounded-full bg-neon/20" />
         <div>
           <p className={expanded ? "text-sm font-semibold" : "text-[11px] font-semibold"}>
