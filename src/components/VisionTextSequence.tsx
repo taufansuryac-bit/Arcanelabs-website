@@ -41,7 +41,10 @@ function expandFlood(source: string, repeat: number) {
     .replaceAll("-{1,}", "-----")
     .replaceAll("##{1,}", "########");
 
-  return Array.from({ length: repeat }, (_, index) => `${expanded}${index % 3 === 0 ? " + " : "   "}`).join("");
+  return Array.from(
+    { length: repeat },
+    (_, index) => `${expanded}${index % 3 === 0 ? " + " : "   "}`,
+  ).join("");
 }
 
 export function VisionTextSequence() {
@@ -57,6 +60,7 @@ export function VisionTextSequence() {
     () => floodRows.map((row) => ({ ...row, text: expandFlood(row.source, row.repeat) })),
     [],
   );
+  const activeStatement = statements[activeIndex] ?? statements[0];
 
   useMotionValueEvent(scrollYProgress, "change", (progress) => {
     const next = Math.min(statements.length - 1, Math.floor(progress * statements.length));
@@ -77,7 +81,9 @@ export function VisionTextSequence() {
         </div>
 
         <div className="absolute inset-x-0 top-7 z-20 text-center md:top-9">
-          <span className="text-[11px] font-semibold tracking-tight text-white/90">(Our Vision)</span>
+          <span className="text-[11px] font-semibold tracking-tight text-white/90">
+            (Our Vision)
+          </span>
         </div>
 
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
@@ -88,7 +94,7 @@ export function VisionTextSequence() {
               style={{ top: row.top }}
               initial={prefersReducedMotion ? false : row.direction.initial}
               animate={prefersReducedMotion ? { opacity: 0.3 } : row.direction.active}
-              exit={prefersReducedMotion ? undefined : row.direction.exit}
+              exit={prefersReducedMotion ? {} : row.direction.exit}
               transition={{
                 duration: prefersReducedMotion ? 0 : 1.05 + rowIndex * 0.08,
                 ease: [0.22, 1, 0.36, 1],
@@ -103,14 +109,19 @@ export function VisionTextSequence() {
           <div className="relative flex h-40 w-full max-w-6xl items-center justify-center md:h-56">
             <AnimatePresence initial={false} mode="sync">
               <motion.p
-                key={`${activeIndex}-${statements[activeIndex]}`}
+                key={`${activeIndex}-${activeStatement}`}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 18, filter: "blur(8px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={prefersReducedMotion ? undefined : { opacity: 0, y: -14, filter: "blur(6px)" }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.46, ease: [0.22, 1, 0.36, 1] }}
+                exit={
+                  prefersReducedMotion ? {} : { opacity: 0, y: -14, filter: "blur(6px)" }
+                }
+                transition={{
+                  duration: prefersReducedMotion ? 0 : 0.46,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
                 className="absolute inset-0 flex items-center justify-center text-center font-sans text-[clamp(2.5rem,7vw,7.5rem)] font-normal leading-[0.95] tracking-[-0.055em]"
               >
-                {statements[activeIndex]}
+                {activeStatement}
               </motion.p>
             </AnimatePresence>
           </div>
