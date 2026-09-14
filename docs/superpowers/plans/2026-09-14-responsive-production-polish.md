@@ -24,6 +24,7 @@
 ### Task 1: Add responsive/performance regression contracts
 
 **Files:**
+
 - Create: `src/lib/responsive-production-polish.contract.test.ts`
 
 - [ ] Assert carousel uses document/viewport/reduced-motion lifecycle guards and does not run autonomous RAF/timers when inactive.
@@ -36,6 +37,7 @@
 ### Task 2: Harden carousel runtime and mobile modal
 
 **Files:**
+
 - Modify: `src/components/EnchantedProjectCarousel.tsx`
 
 - [ ] Reuse `animation-runtime` visibility/document/reduced-motion observers.
@@ -47,6 +49,7 @@
 ### Task 3: Reduce motion cost without changing project design
 
 **Files:**
+
 - Modify: `src/components/ProjectConverge.tsx`
 
 - [ ] Use `useReducedMotion()`.
@@ -56,6 +59,7 @@
 ### Task 4: Narrow-mobile geometry and visual-order polish
 
 **Files:**
+
 - Modify: `src/components/IdentityConstellation.tsx`
 - Modify: `src/components/ProjectConverge.tsx`
 - Modify: `src/routes/index.tsx`
@@ -67,6 +71,7 @@
 ### Task 5: Verification and integration
 
 **Files:**
+
 - Test: all `src/lib/*.test.ts`
 
 - [ ] Run full CI: Test, Typecheck, Lint, Build.
