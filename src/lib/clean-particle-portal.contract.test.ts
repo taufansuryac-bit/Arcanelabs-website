@@ -12,7 +12,6 @@ async function readSource(relativeUrl: string) {
 
 const portal = await readSource("../components/MetaversePortalV2.tsx");
 const particleScene = await readSource("../components/ParticleDimensionScene.tsx");
-const index = await readSource("../routes/index.tsx");
 
 test("portal uses the cleaner GPU point-particle engine from the particle prototype", () => {
   assert.match(portal, /ParticleDimensionScene/);
@@ -47,6 +46,6 @@ test("final tunnel movement stays forward-only and dissolves directly into the f
 
 test("footer is already entering the viewport when the portal reaches its final frame", () => {
   assert.match(portal, /md:h-\[560vh\]/);
-  assert.match(index, /-mt-\[100svh\]/);
-  assert.match(index, /md:-mt-\[100vh\]/);
+  assert.match(portal, /-mb-\[100svh\]/);
+  assert.match(portal, /md:-mb-\[100vh\]/);
 });
