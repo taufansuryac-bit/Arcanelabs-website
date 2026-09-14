@@ -6,14 +6,23 @@ const scene = await readFile(
   new URL("../components/UnifiedVoxelDimensionScene.tsx", import.meta.url),
   "utf8",
 );
-const portal = await readFile(new URL("../components/MetaversePortalV2.tsx", import.meta.url), "utf8");
-const footer = await readFile(new URL("../components/ArcaneFooterField.tsx", import.meta.url), "utf8");
+const portal = await readFile(
+  new URL("../components/MetaversePortalV2.tsx", import.meta.url),
+  "utf8",
+);
+const footer = await readFile(
+  new URL("../components/ArcaneFooterField.tsx", import.meta.url),
+  "utf8",
+);
 const index = await readFile(new URL("../routes/index.tsx", import.meta.url), "utf8");
 
 test("three tunnel phrases stay isolated and readable instead of stacking layered ghost copy", () => {
   assert.match(scene, /text: "WE BUILD WEBSITES"[\s\S]*start: 0\.18[\s\S]*end: 0\.34/);
   assert.match(scene, /text: "WE CRAFT APPS"[\s\S]*start: 0\.42[\s\S]*end: 0\.58/);
-  assert.match(scene, /text: "STEP INTO THE DIGITAL DIMENSION"[\s\S]*start: 0\.66[\s\S]*end: 0\.82/);
+  assert.match(
+    scene,
+    /text: "STEP INTO THE DIGITAL DIMENSION"[\s\S]*start: 0\.66[\s\S]*end: 0\.82/,
+  );
   assert.doesNotMatch(scene, /ghostText/);
   assert.match(scene, /renderOrder=\{20\}/);
   assert.match(scene, /depthTest = false/);
