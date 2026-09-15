@@ -102,6 +102,7 @@ function Index() {
   const [activeWork, setActiveWork] = useState(0);
   const [ready, setReady] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navOnDarkSurface, setNavOnDarkSurface] = useState(false);
   const handleLoaderComplete = useCallback(() => setReady(true), []);
 
   useEffect(() => {
@@ -122,6 +123,33 @@ function Index() {
     };
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    const vision = document.getElementById("vision");
+    if (!vision) return;
+
+    let frame = 0;
+    const syncNavContrast = () => {
+      frame = 0;
+      const rect = vision.getBoundingClientRect();
+      const navbarProbe = Math.min(72, Math.max(44, window.innerHeight * 0.075));
+      setNavOnDarkSurface(rect.top <= navbarProbe && rect.bottom > navbarProbe);
+    };
+    const scheduleSync = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(syncNavContrast);
+    };
+
+    syncNavContrast();
+    window.addEventListener("scroll", scheduleSync, { passive: true });
+    window.addEventListener("resize", scheduleSync);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleSync);
+      window.removeEventListener("resize", scheduleSync);
+    };
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-background text-foreground">
       <ArcaneLoader onComplete={handleLoaderComplete} />
@@ -130,22 +158,32 @@ function Index() {
       <div
         className={`relative z-10 transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
       >
-        <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-transparent bg-transparent px-5 py-4 text-foreground backdrop-blur-none md:border-none md:px-8 md:py-5">
+        <header
+          className={`fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-transparent bg-transparent px-5 py-4 backdrop-blur-none transition-colors md:border-none md:px-8 md:py-5 ${
+            navOnDarkSurface ? "text-white" : "text-foreground"
+          }`}
+        >
           <a href="#top" className="group" onClick={() => setMobileMenuOpen(false)}>
             <ScrambleText
               text="ARCANE LABS"
               auto
-              className="font-mono text-xs tracking-[0.32em] text-foreground md:text-sm"
+              className={`font-mono text-xs tracking-[0.32em] md:text-sm ${
+                navOnDarkSurface ? "text-white" : "text-foreground"
+              }`}
             />
           </a>
 
           <nav className="hidden items-center gap-9 md:flex">
-            <ThemeToggle />
+            <ThemeToggle forceContrast={navOnDarkSurface} />
             {navigationItems.map((item) => (
               <a key={item} href={`#${item.toLowerCase()}`}>
                 <ScrambleText
                   text={item.toUpperCase()}
-                  className="font-mono text-[11px] tracking-[0.22em] text-foreground/70 transition-colors hover:text-foreground"
+                  className={`font-mono text-[11px] tracking-[0.22em] transition-colors ${
+                    navOnDarkSurface
+                      ? "text-white/70 hover:text-white"
+                      : "text-foreground/70 hover:text-foreground"
+                  }`}
                 />
               </a>
             ))}
@@ -153,7 +191,9 @@ function Index() {
 
           <button
             type="button"
-            className="relative flex h-10 w-10 items-center justify-center border border-border bg-transparent md:hidden"
+            className={`relative flex h-10 w-10 items-center justify-center border bg-transparent transition-colors md:hidden ${
+              navOnDarkSurface ? "border-white/20 text-white" : "border-border text-foreground"
+            }`}
             aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-navigation"
@@ -167,7 +207,7 @@ function Index() {
                 }`}
               />
               <span
-                className={`absolute left-0 bottom-0 h-px w-4 bg-current transition-transform duration-300 ${
+                className={`absolute bottom-0 left-0 h-px w-4 bg-current transition-transform duration-300 ${
                   mobileMenuOpen ? "-translate-y-[7px] -rotate-45" : ""
                 }`}
               />
@@ -294,17 +334,23 @@ function Index() {
                     />
                   </div>
                   <dl className="space-y-3 text-xs md:text-sm">
-                    <div className="flex justify-between gap-6">
-                      <dt className="label-mono">Use case</dt>
-                      <dd className="text-right">{works[activeWork]?.client}</dd>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="label-mono shrink-0">Use case</dt>
+                      <dd className="min-w-0 flex-1 text-right leading-snug [overflow-wrap:anywhere]">
+                        {works[activeWork]?.client}
+                      </dd>
                     </div>
-                    <div className="flex justify-between gap-6">
-                      <dt className="label-mono">Type</dt>
-                      <dd className="text-right">{works[activeWork]?.type}</dd>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="label-mono shrink-0">Type</dt>
+                      <dd className="min-w-0 flex-1 text-right leading-snug [overflow-wrap:anywhere]">
+                        {works[activeWork]?.type}
+                      </dd>
                     </div>
-                    <div className="flex justify-between gap-6">
-                      <dt className="label-mono">Date</dt>
-                      <dd className="text-right">{works[activeWork]?.year}</dd>
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="label-mono shrink-0">Date</dt>
+                      <dd className="min-w-0 flex-1 text-right leading-snug [overflow-wrap:anywhere]">
+                        {works[activeWork]?.year}
+                      </dd>
                     </div>
                   </dl>
                 </div>

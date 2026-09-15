@@ -166,6 +166,7 @@ function useLogoVoxels(url: string) {
       const pixels = context.getImageData(0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION).data;
       const voxels: Voxel[] = [];
       let voxelIndex = 0;
+      let sampleIndex = 0;
 
       for (let y = 0; y < VOXEL_RESOLUTION; y += 1) {
         for (let x = 0; x < VOXEL_RESOLUTION; x += 1) {
@@ -181,6 +182,11 @@ function useLogoVoxels(url: string) {
 
           const px = (x - VOXEL_RESOLUTION / 2 + 0.5) * VOXEL_GAP;
           const py = (VOXEL_RESOLUTION / 2 - y - 0.5) * VOXEL_GAP;
+          const columnRand = seeded(sampleIndex * 11.91 + 23.7);
+          const columnOrbitPhase = seeded(sampleIndex * 17.13 + 5.2) * Math.PI * 2;
+          const columnOrbitRadius =
+            columnRand < 0.035 ? 0.18 + seeded(sampleIndex * 19.7 + 2.8) * 0.24 : 0;
+
           for (let z = 0; z < VOXEL_DEPTH; z += 1) {
             const pz = (z - (VOXEL_DEPTH - 1) / 2) * VOXEL_GAP;
             const rand = seeded(voxelIndex * 11.91 + 23.7);
@@ -194,11 +200,12 @@ function useLogoVoxels(url: string) {
               ),
               rand,
               size: VOXEL_SIZE,
-              orbitPhase: seeded(voxelIndex * 17.13 + 5.2) * Math.PI * 2,
-              orbitRadius: rand < 0.08 ? 0.6 + seeded(voxelIndex * 19.7 + 2.8) * 1.25 : 0,
+              orbitPhase: columnOrbitPhase,
+              orbitRadius: columnOrbitRadius,
             });
             voxelIndex += 1;
           }
+          sampleIndex += 1;
         }
       }
 
