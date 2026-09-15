@@ -44,7 +44,7 @@ test("partner cards keep continuous alternating flips inside a visible near-back
   assert.doesNotMatch(source, /-bottom-px h-\[2px\]/);
 });
 
-test("our vision uses Arcane developer capabilities and scroll-driven character morphing", async () => {
+test("our vision uses Arcane developer capabilities and readable whole-line scroll morphing", async () => {
   assert.match(homeSource, /VisionTextSequence/);
   const problemToSystem = homeSource.indexOf("From problem to system");
   const sequence = homeSource.indexOf("<VisionTextSequence");
@@ -58,10 +58,12 @@ test("our vision uses Arcane developer capabilities and scroll-driven character 
   assert.match(source, /PRODUCT DATA/);
   assert.match(source, /AI WORKFLOWS/);
   assert.match(source, /BUSINESS TOOLS/);
-  assert.match(source, /morphStatement/);
+  assert.match(source, /buildWholeLineGlitch/);
+  assert.match(source, /WHOLE_LINE_SWITCH_START/);
   assert.match(source, /GLITCH_GLYPHS/);
   assert.match(source, /useMotionValueEvent/);
   assert.match(source, /KineticFabric/);
+  assert.doesNotMatch(source, /const start = \(index \/ Math\.max\(1, length\)\)/);
   assert.doesNotMatch(source, /AnimatePresence/);
   assert.doesNotMatch(source, /CREATE THE UNCONVENTIONAL/);
 });
