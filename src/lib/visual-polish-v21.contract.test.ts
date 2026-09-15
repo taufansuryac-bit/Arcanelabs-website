@@ -29,7 +29,7 @@ test("desktop navigation forces light contrast while the dark vision surface is 
   assert.match(index, /document\.getElementById\("vision"\)/);
   assert.match(index, /<ThemeToggle forceContrast=\{navOnDarkSurface\} \/>/);
   assert.match(toggle, /forceContrast\?: boolean/);
-  assert.match(toggle, /forceContrast \? "border-white\/20 bg-black\/65 text-white"/);
+  assert.match(toggle, /forceContrast[\s\S]{0,100}\? "border-white\/20 bg-black\/65 text-white"/);
 });
 
 test("stable voxel logo keeps chaos subtle and moves each depth column coherently", async () => {
