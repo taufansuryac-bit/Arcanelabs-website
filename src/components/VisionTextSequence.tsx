@@ -11,44 +11,41 @@ const statements = [
   "BUSINESS TOOLS",
 ] as const;
 
-const GLITCH_GLYPHS = [
-  "#",
-  "%",
-  "@",
-  "/",
-  "=",
-  "■",
-  "□",
-  "▓",
-  "▒",
-  "░",
-  "*",
-  "<",
-  ">",
-  "+",
-] as const;
+const GLITCH_GLYPHS = ["#", "%", "@", "/", "=", "■", "□", "*", "<", ">", "+"] as const;
+const WHOLE_LINE_SWITCH_START = 0.44;
+const WHOLE_LINE_SWITCH_END = 0.56;
 
 function clamp01(value: number) {
   return Math.min(1, Math.max(0, value));
 }
 
-function morphStatement(from: string, to: string, progress: number, tick: number) {
+/**
+ * Keep the sentence readable for almost the entire scroll interval. During the
+ * short transition window the entire line changes phase together, with only a
+ * restrained subset of characters glitching at once. This avoids the old
+ * left-to-right character cascade that made words unreadable.
+ */
+function buildWholeLineGlitch(from: string, to: string, progress: number, tick: number) {
   const amount = clamp01(progress);
-  const length = Math.max(from.length, to.length);
-  if (amount <= 0.015) return from;
-  if (amount >= 0.985) return to;
+  if (amount < WHOLE_LINE_SWITCH_START) return from;
+  if (amount > WHOLE_LINE_SWITCH_END) return to;
+
+  const useNext = amount >= 0.5;
+  const base = useNext ? to : from;
+  const other = useNext ? from : to;
+  const length = Math.max(base.length, other.length);
 
   return Array.from({ length }, (_, index) => {
-    const start = (index / Math.max(1, length)) * 0.46;
-    const local = clamp01((amount - start) / 0.44);
-    const fromChar = from[index] ?? " ";
-    const toChar = to[index] ?? " ";
+    const baseChar = base[index] ?? " ";
+    const otherChar = other[index] ?? " ";
+    if (baseChar === " " && otherChar === " ") return " ";
 
-    if (local < 0.24) return fromChar;
-    if (local > 0.76) return toChar;
-    if (fromChar === " " && toChar === " ") return " ";
+    // Roughly one in four characters glitches, all within the same line-wide phase.
+    const phase = (index + tick) % 4;
+    if (phase !== 0) return baseChar;
+    if (otherChar !== " " && phase === 2) return otherChar;
 
-    const glyphIndex = (index * 7 + tick * 3 + Math.floor(local * 19)) % GLITCH_GLYPHS.length;
+    const glyphIndex = (index * 5 + tick * 3) % GLITCH_GLYPHS.length;
     return GLITCH_GLYPHS[glyphIndex] ?? "#";
   }).join("");
 }
@@ -78,17 +75,19 @@ export function VisionTextSequence() {
     const localProgress = nextIndex === index ? 1 : scaled - index;
     const from = statements[index] ?? statements[0];
     const to = statements[nextIndex] ?? from;
-    const tick = Math.floor(progress * 96);
+    const tick = Math.floor(progress * 72);
 
-    setActiveIndex(index);
+    setActiveIndex(localProgress < 0.5 ? index : nextIndex);
     setMorphProgress(localProgress);
-    setDisplayText(morphStatement(from, to, localProgress, tick));
+    setDisplayText(buildWholeLineGlitch(from, to, localProgress, tick));
   });
 
   return (
     <section
+      id="vision"
       ref={sectionRef}
       aria-label="Our Vision"
+      data-nav-surface="dark"
       className="relative z-10 h-[380vh] overflow-visible bg-[#232428] text-white md:h-[420vh]"
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#232428]">
