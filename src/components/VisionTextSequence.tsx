@@ -43,7 +43,6 @@ function buildWholeLineGlitch(from: string, to: string, progress: number, tick: 
     // Roughly one in four characters glitches, all within the same line-wide phase.
     const phase = (index + tick) % 4;
     if (phase !== 0) return baseChar;
-    if (otherChar !== " " && phase === 2) return otherChar;
 
     const glyphIndex = (index * 5 + tick * 3) % GLITCH_GLYPHS.length;
     return GLITCH_GLYPHS[glyphIndex] ?? "#";
