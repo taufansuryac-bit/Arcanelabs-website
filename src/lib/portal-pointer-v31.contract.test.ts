@@ -30,8 +30,9 @@ test("pointer interaction fades through the dimensional exit instead of returnin
   assert.doesNotMatch(source, /rebuiltInteraction/);
 });
 
-test("idle logo has a visible loose-orbit population without destroying silhouette", () => {
+test("idle logo keeps a restrained coherent loose-orbit population without breaking silhouette", () => {
   assert.match(source, /orbitRadius/);
-  assert.match(source, /rand < 0\.0[6-9]/);
+  assert.match(source, /columnRand < 0\.035/);
+  assert.match(source, /columnOrbitRadius/);
   assert.match(source, /looseOrbit/);
 });
