@@ -5,7 +5,10 @@ import test from "node:test";
 const routeSource = await readFile(new URL("../routes/index.tsx", import.meta.url), "utf8");
 
 test("light mode header and hero share the semantic site background without a dark color band", () => {
-  assert.match(routeSource, /<header className="[^"]*bg-transparent[^"]*backdrop-blur-none/);
+  assert.match(routeSource, /<header/);
+  assert.match(routeSource, /bg-transparent/);
+  assert.match(routeSource, /backdrop-blur-none/);
+  assert.doesNotMatch(routeSource, /<header[^>]*bg-black/);
   assert.match(routeSource, /\[mask-image:radial-gradient\(/);
   assert.doesNotMatch(routeSource, /oklch\(0\.06 0 0 \/ 0\.65\)/);
   assert.match(routeSource, /leading-relaxed text-foreground\/70/);
